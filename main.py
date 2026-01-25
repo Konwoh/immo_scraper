@@ -37,6 +37,6 @@ print(estate)
 
 
 #TODO:
-# - parsing der einzelnen Attribute -> also rausnehmen der Einheiten
+# - besseres Error Handling und Log von Fehlern
 # - Check, ob alle properties überhaupt existieren, wenn nicht -> Log schreiben
 # - Instanziierung der gesammelten Werte in RealEstate Class eventuell mit Dependency Injection
