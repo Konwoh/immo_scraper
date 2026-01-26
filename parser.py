@@ -1,26 +1,26 @@
 from typing import Any
 from abc import ABC, abstractmethod
-from estate import RealEstate, EstateFactory, ApartmentEstate, HouseEstate
+from estate import RealEstate, EstateFactory, ApartmentEstateFactory, HouseEstateFactory, DefaultAgencyFactory
 import requests
 from helper import Measurement
 
 def read_estate_creator(estate_type: str) -> EstateFactory:
     factories = {
-        "Erdgeschosswohnung" : ApartmentEstate(),
-        "Etagenwohnung" : ApartmentEstate(),
-        "Souterrain " : ApartmentEstate(),
-        "Dachgeschoss" : ApartmentEstate(),
-        "Maisonette" : ApartmentEstate(),
-        "Terrassenwohnung" : ApartmentEstate(),
-        "Penthouse" : ApartmentEstate(),
-        "Loft" : ApartmentEstate(),
-        "Einfamilienhaus (freistehend)" : HouseEstate(),
-        "Mehrfamilienhaus" : HouseEstate(),
-        "Doppelhaushälfte" : HouseEstate(),
-        "Reihenhaus" : HouseEstate(),
-        "Bungalow" : HouseEstate(),
-        "Villa" : HouseEstate(),
-        "Bauernhaus": HouseEstate()
+        "Erdgeschosswohnung" : ApartmentEstateFactory(),
+        "Etagenwohnung" : ApartmentEstateFactory(),
+        "Souterrain " : ApartmentEstateFactory(),
+        "Dachgeschoss" : ApartmentEstateFactory(),
+        "Maisonette" : ApartmentEstateFactory(),
+        "Terrassenwohnung" : ApartmentEstateFactory(),
+        "Penthouse" : ApartmentEstateFactory(),
+        "Loft" : ApartmentEstateFactory(),
+        "Einfamilienhaus (freistehend)" : HouseEstateFactory(),
+        "Mehrfamilienhaus" : HouseEstateFactory(),
+        "Doppelhaushälfte" : HouseEstateFactory(),
+        "Reihenhaus" : HouseEstateFactory(),
+        "Bungalow" : HouseEstateFactory(),
+        "Villa" : HouseEstateFactory(),
+        "Bauernhaus": HouseEstateFactory()
     }
     
     if estate_type in factories:
@@ -75,7 +75,7 @@ class EstateParser(Parser):
 
                 elif section.get("type") == "ATTRIBUTE_LIST" and section.get("title") == "Hauptkriterien":
                     for attribute in section.get("attributes", []):
-                        if attribute.get("label") == "Haustyp:":
+                        if attribute.get("label") == "Haustyp:" or attribute.get("label") == "Wohnungstyp:":
                             data["estate_type"] = attribute.get("text")
                         elif attribute.get("label") == "Schlafzimmer:":
                             data["sleeping_rooms"] = int(attribute.get("text"))
@@ -125,17 +125,27 @@ class EstateParser(Parser):
                     data["place_description"] = section.get("text")
 
                 elif section.get("type") == "AGENTS_INFO":
+                    homepage = None
+                    for reference in section.get("references", []):
+                        if reference["label"] == "Homepage des Anbieters":
+                            homepage = reference["url"]
                     data["agency"] = {
                         "name": section.get("name"),
-                        "rating": float(section.get("rating", {}).get("value")),
-                        "rating_count": int(section.get("rating", {}).get("numberOfStars")),
+                        "rating": section.get("rating", {}).get("value"),
+                        "rating_count": section.get("rating", {}).get("numberOfStars"),
                         "address": section.get("address"),
+                        "homepage": homepage,
             }
-        except:
+        except Exception as e:
             print("Fehler bei Attribut Extraction")
-                
+            print("Exception-Typ:", type(e).__name__)
+            print("Message:", str(e))
+            print("Response URL:", response.url)
+            print("Section:", section)
+            
         factory = read_estate_creator(estate_type=data.get("estate_type", ""))
-        estate = factory.get_estate(data)
+        agency_factory = DefaultAgencyFactory()
+        estate = factory.get_estate(data, agency_factory)
         return estate
 
 class MeasurementParser(Parser):

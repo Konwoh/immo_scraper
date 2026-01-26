@@ -24,7 +24,7 @@ params = {
 }
 
 response = requests.get(
-    'https://api.mobile.immobilienscout24.de/expose/164932300',
+    'https://api.mobile.immobilienscout24.de/expose/164932299',
     params=params,
     cookies=cookies,
     headers=headers,
@@ -32,7 +32,6 @@ response = requests.get(
 
 parser = EstateParserCreator().create_parser()
 estate = parser.parse(response)
-
 print(estate)
 
 
