@@ -1,14 +1,28 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
-from helper import to_float, to_int, Measurement
+from typing import Dict, Any, List
+from helper import to_float, to_int
+from sqlalchemy import ForeignKey, create_engine, UniqueConstraint
+from sqlalchemy.orm import DeclarativeBase, declarative_mixin, Mapped, mapped_column, relationship
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
-class Agency:
-    def __init__(self, name: Optional[str], rating: Optional[float], rating_count: Optional[int], homepage: Optional[str], address: Optional[str]):
-        self.name = name
-        self.rating = rating
-        self.rating_count = rating_count
-        self.homepage = homepage
-        self.address = address
+engine = create_engine(os.environ["DB_CONNECTION_STRING"], echo=True)
+
+class Base(DeclarativeBase):
+    pass
+
+class Agency(Base):
+    __tablename__ = "agency"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(nullable=True)
+    rating: Mapped[float] = mapped_column(nullable=True)
+    rating_count: Mapped[int] = mapped_column(nullable=True)
+    homepage: Mapped[str] = mapped_column(nullable=True)
+    address: Mapped[str] = mapped_column(nullable=True)
+    houses: Mapped[List["House"]] = relationship(back_populates="agency")
+    apartments: Mapped[List["Apartment"]] = relationship(back_populates="agency")
+    
     
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(name={self.name}, rating={self.rating}, rating_count={self.rating_count}, homepage={self.homepage}, address={self.address})"
@@ -27,33 +41,33 @@ class DefaultAgencyFactory(AgencyFactory):
             homepage=params.get("homepage"),
             address=params.get("address"),
         )
-
+        
+@declarative_mixin
 class RealEstate:
-    def __init__(self, title: Optional[str], url: Optional[str], estate_type: Optional[str], price: Optional[Measurement], price_m2: Optional[Measurement], city: Optional[str], address: Optional[str], rooms: Optional[float], living_space: Optional[Measurement], sleeping_rooms: Optional[int], garage_parking_slots: Optional[int], rented: bool|str, provision: Optional[str], rent_income: Optional[Measurement], incidental_purchase_costs: Optional[str], property_acquisition_tax: Optional[str], brokerage_commission: Optional[str], notary_fees: Optional[str], land_registry_entry: Optional[str], total_costs: Optional[float], agency: Agency):
-        self.title = title
-        self.url = url
-        self.type = estate_type
-        self.price = price
-        self.price_m2 = price_m2
-        self.city = city
-        self.address = address
-        self.rooms = rooms
-        self.sleeping_rooms = sleeping_rooms
-        self.living_space = living_space
-        self.garage_parking_slots = garage_parking_slots
-        self.rented = rented
-        self.provision = provision
-        self.rent_income = rent_income
-        self.incidental_purchase_costs = incidental_purchase_costs
-        self.property_acquisition_tax = property_acquisition_tax
-        self.brokerage_commission = brokerage_commission
-        self.notary_fees = notary_fees
-        self.land_registry_entry = land_registry_entry
-        self.total_costs = total_costs
-        self.agency = agency
-    
+    title: Mapped[str] = mapped_column(nullable=True)
+    url: Mapped[str] = mapped_column(nullable=True)
+    estate_type: Mapped[str] = mapped_column(nullable=True)
+    price: Mapped[str] = mapped_column(nullable=True)
+    price_m2: Mapped[str] = mapped_column(nullable=True)
+    city: Mapped[str] = mapped_column(nullable=True)
+    address: Mapped[str] = mapped_column(nullable=True)
+    rooms: Mapped[float] = mapped_column(nullable=True)
+    sleeping_rooms: Mapped[int] = mapped_column(nullable=True)
+    living_space: Mapped[str] = mapped_column(nullable=True)
+    garage_parking_slots: Mapped[int] = mapped_column(nullable=True)
+    rented: Mapped[bool] = mapped_column(nullable=True)
+    provision: Mapped[str] = mapped_column(nullable=True)
+    rent_income: Mapped[str] = mapped_column(nullable=True)
+    incidental_purchase_costs: Mapped[str] = mapped_column(nullable=True)
+    property_acquisition_tax: Mapped[str] = mapped_column(nullable=True)
+    brokerage_commission: Mapped[str] = mapped_column(nullable=True)
+    notary_fees: Mapped[str] = mapped_column(nullable=True)
+    land_registry_entry: Mapped[str] = mapped_column(nullable=True)
+    total_costs: Mapped[float] = mapped_column(nullable=True)
+    agency_id: Mapped[int] = mapped_column(ForeignKey("agency.id"), nullable=True)
+
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(title={self.title}, price={self.price}, url={self.url}, agency={self.agency})"
+        return f"{self.__class__.__name__}(title={self.title}, price={self.price}, url={self.url})"
 
     def calculate_incidental_purchase_costs(self) -> float:
         if self.incidental_purchase_costs is not None and '%' in self.incidental_purchase_costs:
@@ -96,15 +110,19 @@ class RealEstate:
         else:
             raise Exception("No Percent Sign in String")
 
-class House(RealEstate):
-    def __init__(self, title: Optional[str], url: Optional[str], estate_type: Optional[str], price: Optional[Measurement], price_m2: Optional[Measurement], city: Optional[str], address: Optional[str], rooms: Optional[float], living_space: Optional[Measurement], property_space: Optional[Measurement], sleeping_rooms:  Optional[int], garage_parking_slots: Optional[int], rented: bool, provision: Optional[str], rent_income: Optional[Measurement], incidental_purchase_costs: Optional[str], property_acquisition_tax: Optional[str], brokerage_commission: Optional[str], notary_fees: Optional[str], land_registry_entry: Optional[str], total_costs: Optional[float], agency: Agency):
-        super().__init__(title, url, estate_type, price, price_m2, city, address, rooms, living_space, sleeping_rooms, garage_parking_slots, rented, provision, rent_income, incidental_purchase_costs, property_acquisition_tax, brokerage_commission, notary_fees, land_registry_entry, total_costs, agency)
-        self.property_space = property_space
+class House(RealEstate, Base):
+    __tablename__ = "houses"
+    __table_args__ = (UniqueConstraint("url", "title", name="uq_houses_url_title"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    property_space: Mapped[str] = mapped_column(nullable=True)
+    agency: Mapped[Agency | None] = relationship(back_populates="houses")
         
-class Apartment(RealEstate):
-    def __init__(self, title: Optional[str], url: Optional[str], estate_type: Optional[str], price: Optional[Measurement], price_m2: Optional[Measurement], city: Optional[str], address: Optional[str], rooms: Optional[float], living_space: Optional[Measurement], sleeping_rooms: Optional[int], garage_parking_slots: Optional[int], rented: bool, provision: Optional[str], rent_income: Optional[Measurement], incidental_purchase_costs: Optional[str], property_acquisition_tax: Optional[str], brokerage_commission: Optional[str], notary_fees: Optional[str], land_registry_entry: Optional[str], total_costs: Optional[float], agency: Agency):
-        super().__init__(title, url, estate_type, price, price_m2, city, address, rooms, living_space, sleeping_rooms, garage_parking_slots, rented, provision, rent_income, incidental_purchase_costs, property_acquisition_tax, brokerage_commission, notary_fees, land_registry_entry, total_costs, agency)
-        
+class Apartment(RealEstate, Base):
+    __tablename__ = "apartments"
+    __table_args__ = (UniqueConstraint("url", "title", name="uq_apartments_url_title"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    agency: Mapped[Agency | None] = relationship(back_populates="apartments")
+    
 class EstateFactory(ABC):
     @abstractmethod
     def get_estate(self, params: Dict[str, Any], agency: AgencyFactory) -> RealEstate:
@@ -162,3 +180,6 @@ class ApartmentEstateFactory(EstateFactory):
             total_costs=to_float(params.get("total_costs")),
             agency=agency.get_agency(params.get("agency", {})),
         )
+        
+if __name__ == '__main__':
+    Base.metadata.create_all(engine)

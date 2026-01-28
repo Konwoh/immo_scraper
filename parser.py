@@ -1,8 +1,7 @@
 from typing import Any
 from abc import ABC, abstractmethod
-from estate import RealEstate, EstateFactory, ApartmentEstateFactory, HouseEstateFactory, DefaultAgencyFactory
+from database import RealEstate, EstateFactory, ApartmentEstateFactory, HouseEstateFactory, DefaultAgencyFactory
 import requests
-from helper import Measurement
 
 def read_estate_creator(estate_type: str) -> EstateFactory:
     factories = {
@@ -35,9 +34,6 @@ class Parser(ABC):
 
 class EstateParser(Parser):
     
-    def __init__(self):
-        self.measurement_parser = MeasurementParserCreator().create_parser()
-    
     def parse(self, response: requests.Response) -> RealEstate:
         try:
             payload = response.json()
@@ -64,9 +60,9 @@ class EstateParser(Parser):
                         if attribute.get("label") == "Zimmer":
                             data["rooms"] = float(attribute.get("text"))
                         elif attribute.get("label") == "Wohnfläche":
-                            data["living_space"] = self.measurement_parser.parse(attribute.get("text"))
+                            data["living_space"] = attribute.get("text")
                         elif attribute.get("label") == "Grundstück":
-                            data["property_space"] = self.measurement_parser.parse(attribute.get("text"))
+                            data["property_space"] = attribute.get("text")
                 elif section.get("type") == "TITLE":
                     data["title"] = section.get("title")
                 elif section.get("type") == "MAP":
@@ -85,11 +81,11 @@ class EstateParser(Parser):
                 elif section.get("type") == "ATTRIBUTE_LIST" and section.get("title") == "Kosten":
                     for attribute in section.get("attributes", []):
                         if attribute.get("label") == "Kaufpreis:":
-                            data["price"] = self.measurement_parser.parse(attribute.get("text"))
+                            data["price"] = attribute.get("text")
                         elif attribute.get("label") == "Preis/m²:":
-                            data["price_m2"] = self.measurement_parser.parse(attribute.get("text"))
+                            data["price_m2"] = attribute.get("text")
                         elif attribute.get("label") == "Mieteinnahmen pro Monat:":
-                            data["rent_income"] = self.measurement_parser.parse(attribute.get("text"))
+                            data["rent_income"] = attribute.get("text")
 
                 elif section.get("type") == "FINANCE_COSTS":
                     data["incidental_purchase_costs"] = section.get("additionalCosts", {}).get("value")
@@ -114,7 +110,7 @@ class EstateParser(Parser):
                         elif attribute.get("label") == "Wesentliche Energieträger:":
                             data["energy_source"] = attribute.get("text")
                         elif attribute.get("label") == "Endenergiebedarf:":
-                            data["energy_demand"] = self.measurement_parser.parse(attribute.get("text"))
+                            data["energy_demand"] = attribute.get("text")
                         elif attribute.get("label") == "Energieeffizienzklasse:":
                             data["energy_efficiency_class"] = attribute.get("url")
 
@@ -148,35 +144,35 @@ class EstateParser(Parser):
         estate = factory.get_estate(data, agency_factory)
         return estate
 
-class MeasurementParser(Parser):
+# class MeasurementParser(Parser):
     
-    def parse(self, attr: Any) -> Measurement|None:
-        if attr is None or not isinstance(attr, str) or attr.strip() == "":
-            return None
+#     def parse(self, attr: Any) -> Measurement|None:
+#         if attr is None or not isinstance(attr, str) or attr.strip() == "":
+#             return None
         
-        attr = attr.strip()
+#         attr = attr.strip()
         
-        if "\xa0" in attr:
-            attr = attr.replace("\xa0", " ")
+#         if "\xa0" in attr:
+#             attr = attr.replace("\xa0", " ")
             
-        parts = attr.split(" ", 1)
+#         parts = attr.split(" ", 1)
         
-        if len(parts) == 2:
-            value_str = parts[0]
-            unit = parts[1]
-        else:
-            value_str = parts[0]
-            unit = ""
+#         if len(parts) == 2:
+#             value_str = parts[0]
+#             unit = parts[1]
+#         else:
+#             value_str = parts[0]
+#             unit = ""
         
-        try:
-            value_str_clean = value_str.replace(".", "").replace(",", ".")
-            if "." in value_str_clean:
-                value = float(value_str_clean)
-            else:
-                value = int(value_str_clean)
-            return Measurement(value=value, unit=unit)
-        except (ValueError, AttributeError):
-            return None
+#         try:
+#             value_str_clean = value_str.replace(".", "").replace(",", ".")
+#             if "." in value_str_clean:
+#                 value = float(value_str_clean)
+#             else:
+#                 value = int(value_str_clean)
+#             return Measurement(value=value, unit=unit)
+#         except (ValueError, AttributeError):
+#             return None
             
 class ParserFactory(ABC):
     
@@ -188,6 +184,6 @@ class EstateParserCreator(ParserFactory):
     def create_parser(self) -> Parser:
         return EstateParser()
 
-class MeasurementParserCreator(ParserFactory):
-    def create_parser(self) -> Parser:
-        return MeasurementParser()
+# class MeasurementParserCreator(ParserFactory):
+#     def create_parser(self) -> Parser:
+#         return MeasurementParser()

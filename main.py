@@ -1,6 +1,9 @@
 import requests
-import json
+from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from parser import EstateParserCreator
+from database import engine
+from sqlalchemy.dialects.postgresql import insert
 
 cookies = {
     'IS24VisitId': 'vid217f62bd-6a5b-4ca6-8a1b-bd4bf93c9251',
@@ -32,7 +35,16 @@ response = requests.get(
 
 parser = EstateParserCreator().create_parser()
 estate = parser.parse(response)
-print(estate)
+    
+if __name__ == '__main__':
+    with Session(engine) as session:
+        try:
+            session.add_all([estate])
+            session.commit()
+        except IntegrityError:
+            print("Estate already in DB")
+
+
 
 
 #TODO:

@@ -20,8 +20,3 @@ def to_int(v, default=""):
         return int(v)
     except (TypeError, ValueError):
         return None 
-
-@dataclass
-class Measurement:
-    value: int|float
-    unit: str
