@@ -1,16 +1,35 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Any, List
 from helper import to_float, to_int
-from sqlalchemy import ForeignKey, create_engine, UniqueConstraint
+from sqlalchemy import ForeignKey, create_engine, UniqueConstraint, DateTime, Enum
 from sqlalchemy.orm import DeclarativeBase, declarative_mixin, Mapped, mapped_column, relationship
+from sqlalchemy.sql import func
 import os
+from datetime import datetime
 from dotenv import load_dotenv
+import enum
 load_dotenv()
 
 engine = create_engine(os.environ["DB_CONNECTION_STRING"], echo=True)
 
 class Base(DeclarativeBase):
     pass
+
+class UrlStatus(enum.Enum):
+    open = "open"
+    processing = "processing"
+    done = "done"
+    failed = "failed"
+
+class UrlQueue(Base):
+    __tablename__ = "url_queue"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    url: Mapped[str] = mapped_column(nullable=False, unique=True)
+    status: Mapped[UrlStatus] = mapped_column(Enum(UrlStatus, name="url_status"), nullable=False)
+    claimed_by: Mapped[int] = mapped_column(nullable=True)
+    claimed_at: Mapped[datetime|None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
 
 class Agency(Base):
     __tablename__ = "agency"
