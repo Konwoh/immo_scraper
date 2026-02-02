@@ -1,6 +1,6 @@
-from typing import Any
+from typing import Any, List
 from abc import ABC, abstractmethod
-from database import RealEstate, EstateFactory, ApartmentEstateFactory, HouseEstateFactory, DefaultAgencyFactory
+from database import RealEstate, EstateFactory, ApartmentEstateFactory, HouseEstateFactory, DefaultAgencyFactory, UrlQueue, UrlStatus
 import requests
 
 def read_estate_creator(estate_type: str) -> EstateFactory:
@@ -29,7 +29,11 @@ def read_estate_creator(estate_type: str) -> EstateFactory:
 
 class Parser(ABC):
     @abstractmethod
-    def parse(self, response):
+    def parse(self, response) -> RealEstate:
+        pass
+    
+    @abstractmethod
+    def url_parse(self, response) -> List[UrlQueue]:
         pass
 
 class EstateParser(Parser):
@@ -143,6 +147,33 @@ class EstateParser(Parser):
         agency_factory = DefaultAgencyFactory()
         estate = factory.get_estate(data, agency_factory)
         return estate
+
+    def url_parse(self, response: requests.Response) -> List[UrlQueue]:
+        try:
+            payload = response.json()
+        except ValueError as e:
+            raise ValueError("Invalid JSON in response") from e
+        
+        url_queue_list = []
+        
+        if len(payload["resultListItems"]) > 0:
+            for item in payload["resultListItems"]:
+                if item["type"] == "EXPOSE_RESULT":
+                    id = item["item"]["id"]
+                    url_obj = UrlQueue(url=f"https://www.immobilienscout24.de/expose/{id}", status=UrlStatus.open)
+                    url_queue_list.append(url_obj)
+                elif item["type"] == "DEVELOPER_PROJECT_RESULT":
+                    id = item["item"]["id"]
+                    url_obj = UrlQueue(url=f"https://www.immobilienscout24.de/expose/{id}", status=UrlStatus.open)
+                    url_queue_list.append(url_obj)
+                else:
+                    continue
+        else:
+            raise ValueError("List has no objects")
+        
+        return url_queue_list
+
+
 
 # class MeasurementParser(Parser):
     
