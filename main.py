@@ -4,6 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from parser import EstateParserCreator
 from database import engine
 from sqlalchemy.dialects.postgresql import insert
+import crawler
 
 cookies = {
     'IS24VisitId': 'vid217f62bd-6a5b-4ca6-8a1b-bd4bf93c9251',
@@ -26,28 +27,41 @@ params = {
     'referrer': 'resultlist',
 }
 
-response = requests.get(
-    'https://api.mobile.immobilienscout24.de/expose/164932299',
-    params=params,
-    cookies=cookies,
-    headers=headers,
-)
 
-parser = EstateParserCreator().create_parser()
-estate = parser.parse(response)
+
+
+
+#response = requests.get(
+#    'https://api.mobile.immobilienscout24.de/expose/164932299',
+#    params=params,
+#    cookies=cookies,
+#    headers=headers,
+#)
+
+params = crawler.SearchParams("de", "sachsen", "leipzig", "apartment", "buy", 50)
+headers = crawler.Headers('application/json', 'ImmoScout_27.11_26.2_._', 'de-de')
+
+immo_scout_factory = crawler.create_factory("Immoscout")
+immo_scout_crawler = immo_scout_factory.create_crawler(params, headers)
+response = immo_scout_crawler.crawl()
+
+estate_parser = EstateParserCreator()
+parser = estate_parser.create_parser()
+url_queue_list = parser.url_parse(response=response)
+#estate = parser.parse(response)
     
 if __name__ == '__main__':
     with Session(engine) as session:
-        try:
-            session.add_all([estate])
-            session.commit()
-        except IntegrityError:
-            print("Estate already in DB")
-
-
+        session.add_all(url_queue_list)
+        session.commit()
+        #try:
+        #    session.add_all([estate])
+        #    session.commit()
+        #except IntegrityError:
+        #    print("Estate already in DB")
 
 
 #TODO:
 # - besseres Error Handling und Log von Fehlern
 # - Check, ob alle properties überhaupt existieren, wenn nicht -> Log schreiben
-# - Instanziierung der gesammelten Werte in RealEstate Class eventuell mit Dependency Injection
+# - Worker Class, die einzelne URLs aus DB-Tabelle rausholt
