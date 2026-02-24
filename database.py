@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 import enum
 load_dotenv()
 
-engine = create_engine(os.environ["DB_CONNECTION_STRING"], echo=True)
+engine = create_engine(os.environ["DB_CONNECTION_STRING"], echo=False)
 
 class Base(DeclarativeBase):
     pass

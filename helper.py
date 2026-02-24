@@ -1,6 +1,3 @@
-from dataclasses import dataclass
-
-
 def to_float(v, default=""):
     if v is None:
         return None

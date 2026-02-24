@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import List
 from abc import ABC, abstractmethod
 from database import RealEstate, EstateFactory, ApartmentEstateFactory, HouseEstateFactory, DefaultAgencyFactory, UrlQueue, UrlStatus
 import requests
