@@ -3,6 +3,7 @@ from parser import EstateParserCreator
 from database import engine
 from sqlalchemy.dialects.postgresql import insert
 import crawler
+from helper import Headers
 from database import UrlQueue
 import json
 import time
@@ -17,7 +18,7 @@ if __name__ == '__main__':
     numberOfPages = 10
     while currentPage <= numberOfPages:
         params = crawler.SearchParams("de", "sachsen", "leipzig", "apartment", "buy", 50, currentPage)
-        headers = crawler.Headers('application/json', 'ImmoScout_27.11_26.2_._', 'de-de')
+        headers = Headers('application/json', 'ImmoScout_27.11_26.2_._', 'de-de')
 
         immo_scout_factory = crawler.create_factory("Immoscout")
         immo_scout_crawler = immo_scout_factory.create_crawler(params, headers)

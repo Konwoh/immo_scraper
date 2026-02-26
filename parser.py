@@ -70,8 +70,9 @@ class EstateParser(Parser):
                 elif section.get("type") == "TITLE":
                     data["title"] = section.get("title")
                 elif section.get("type") == "MAP":
-                    if section.get("addressLine1") == "Die vollständige Adresse der Immobilie erhältst du vom Anbieter.":
-                        data["plz_city"] = section.get("addressLine2")
+                    data["plz_city"] = section.get("addressLine2")
+                    if section.get("addressLine1") != "Die vollständige Adresse der Immobilie erhältst du vom Anbieter.":
+                        data["address"] = section.get("addressLine1")
 
                 elif section.get("type") == "ATTRIBUTE_LIST" and section.get("title") == "Hauptkriterien":
                     for attribute in section.get("attributes", []):

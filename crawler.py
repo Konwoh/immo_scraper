@@ -2,20 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Optional, Dict
 import requests
-
-class Headers:
-    def __init__(self, accept, user_agent, accept_language) -> None:
-        self.accept = accept
-        self.user_agent = user_agent
-        self.accept_language = accept_language
-    
-    def build_header(self) -> Dict[str, str]:
-        headers = {}
-        headers["accept"] = self.accept
-        headers["user-agent"] = self.user_agent
-        headers["accept-language"] = self.accept_language
-        
-        return headers
+from helper import Headers
 
 @dataclass
 class SearchParams:
