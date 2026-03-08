@@ -2,6 +2,9 @@ from typing import List
 from abc import ABC, abstractmethod
 from database import RealEstate, EstateFactory, ApartmentEstateFactory, HouseEstateFactory, DefaultAgencyFactory, UrlQueue, UrlStatus
 import requests
+import logging
+
+scraper_logger = logging.getLogger("scraper")
 
 def read_estate_creator(estate_type: str) -> EstateFactory:
     factories = {
@@ -13,6 +16,8 @@ def read_estate_creator(estate_type: str) -> EstateFactory:
         "Terrassenwohnung" : ApartmentEstateFactory(),
         "Penthouse" : ApartmentEstateFactory(),
         "Loft" : ApartmentEstateFactory(),
+        "Hochparterre": ApartmentEstateFactory(),
+        "Sonstige": ApartmentEstateFactory(),
         "Einfamilienhaus (freistehend)" : HouseEstateFactory(),
         "Mehrfamilienhaus" : HouseEstateFactory(),
         "Doppelhaushälfte" : HouseEstateFactory(),
@@ -44,7 +49,11 @@ class EstateParser(Parser):
         except ValueError as e:
             raise ValueError("Invalid JSON in response") from e
         
-        if payload.get("sections") is None:
+        error = payload.get("error")
+
+        if error and "ERROR_RESOURCE_NOT_FOUND" in error:
+            raise ValueError("Estate not available anymore")
+        elif payload.get("sections") is None:
             raise ValueError("Section Key is not in JSON")
 
         data = {}
@@ -62,7 +71,10 @@ class EstateParser(Parser):
                 if section.get("type") == "TOP_ATTRIBUTES":
                     for attribute in section.get("attributes", []):
                         if attribute.get("label") == "Zimmer":
-                            data["rooms"] = float(attribute.get("text"))
+                            if "," in attribute.get("text"): 
+                                data["rooms"] = float(attribute.get("text").replace(",", "."))
+                            else:
+                                data["rooms"] = float(attribute.get("text"))
                         elif attribute.get("label") == "Wohnfläche":
                             data["living_space"] = attribute.get("text")
                         elif attribute.get("label") == "Grundstück":
@@ -138,13 +150,9 @@ class EstateParser(Parser):
                         "homepage": homepage,
             }
         except Exception as e:
-            print("Fehler bei Attribut Extraction")
-            print("Exception-Typ:", type(e).__name__)
-            print("Message:", str(e))
-            print("Response URL:", response.url)
-            print("Section:", section)
+            scraper_logger.error("Fehler bei Attribut Extraction von URL: ", response.url, "Fehler: ", str(e))
             
-        factory = read_estate_creator(estate_type=data.get("estate_type", ""))
+        factory = read_estate_creator(estate_type=data.get("estate_type", "Sonstige"))
         agency_factory = DefaultAgencyFactory()
         estate = factory.get_estate(data, agency_factory)
         return estate
@@ -173,38 +181,6 @@ class EstateParser(Parser):
             raise ValueError("List has no objects")
         
         return url_queue_list
-
-
-
-# class MeasurementParser(Parser):
-    
-#     def parse(self, attr: Any) -> Measurement|None:
-#         if attr is None or not isinstance(attr, str) or attr.strip() == "":
-#             return None
-        
-#         attr = attr.strip()
-        
-#         if "\xa0" in attr:
-#             attr = attr.replace("\xa0", " ")
-            
-#         parts = attr.split(" ", 1)
-        
-#         if len(parts) == 2:
-#             value_str = parts[0]
-#             unit = parts[1]
-#         else:
-#             value_str = parts[0]
-#             unit = ""
-        
-#         try:
-#             value_str_clean = value_str.replace(".", "").replace(",", ".")
-#             if "." in value_str_clean:
-#                 value = float(value_str_clean)
-#             else:
-#                 value = int(value_str_clean)
-#             return Measurement(value=value, unit=unit)
-#         except (ValueError, AttributeError):
-#             return None
             
 class ParserFactory(ABC):
     
@@ -215,7 +191,3 @@ class ParserFactory(ABC):
 class EstateParserCreator(ParserFactory):
     def create_parser(self) -> Parser:
         return EstateParser()
-
-# class MeasurementParserCreator(ParserFactory):
-#     def create_parser(self) -> Parser:
-#         return MeasurementParser()

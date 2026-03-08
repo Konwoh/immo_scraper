@@ -3,6 +3,14 @@ from dataclasses import dataclass
 from typing import Optional, Dict
 import requests
 from helper import Headers
+import logging
+
+crawler_logger = logging.basicConfig(
+    filename="logging/crawler.log",
+    level=logging.ERROR,
+    format="{asctime} - {levelname} - {message}",
+    style="{",
+    datefmt="%Y-%m-%d %H:%M:%S")
 
 @dataclass
 class SearchParams:

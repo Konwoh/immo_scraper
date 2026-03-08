@@ -1,13 +1,23 @@
-import concurrent.futures
 from typing import Type, Optional
 from database import UrlQueue, UrlStatus
 from sqlalchemy.orm import Session
 from sqlalchemy import select, update, create_engine
 from helper import Headers
+from parser import Parser
 import datetime
 import requests
-from parser import Parser
 import os
+import logging
+import time
+
+logging.basicConfig(
+    filename="scraper_logger/scraper.log",
+    level=logging.ERROR,
+    format="{asctime} - {levelname} - {message}",
+    style="{",
+    datefmt="%Y-%m-%d %H:%M:%S")
+
+scraper_logger = logging.getLogger("scraper")
 
 class Worker:
     
@@ -66,34 +76,42 @@ class Worker:
                 session.commit()
             except Exception:
                 session.rollback()
-                # Im Zweifelsfall loggen
+                scraper_logger.error("Finalizing the job failed: Session rollback")
                 raise
     
-    def process(self):
-        try:
-            headers = self.headers.build_header()
-            job = self.get_row()
-            if job is not None:
-                url = f"https://api.mobile.immobilienscout24.de/expose/{job["url"].split("/")[-1]}"
-                response = requests.get(url, headers=headers)
-                estate = self.estate_parser.parse(response)
-                self.finalize_job(job["id"], True, estate)
-                print("Extraction succesful")
-        except Exception as exc:
-            if job is None:
-                print(f"Processing failed: job is None: {str(exc)}")
-            else:
-                with Session(self.engine) as session:
-                    stmt = (
-                            update(self.model)
-                            .where(self.model.id == job["id"])
-                            .values(
-                                status=UrlStatus.failed,
+    def process(self, amount_rows: int):
+        counter = 0
+        while counter < amount_rows:
+            try:
+                headers = self.headers.build_header()
+                job = self.get_row()
+                if job is not None:
+                    url = f"https://api.mobile.immobilienscout24.de/expose/{job["url"].split("/")[-1]}"
+                    #url="https://api.mobile.immobilienscout24.de/expose/164276395"
+                    response = requests.get(url, headers=headers)
+                    estate = self.estate_parser.parse(response)
+                    self.finalize_job(job["id"], True, estate)
+                    time.sleep(2)
+                    counter += 1
+                    scraper_logger.info("Extraction succesful")
+
+            except Exception as exc:
+                if job is None:
+                    scraper_logger.error(f"Processing failed: job is None: {str(exc)}")
+                    counter += 1
+                else:
+                    with Session(self.engine) as session:
+                        stmt = (
+                                update(self.model)
+                                .where(self.model.id == job["id"])
+                                .values(
+                                    status=UrlStatus.failed,
+                                )
                             )
-                        )
-                    session.execute(stmt)
-                    session.commit()
-                print(f"Processing failed for job={job["id"]}, url={job["url"]}: {str(exc)}")
+                        session.execute(stmt)
+                        session.commit()
+                    scraper_logger.error(f"Processing failed for job={job["id"]}, url={job["url"]}: {str(exc)}")
+                    counter += 1
 
 from main import EstateParserCreator
 engine = create_engine(os.environ["DB_CONNECTION_STRING"], echo=False)
@@ -101,4 +119,4 @@ headers = Headers('application/json', 'ImmoScout_27.14.1_26.3_._', 'de-de')
 estate_parser = EstateParserCreator()
 parser = estate_parser.create_parser()
 worker_1 = Worker(engine, UrlQueue, headers, parser)
-worker_1.process()
+worker_1.process(amount_rows=100)
