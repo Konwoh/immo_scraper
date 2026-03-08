@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Optional, Dict
+from typing import Optional
 import requests
-from helper import Headers
+from core.helper import Headers
 import logging
 
 crawler_logger = logging.basicConfig(

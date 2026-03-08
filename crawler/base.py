@@ -1,13 +1,13 @@
 from sqlalchemy.orm import Session
-from parser import EstateParserCreator
-from database import engine
+from core.parser import EstateParserCreator
+from core.helper import Headers
+from database.models import engine, UrlQueue
 from sqlalchemy.dialects.postgresql import insert
-import crawler
-from helper import Headers
-from database import UrlQueue
+from .crawler import SearchParams, create_factory
 import json
 import time
 import logging
+
 cookies = {
     'IS24VisitId': 'vid217f62bd-6a5b-4ca6-8a1b-bd4bf93c9251',
 }
@@ -18,10 +18,10 @@ if __name__ == '__main__':
     numberOfPages = 10
     while currentPage <= numberOfPages:
         try:
-            params = crawler.SearchParams("de", "sachsen", "leipzig", "apartment", "buy", 50, currentPage)
+            params = SearchParams("de", "sachsen", "leipzig", "apartment", "buy", 50, currentPage)
             headers = Headers('application/json', 'ImmoScout_27.11_26.2_._', 'de-de')
 
-            immo_scout_factory = crawler.create_factory("Immoscout")
+            immo_scout_factory = create_factory("Immoscout")
             immo_scout_crawler = immo_scout_factory.create_crawler(params, headers)
             response = immo_scout_crawler.crawl()
             response_json = json.loads(response.text)

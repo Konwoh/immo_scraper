@@ -1,6 +1,7 @@
 from typing import List
 from abc import ABC, abstractmethod
-from database import RealEstate, EstateFactory, ApartmentEstateFactory, HouseEstateFactory, DefaultAgencyFactory, UrlQueue, UrlStatus
+from database.factory import EstateFactory, ApartmentEstateFactory, HouseEstateFactory, DefaultAgencyFactory
+from database.models import UrlQueue, UrlStatus, RealEstate
 import requests
 import logging
 

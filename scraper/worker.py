@@ -1,17 +1,16 @@
 from typing import Type, Optional
-from database import UrlQueue, UrlStatus
+from database.models import UrlQueue, UrlStatus
 from sqlalchemy.orm import Session
-from sqlalchemy import select, update, create_engine
-from helper import Headers
-from parser import Parser
+from sqlalchemy import select, update
+from core.helper import Headers
+from core.parser import Parser
 import datetime
 import requests
-import os
 import logging
 import time
 
 logging.basicConfig(
-    filename="scraper_logger/scraper.log",
+    filename="logging/scraper.log",
     level=logging.ERROR,
     format="{asctime} - {levelname} - {message}",
     style="{",
@@ -112,11 +111,3 @@ class Worker:
                         session.commit()
                     scraper_logger.error(f"Processing failed for job={job["id"]}, url={job["url"]}: {str(exc)}")
                     counter += 1
-
-from main import EstateParserCreator
-engine = create_engine(os.environ["DB_CONNECTION_STRING"], echo=False)
-headers = Headers('application/json', 'ImmoScout_27.14.1_26.3_._', 'de-de')
-estate_parser = EstateParserCreator()
-parser = estate_parser.create_parser()
-worker_1 = Worker(engine, UrlQueue, headers, parser)
-worker_1.process(amount_rows=100)
