@@ -30,7 +30,7 @@ class Worker:
         stmt = (
             select(self.model)
             .where(self.model.status == "open", self.model.claimed_at.is_(None))
-            .order_by(self.model.created_at.desc())
+            .order_by(self.model.created_at.asc())
             .with_for_update(skip_locked=True)
             .limit(1)
         )

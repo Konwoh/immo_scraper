@@ -39,7 +39,8 @@ class Agency(Base):
     address: Mapped[str] = mapped_column(nullable=True)
     houses: Mapped[List["House"]] = relationship(back_populates="agency")
     apartments: Mapped[List["Apartment"]] = relationship(back_populates="agency")
-    
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
     
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(name={self.name}, rating={self.rating}, rating_count={self.rating_count}, homepage={self.homepage}, address={self.address})"
@@ -67,7 +68,9 @@ class RealEstate:
     land_registry_entry: Mapped[str] = mapped_column(nullable=True)
     total_costs: Mapped[float] = mapped_column(nullable=True)
     agency_id: Mapped[int] = mapped_column(ForeignKey("agency.id"), nullable=True)
-
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
+    
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(title={self.title}, price={self.price}, url={self.url})"
 

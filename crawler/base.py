@@ -45,11 +45,12 @@ if __name__ == '__main__':
                 result = session.execute(stmt)
                 session.commit()
                 
-                print(f"Seite {currentPage}: {result.rowcount} von {params.listing_count} Rows wurden in die DB inserted")
+                #print(f"Seite {currentPage}: {result.rowcount} von {params.listing_count} Rows wurden in die DB inserted")
                 currentPage += 1
                 time.sleep(1)
         except Exception as exc:
             logging.error(f"Crawling failed: {str(exc)}")
+            break
             
 
 
