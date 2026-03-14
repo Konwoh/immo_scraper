@@ -8,7 +8,8 @@ Docker Commands:
 
 
 TO-DO:
-- Variierung der Suchparameter (Stand jetzt: Wohnungen in Leipzig)
+- Factory-Pattern vereinfachen
+- nicht jedes mal neue Agency generieren, wenn Estate inserted wird
 - Logging-Dashboard mit Prometheus and Grafana
 - Train various Machine Learning Models (e.g. Classification models, recommender systems, regression für preis vorhersage)
     - good deal detector

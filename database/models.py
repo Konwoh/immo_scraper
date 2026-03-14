@@ -1,9 +1,9 @@
 from typing import List
-from sqlalchemy import ForeignKey, create_engine, UniqueConstraint, DateTime, Enum
-from sqlalchemy.orm import DeclarativeBase, declarative_mixin, Mapped, mapped_column, relationship
+from sqlalchemy import ForeignKey, create_engine, UniqueConstraint, DateTime, Enum, insert
+from sqlalchemy.orm import DeclarativeBase, declarative_mixin, Mapped, mapped_column, relationship, Session
 from sqlalchemy.sql import func
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import enum
 load_dotenv()
@@ -37,7 +37,7 @@ class UrlQueue(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     url: Mapped[str] = mapped_column(nullable=False, unique=True)
     status: Mapped[UrlStatus] = mapped_column(Enum(UrlStatus, name="url_status"), nullable=False)
-    claimed_by: Mapped[int] = mapped_column(nullable=True)
+    claimed_by: Mapped[int | None] = mapped_column(nullable=True)
     claimed_at: Mapped[datetime|None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
@@ -47,7 +47,6 @@ class Agency(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(nullable=True)
     rating: Mapped[float] = mapped_column(nullable=True)
-    rating_count: Mapped[int] = mapped_column(nullable=True)
     homepage: Mapped[str] = mapped_column(nullable=True)
     address: Mapped[str] = mapped_column(nullable=True)
     houses: Mapped[List["House"]] = relationship(back_populates="agency")
@@ -56,15 +55,21 @@ class Agency(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
     
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(name={self.name}, rating={self.rating}, rating_count={self.rating_count}, homepage={self.homepage}, address={self.address})"
+        return f"{self.__class__.__name__}(name={self.name}, rating={self.rating}, homepage={self.homepage}, address={self.address})"
         
 @declarative_mixin
 class RealEstate:
-    title: Mapped[str] = mapped_column(nullable=True)
-    url: Mapped[str] = mapped_column(nullable=True)
+    title: Mapped[str] = mapped_column(nullable=False)
+    url: Mapped[str] = mapped_column(nullable=False)
     estate_type: Mapped[str] = mapped_column(nullable=True)
+    listing_type: Mapped[str] = mapped_column(nullable=True)
     price: Mapped[str] = mapped_column(nullable=True)
     price_m2: Mapped[str] = mapped_column(nullable=True)
+    rent_cold: Mapped[str] = mapped_column(nullable=True)
+    rent_complete: Mapped[str] = mapped_column(nullable=True)
+    rent_extra_costs: Mapped[str] = mapped_column(nullable=True)
+    rent_heating_costs: Mapped[str] = mapped_column(nullable=True)
+    rent_deposit: Mapped[str] = mapped_column(nullable=True)
     city: Mapped[str] = mapped_column(nullable=True)
     address: Mapped[str] = mapped_column(nullable=True)
     rooms: Mapped[float] = mapped_column(nullable=True)
@@ -79,6 +84,17 @@ class RealEstate:
     brokerage_commission: Mapped[str] = mapped_column(nullable=True)
     notary_fees: Mapped[str] = mapped_column(nullable=True)
     land_registry_entry: Mapped[str] = mapped_column(nullable=True)
+    building_year: Mapped[str] = mapped_column(nullable=True)
+    estate_condition: Mapped[str] = mapped_column(nullable=True)
+    interior_quality: Mapped[str] = mapped_column(nullable=True)
+    heating_type: Mapped[str] = mapped_column(nullable=True)
+    energy_performance_certificate_type: Mapped[str] = mapped_column(nullable=True)
+    energy_source: Mapped[str] = mapped_column(nullable=True)
+    energy_demand: Mapped[str] = mapped_column(nullable=True)
+    energy_efficiency_class: Mapped[str] = mapped_column(nullable=True)
+    general_description: Mapped[str] = mapped_column(nullable=True)
+    place_description: Mapped[str] = mapped_column(nullable=True)
+    other_description: Mapped[str] = mapped_column(nullable=True)
     total_costs: Mapped[float] = mapped_column(nullable=True)
     agency_id: Mapped[int] = mapped_column(ForeignKey("agency.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
@@ -144,3 +160,14 @@ class Apartment(RealEstate, Base):
         
 if __name__ == '__main__':
     Base.metadata.create_all(engine)
+    with Session(engine) as session:
+        session.execute(
+            insert(SearchParams), 
+            [
+                {"country": "de", "state": "sachsen", "city": "leipzig", "estate_type": "apartment", "rent_or_buy": "buy", "listing_count": 50, "page": 1, "last_used": datetime.now() - timedelta(hours=1)},
+                {"country": "de", "state": "sachsen", "city": "leipzig", "estate_type": "apartment", "rent_or_buy": "rent", "listing_count": 50, "page": 1, "last_used": datetime.now()- timedelta(hours=1)},
+                {"country": "de", "state": "sachsen", "city": "leipzig", "estate_type": "house", "rent_or_buy": "buy", "listing_count": 50, "page": 1, "last_used": datetime.now()- timedelta(hours=1)},
+                {"country": "de", "state": "sachsen", "city": "leipzig", "estate_type": "house", "rent_or_buy": "rent", "listing_count": 50, "page": 1, "last_used": datetime.now()- timedelta(hours=1)},
+            ]
+        )
+        session.commit()

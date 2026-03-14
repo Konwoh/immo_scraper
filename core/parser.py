@@ -104,6 +104,16 @@ class EstateParser(Parser):
                             data["price_m2"] = attribute.get("text")
                         elif attribute.get("label") == "Mieteinnahmen pro Monat:":
                             data["rent_income"] = attribute.get("text")
+                        elif attribute.get("label") == "Kaltmiete (zzgl. Nebenkosten):":
+                            data["rent_cold"] = attribute.get("text")
+                        elif attribute.get("label") == "Gesamtmiete:":
+                            data["rent_complete"] = attribute.get("text")
+                        elif attribute.get("label") == "Nebenkosten:":
+                            data["rent_extra_costs"] = attribute.get("text")
+                        elif attribute.get("label") == "Heizkosten:":
+                            data["rent_heating_costs"] = attribute.get("text")
+                        elif attribute.get("label") == "Kaution oder Genossenschaftsanteile:":
+                            data["rent_deposit"] = attribute.get("text")
 
                 elif section.get("type") == "FINANCE_COSTS":
                     data["incidental_purchase_costs"] = section.get("additionalCosts", {}).get("value")
@@ -118,7 +128,7 @@ class EstateParser(Parser):
                         if attribute.get("label") == "Baujahr:":
                             data["building_year"] = attribute.get("text")
                         elif attribute.get("label") == "Objektzustand:":
-                            data["estate_condtion"] = attribute.get("text")
+                            data["estate_condition"] = attribute.get("text")
                         elif attribute.get("label") == "Qualität der Ausstattung:":
                             data["interior_quality"] = attribute.get("text")
                         elif attribute.get("label") == "Heizungsart:":
@@ -138,6 +148,9 @@ class EstateParser(Parser):
                 elif section.get("type") == "TEXT_AREA" and section.get("title") == "Lage":
                     data["place_description"] = section.get("text")
 
+                elif section.get("type") == "TEXT_AREA" and section.get("title") == "Sonstiges":
+                    data["other_description"] = section.get("text")
+
                 elif section.get("type") == "AGENTS_INFO":
                     homepage = None
                     for reference in section.get("references", []):
@@ -146,10 +159,13 @@ class EstateParser(Parser):
                     data["agency"] = {
                         "name": section.get("name"),
                         "rating": section.get("rating", {}).get("value"),
-                        "rating_count": section.get("rating", {}).get("numberOfStars"),
                         "address": section.get("address"),
                         "homepage": homepage,
             }
+            immotype = payload.get("adTargetingParameters", {}).get("obj_immotype")
+            if immotype:
+                data["listing_type"] = immotype
+                    
         except Exception as e:
             scraper_logger.error("Fehler bei Attribut Extraction von URL: ", response.url, "Fehler: ", str(e))
             
