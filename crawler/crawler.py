@@ -4,6 +4,7 @@ from typing import Optional
 import requests
 from core.helper import Headers
 import logging
+from database.models import SearchParams
 
 crawler_logger = logging.basicConfig(
     filename="logging/crawler.log",
@@ -11,17 +12,6 @@ crawler_logger = logging.basicConfig(
     format="{asctime} - {levelname} - {message}",
     style="{",
     datefmt="%Y-%m-%d %H:%M:%S")
-
-@dataclass
-class SearchParams:
-    country: str
-    state: str
-    city: str
-    estate_type: str
-    rent_or_buy: str
-    listing_count: int
-    page: int
-    plz: Optional[str] = None
 
 # Implementation of concrete Crawler
 class BaseCrawler(ABC):
@@ -41,10 +31,10 @@ class BaseCrawler(ABC):
         ...
 
 class ImmoScoutCrawler(BaseCrawler):
-    def __init__(self, country: str, state: str, city:str, plz: Optional[str], listing_count: int, estate_type: str, rent_or_buy: str, page: int, headers: Headers):
+    def __init__(self, country: str, state: str, city:str, zip_code: Optional[str], listing_count: int, estate_type: str, rent_or_buy: str, page: int, headers: Headers):
         super().__init__(country, city, listing_count, page, headers)
         self.state = state
-        self.plz = plz
+        self.zip_code = zip_code
         self.estate_type = estate_type
         self.rent_or_buy = rent_or_buy
 
@@ -80,7 +70,7 @@ class CrawlerFactory(ABC):
 
 class ImmoScoutCrawlerFactory(CrawlerFactory):
     def create_crawler(self, params: SearchParams, header: Headers) -> BaseCrawler:
-        return ImmoScoutCrawler(params.country, params.state, params.city, params.plz, params.listing_count, params.estate_type, params.rent_or_buy, params.page, header)
+        return ImmoScoutCrawler(params.country, params.state, params.city, params.zip_code, params.listing_count, params.estate_type, params.rent_or_buy, params.page, header)
     
 class ImmoWeltCrawlerFactory(CrawlerFactory):
     def create_crawler(self, params: SearchParams, header: Headers) -> BaseCrawler:

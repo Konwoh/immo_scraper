@@ -1,9 +1,11 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 from core.parser import EstateParserCreator
 from core.helper import Headers
-from database.models import engine, UrlQueue
+from database.models import engine, UrlQueue, SearchParams
 from sqlalchemy.dialects.postgresql import insert
-from .crawler import SearchParams, create_factory
+from .crawler import create_factory
+from datetime import datetime
 import json
 import time
 import logging
@@ -13,47 +15,73 @@ cookies = {
 }
 
 
-if __name__ == '__main__':
-    currentPage = 1
-    numberOfPages = 10
-    while currentPage <= numberOfPages:
-        try:
-            params = SearchParams("de", "sachsen", "leipzig", "apartment", "buy", 50, currentPage)
-            headers = Headers('application/json', 'ImmoScout_27.11_26.2_._', 'de-de')
+def main():
+    try:
+        currentPage = 1
+        numberOfPages = 10
+        with Session(engine) as session:
+            
+            param = session.execute(
+                select(SearchParams)
+                .order_by(SearchParams.last_used.asc().nullsfirst())
+                .limit(1)
+                .with_for_update(skip_locked=True)
+            ).scalar_one_or_none()
+            
+            if param is None:
+                session.rollback()
+                logging.error("No search params available")
+                return   
+            
+            completed = True
+            
+            while currentPage <= numberOfPages:
+                try:
+                    headers = Headers('application/json', 'ImmoScout_27.11_26.2_._', 'de-de')
 
-            immo_scout_factory = create_factory("Immoscout")
-            immo_scout_crawler = immo_scout_factory.create_crawler(params, headers)
-            response = immo_scout_crawler.crawl()
-            response_json = json.loads(response.text)
-            numberOfPages = response_json["numberOfPages"]
+                    param.page = currentPage
+                    immo_scout_factory = create_factory("Immoscout")
+                    immo_scout_crawler = immo_scout_factory.create_crawler(param, headers)
+                    response = immo_scout_crawler.crawl()
+                    response_json = json.loads(response.text)
+                    numberOfPages = response_json["numberOfPages"]
 
-
-            estate_parser = EstateParserCreator()
-            parser = estate_parser.create_parser()
-            url_queue_list = parser.url_parse(response=response)
-            with Session(engine) as session:
-                values = [
-                            {
-                                "url": obj.url,
-                                "status": obj.status,
-                            }
-                            for obj in url_queue_list
-                        ]
-
-                stmt = insert(UrlQueue).values(values).on_conflict_do_nothing(index_elements=["url"])
-
-                result = session.execute(stmt)
+                    estate_parser = EstateParserCreator()
+                    parser = estate_parser.create_parser()
+                    url_queue_list = parser.url_parse(response=response)
+                    values = [
+                                {
+                                    "url": obj.url,
+                                    "status": obj.status,
+                                }
+                                for obj in url_queue_list
+                            ]
+                    
+                    if values:
+                        stmt = insert(UrlQueue).values(values).on_conflict_do_nothing(index_elements=["url"])
+                        session.execute(stmt)
+                                
+                    currentPage += 1
+                    time.sleep(2)
+                        
+                except Exception as exc:
+                    completed = False
+                    session.rollback()
+                    logging.error(f"Crawling failed: {str(exc)}")
+                    break
+            
+            if completed:
+                param.last_used = datetime.now()
                 session.commit()
                 
-                #print(f"Seite {currentPage}: {result.rowcount} von {params.listing_count} Rows wurden in die DB inserted")
-                currentPage += 1
-                time.sleep(1)
-        except Exception as exc:
-            logging.error(f"Crawling failed: {str(exc)}")
-            break
+    except Exception as exc:
+        session.rollback()
+        logging.error(f"Error: {str(exc)}")
+
+if __name__ == '__main__':
+    main()
             
 
 
 #TODO:
-# - besseres Error Handling und Log von Fehlern
 # - Check, ob alle properties überhaupt existieren, wenn nicht -> Log schreiben

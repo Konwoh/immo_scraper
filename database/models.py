@@ -19,6 +19,19 @@ class UrlStatus(enum.Enum):
     done = "done"
     failed = "failed"
 
+class SearchParams(Base):
+    __tablename__ = "search_params"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    country: Mapped[str] = mapped_column(nullable=False)
+    state: Mapped[str] = mapped_column(nullable=False)
+    city: Mapped[str] = mapped_column(nullable=False)
+    zip_code: Mapped[str] = mapped_column(nullable=True)
+    estate_type: Mapped[str] = mapped_column(nullable=False)
+    rent_or_buy: Mapped[str] = mapped_column(nullable=False)
+    listing_count: Mapped[int] = mapped_column(nullable=False)
+    page: Mapped[int] = mapped_column(nullable=False)
+    last_used: Mapped[datetime|None] = mapped_column(DateTime, nullable=True)
+
 class UrlQueue(Base):
     __tablename__ = "url_queue"
     id: Mapped[int] = mapped_column(primary_key=True)

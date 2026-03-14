@@ -1,6 +1,11 @@
 Docker Commands:
-- scraper: docker run --env-file .env -v ${PWD}\logging:/app/logging scraper
-- crawler: docker run --env-file .env -v ${PWD}\logging:/app/logging crawler
+- scraper: 
+    - docker build -f scraper/Dockerfile -t scraper .
+    - docker run --env-file .env -v ${PWD}\logging:/app/logging scraper
+- crawler:
+    - docker build -f crawler/Dockerfile -t crawler .
+    - docker run --env-file .env -v ${PWD}\logging:/app/logging crawler
+
 
 TO-DO:
 - Variierung der Suchparameter (Stand jetzt: Wohnungen in Leipzig)
