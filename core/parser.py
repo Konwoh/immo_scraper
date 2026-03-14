@@ -11,7 +11,7 @@ def read_estate_creator(estate_type: str) -> EstateFactory:
     factories = {
         "Erdgeschosswohnung" : ApartmentEstateFactory(),
         "Etagenwohnung" : ApartmentEstateFactory(),
-        "Souterrain " : ApartmentEstateFactory(),
+        "Souterrain" : ApartmentEstateFactory(),
         "Dachgeschoss" : ApartmentEstateFactory(),
         "Maisonette" : ApartmentEstateFactory(),
         "Terrassenwohnung" : ApartmentEstateFactory(),
