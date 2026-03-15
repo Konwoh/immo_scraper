@@ -2,6 +2,7 @@ from typing import Dict, Any
 from abc import ABC, abstractmethod
 from .models import Agency, House, RealEstate, Apartment
 from core.helper import to_float, to_int
+from sqlalchemy import select
 
 class AgencyFactory(ABC):
     @abstractmethod
@@ -18,7 +19,7 @@ class DefaultAgencyFactory(AgencyFactory):
         )
 
 class EstateFactory(ABC):
-    def _base_params(self, params: Dict[str, Any], agency: AgencyFactory) -> Dict[str, Any]:
+    def _base_params(self, params: Dict[str, Any], agency: Agency | None) -> Dict[str, Any]:
         return {
             "title": params.get("title"),
             "url": params.get("url"),
@@ -57,20 +58,36 @@ class EstateFactory(ABC):
             "place_description": params.get("place_description"),
             "other_description": params.get("other_description"),
             "total_costs": to_float(params.get("total_costs")),
-            "agency": agency.get_agency(params.get("agency", {})),
+            "agency": agency,
         }
     
     @abstractmethod
-    def get_estate(self, params: Dict[str, Any], agency: AgencyFactory) -> RealEstate:
+    def get_estate(self, params: Dict[str, Any], agency: Agency | None) -> RealEstate:
         pass
 
 class HouseEstateFactory(EstateFactory):
-    def get_estate(self, params: Dict[str, Any], agency: AgencyFactory) -> House:
+    def get_estate(self, params: Dict[str, Any], agency: Agency | None) -> House:
         data = self._base_params(params, agency)
         data["property_space"] = params.get("property_space")
         return House(**data)
     
 class ApartmentEstateFactory(EstateFactory):
-    def get_estate(self, params: Dict[str, Any], agency: AgencyFactory) -> Apartment:
+    def get_estate(self, params: Dict[str, Any], agency: Agency | None) -> Apartment:
         data = self._base_params(params, agency)
         return Apartment(**data)
+
+def get_or_create_agency(session, params: Dict, agency_factory: DefaultAgencyFactory) -> Agency:
+    agency_data = params.get("agency", {})
+
+    existing_agency = session.execute(
+        select(Agency).where(
+            Agency.name == agency_data.get("name"),
+            Agency.homepage == agency_data.get("homepage"),
+        )
+    ).scalar_one_or_none()
+
+    if existing_agency is not None:
+        return existing_agency
+
+    new_agency = agency_factory.get_agency(agency_data)
+    return new_agency

@@ -1,7 +1,9 @@
 from typing import List
 from abc import ABC, abstractmethod
-from database.factory import EstateFactory, ApartmentEstateFactory, HouseEstateFactory, DefaultAgencyFactory
+from database.factory import EstateFactory, ApartmentEstateFactory, HouseEstateFactory, get_or_create_agency, DefaultAgencyFactory
 from database.models import UrlQueue, UrlStatus, RealEstate
+from sqlalchemy.orm import Session
+from database.models import engine
 import requests
 import logging
 
@@ -170,8 +172,10 @@ class EstateParser(Parser):
             scraper_logger.error("Fehler bei Attribut Extraction von URL: ", response.url, "Fehler: ", str(e))
             
         factory = read_estate_creator(estate_type=data.get("estate_type", "Sonstige"))
-        agency_factory = DefaultAgencyFactory()
-        estate = factory.get_estate(data, agency_factory)
+        with Session(engine) as session:
+            agency_factory = DefaultAgencyFactory()
+            agency = get_or_create_agency(session, data, agency_factory)
+            estate = factory.get_estate(data, agency)
         return estate
 
     def url_parse(self, response: requests.Response) -> List[UrlQueue]:
