@@ -95,8 +95,22 @@ class EstateParser(Parser):
                             data["estate_type"] = attribute.get("text")
                         elif attribute.get("label") == "Schlafzimmer:":
                             data["sleeping_rooms"] = int(attribute.get("text"))
+                        elif attribute.get("label") == "Badezimmer:":
+                            data["bathrooms"] = int(attribute.get("text"))
+                        elif attribute.get("label") == "Etage:":
+                            data["floor"] = attribute.get("text")             
+                        elif attribute.get("label") == "Garten/-mitbenutzung:":
+                            data["garden"] = True
+                        elif attribute.get("label") == "Personenaufzug:":
+                            data["lift"] = True
+                        elif attribute.get("label") == "Einbauküche:":
+                            data["fitted_kitchen"] = True
+                        elif attribute.get("label") == "Keller:":
+                            data["basement"] = True  
                         elif attribute.get("label") == "Anzahl Garage/Stellplatz:":
                             data["garage_parking_slots"] = int(attribute.get("text"))
+                        elif attribute.get("label") == "Bezugsfrei ab:":
+                            data["available_from"] = attribute.get("text")
 
                 elif section.get("type") == "ATTRIBUTE_LIST" and section.get("title") == "Kosten":
                     for attribute in section.get("attributes", []):
@@ -110,6 +124,8 @@ class EstateParser(Parser):
                             data["rent_cold"] = attribute.get("text")
                         elif attribute.get("label") == "Gesamtmiete:":
                             data["rent_complete"] = attribute.get("text")
+                        elif attribute.get("label") == "Hausgeld:":
+                            data["house_money"] = attribute.get("text")
                         elif attribute.get("label") == "Nebenkosten:":
                             data["rent_extra_costs"] = attribute.get("text")
                         elif attribute.get("label") == "Heizkosten:":
@@ -143,6 +159,8 @@ class EstateParser(Parser):
                             data["energy_demand"] = attribute.get("text")
                         elif attribute.get("label") == "Energieeffizienzklasse:":
                             data["energy_efficiency_class"] = attribute.get("url")
+                        elif attribute.get("label") == "Denkmalschutzobjekt:":
+                            data["is_monument_protected"] = True
 
                 elif section.get("type") == "TEXT_AREA" and section.get("title") == "Ausstattung":
                     data["general_description"] = section.get("text")
@@ -150,6 +168,9 @@ class EstateParser(Parser):
                 elif section.get("type") == "TEXT_AREA" and section.get("title") == "Lage":
                     data["place_description"] = section.get("text")
 
+                elif section.get("type") == "TEXT_AREA" and section.get("title") == "Objektbeschreibung":
+                    data["object_description"] = section.get("text")
+                    
                 elif section.get("type") == "TEXT_AREA" and section.get("title") == "Sonstiges":
                     data["other_description"] = section.get("text")
 
@@ -167,7 +188,23 @@ class EstateParser(Parser):
             immotype = payload.get("adTargetingParameters", {}).get("obj_immotype")
             if immotype:
                 data["listing_type"] = immotype
-                    
+            
+            zip_code = payload.get("adTargetingParameters", {}).get("obj_zipCode")
+            if zip_code:
+                data["zip_code"] = zip_code
+
+            rented = payload.get("adTargetingParameters", {}).get("obj_rented")
+            if rented:
+                data["rented"] = False if rented == "n" else True 
+
+            barrier_free = payload.get("adTargetingParameters", {}).get("obj_barrierFree")
+            if barrier_free:
+                data["barrier_free"] = False if barrier_free == "n" else True 
+                
+            internet_speed_telekom = payload.get("adTargetingParameters", {}).get("obj_telekomInternetSpeed")
+            if internet_speed_telekom:
+                data["internet_speed_telekom"] = internet_speed_telekom
+            
         except Exception as e:
             scraper_logger.error("Fehler bei Attribut Extraction von URL: ", response.url, "Fehler: ", str(e))
             
