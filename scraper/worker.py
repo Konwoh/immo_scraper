@@ -6,17 +6,10 @@ from core.helper import Headers
 from core.parser import Parser
 import datetime
 import requests
-import logging
+from core.loki_handler import get_loki_logger
 import time
 
-logging.basicConfig(
-    filename="logging/scraper.log",
-    level=logging.ERROR,
-    format="{asctime} - {levelname} - {message}",
-    style="{",
-    datefmt="%Y-%m-%d %H:%M:%S")
-
-scraper_logger = logging.getLogger("scraper")
+scraper_logger = get_loki_logger("scraper", {"app": "scraper", "env": "dev"})
 
 class Worker:
     
@@ -38,7 +31,7 @@ class Worker:
         with Session(self.engine) as session:
             job: Optional[UrlQueue] = session.execute(stmt).scalars().first()
             if job is None:
-                print("No open jobs")
+                scraper_logger.info("No open jobs")
                 return
             job.claimed_at = datetime.datetime.now()
             job.status = UrlStatus.processing
@@ -81,18 +74,19 @@ class Worker:
     def process(self, amount_rows: int):
         counter = 0
         while counter < amount_rows:
+            job = None
             try:
                 headers = self.headers.build_header()
                 job = self.get_row()
                 if job is not None:
-                    url = f"https://api.mobile.immobilienscout24.de/expose/{job["url"].split("/")[-1]}"
+                    url = f"https://api.mobile.immobilienscout24.de/expose/{job['url'].split('/')[-1]}"
                     #url="https://api.mobile.immobilienscout24.de/expose/164276395"
                     response = requests.get(url, headers=headers)
                     estate = self.estate_parser.parse(response)
                     self.finalize_job(job["id"], True, estate)
                     time.sleep(2)
                     counter += 1
-                    scraper_logger.info("Extraction succesful")
+                    scraper_logger.info("Extraction successful")
 
             except Exception as exc:
                 if job is None:
@@ -109,5 +103,7 @@ class Worker:
                             )
                         session.execute(stmt)
                         session.commit()
-                    scraper_logger.error(f"Processing failed for job={job["id"]}, url={job["url"]}: {str(exc)}")
+                    scraper_logger.error(
+                        f"Processing failed for job={job['id']}, url={job['url']}: {str(exc)}"
+                    )
                     counter += 1

@@ -1,10 +1,10 @@
 Docker Commands:
 - scraper: 
     - docker build -f scraper/Dockerfile -t scraper .
-    - docker run --env-file .env -v ${PWD}\logging:/app/logging scraper
+    - docker run --env-file .env -v ${PWD}/logging:/app/logging scraper
 - crawler:
     - docker build -f crawler/Dockerfile -t crawler .
-    - docker run --env-file .env -v ${PWD}\logging:/app/logging crawler
+    - docker run --env-file .env -v ${PWD}/logging:/app/logging crawler
 
 
 TO-DO:

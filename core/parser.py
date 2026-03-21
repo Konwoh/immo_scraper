@@ -206,7 +206,9 @@ class EstateParser(Parser):
                 data["internet_speed_telekom"] = internet_speed_telekom
             
         except Exception as e:
-            scraper_logger.error("Fehler bei Attribut Extraction von URL: ", response.url, "Fehler: ", str(e))
+            scraper_logger.error(
+                f"Fehler bei Attribut Extraction von URL {response.url}: {str(e)}"
+            )
             
         factory = read_estate_creator(estate_type=data.get("estate_type", "Sonstige"))
         with Session(engine) as session:

@@ -1,17 +1,11 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from typing import Optional
 import requests
 from core.helper import Headers
-import logging
+from core.loki_handler import get_loki_logger
 from database.models import SearchParams
 
-crawler_logger = logging.basicConfig(
-    filename="logging/crawler.log",
-    level=logging.ERROR,
-    format="{asctime} - {levelname} - {message}",
-    style="{",
-    datefmt="%Y-%m-%d %H:%M:%S")
+crawler_logger = get_loki_logger("crawler", {"app": "crawler", "env": "dev"})
 
 # Implementation of concrete Crawler
 class BaseCrawler(ABC):

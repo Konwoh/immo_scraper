@@ -5,10 +5,10 @@ from core.helper import Headers
 from database.models import engine, UrlQueue, SearchParams
 from sqlalchemy.dialects.postgresql import insert
 from .crawler import create_factory
+from .crawler import crawler_logger
 from datetime import datetime
 import json
 import time
-import logging
 
 cookies = {
     'IS24VisitId': 'vid217f62bd-6a5b-4ca6-8a1b-bd4bf93c9251',
@@ -30,7 +30,7 @@ def main():
             
             if param is None:
                 session.rollback()
-                logging.error("No search params available")
+                crawler_logger.error("No search params available")
                 return   
             
             completed = True
@@ -67,7 +67,7 @@ def main():
                 except Exception as exc:
                     completed = False
                     session.rollback()
-                    logging.error(f"Crawling failed: {str(exc)}")
+                    crawler_logger.error(f"Crawling failed: {str(exc)}")
                     break
             
             if completed:
@@ -76,7 +76,7 @@ def main():
                 
     except Exception as exc:
         session.rollback()
-        logging.error(f"Error: {str(exc)}")
+        crawler_logger.error(f"Error: {str(exc)}")
 
 if __name__ == '__main__':
     main()
