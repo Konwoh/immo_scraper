@@ -1,4 +1,9 @@
-from typing import Dict
+from typing import Dict, Callable
+import time
+from core.loki_handler import get_loki_logger
+from core.exceptions import RequestError
+
+helper_logger = get_loki_logger("helper", {"app": "helper", "env": "dev"})
 
 class Headers:
     def __init__(self, accept, user_agent, accept_language) -> None:
@@ -33,3 +38,23 @@ def to_int(v, default=""):
         return int(v)
     except (TypeError, ValueError):
         return None 
+
+def retry(function: Callable, retries: int = 3, delay: float = 1.5):
+    for attempt in range(1, retries + 1):
+        try:
+            result = function()
+            
+            if result is None:
+                raise ValueError("Function returned None")
+            
+            return result
+        except RequestError as e:
+            helper_logger.error(f"Retry attempt {attempt} of {retries} because of error: {str(e)}")
+            if attempt == retries:
+                helper_logger.error("Retry attempts exceeded")  
+                raise
+            time.sleep(delay)
+        
+        except Exception as e:
+            helper_logger.error(f"Non-retryable error: {e}")
+            raise

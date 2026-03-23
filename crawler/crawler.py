@@ -4,6 +4,7 @@ import requests
 from core.helper import Headers
 from core.loki_handler import get_loki_logger
 from database.models import SearchParams
+from core.exceptions import RequestError
 
 crawler_logger = get_loki_logger("crawler", {"app": "crawler", "env": "dev"})
 
@@ -38,8 +39,14 @@ class ImmoScoutCrawler(BaseCrawler):
     def crawl(self) -> requests.Response:
         headers = self.headers.build_header()
         url = self.build_url()
-        response = requests.post(url, headers=headers)
-        return response
+        try:
+            response = requests.post(url, headers=headers)
+            response.raise_for_status()
+            return response
+        except requests.exceptions.SSLError as e:
+            raise RequestError("SSL error during request") from e
+        except requests.RequestException as e:
+            raise RequestError(f"Request failed for URL: {url}") from e
 
 class ImmoWeltCrawler(BaseCrawler):
     def build_url(self) -> str:

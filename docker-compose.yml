@@ -29,6 +29,7 @@ services:
       command: -config.file=/etc/loki/local-config.yaml
       volumes:
         - ./loki-config.yaml:/etc/loki/local-config.yaml
+      restart: unless-stopped
     grafana:
       image: grafana/grafana:10.2.3
       container_name: grafana
@@ -39,3 +40,4 @@ services:
         - ${GRAFANA_USER_PASSWORD}
       depends_on:
         - loki
+      restart: unless-stopped

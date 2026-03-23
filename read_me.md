@@ -8,10 +8,9 @@ Docker Commands:
 
 
 TO-DO:
+- andere Immo-Seiten anschließen
 - Factory-Pattern vereinfachen
-- Logging-Dashboard mit Prometheus and Grafana
 - Train various Machine Learning Models (e.g. Classification models, recommender systems, regression für preis vorhersage)
     - good deal detector
 - Web-App
-- andere Immo-Seiten anschließen
 - generelle Datenanalyse

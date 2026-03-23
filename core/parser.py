@@ -4,6 +4,7 @@ from database.factory import EstateFactory, ApartmentEstateFactory, HouseEstateF
 from database.models import UrlQueue, UrlStatus, RealEstate
 from sqlalchemy.orm import Session
 from database.models import engine
+from core.exceptions import ParsingError
 import requests
 import logging
 
@@ -55,9 +56,9 @@ class EstateParser(Parser):
         error = payload.get("error")
 
         if error and "ERROR_RESOURCE_NOT_FOUND" in error:
-            raise ValueError("Estate not available anymore")
+            raise ParsingError("Estate not available anymore")
         elif payload.get("sections") is None:
-            raise ValueError("Section Key is not in JSON")
+            raise ParsingError("Section Key is not in JSON")
 
         data = {}
         header = payload.get("header")
@@ -68,7 +69,7 @@ class EstateParser(Parser):
             else:
                 pass
         else:
-            raise ValueError("No header found")
+            raise ParsingError("No header found")
         try:
             for section in payload.get("sections", []):
                 if section.get("type") == "TOP_ATTRIBUTES":
@@ -204,7 +205,10 @@ class EstateParser(Parser):
             internet_speed_telekom = payload.get("adTargetingParameters", {}).get("obj_telekomInternetSpeed")
             if internet_speed_telekom:
                 data["internet_speed_telekom"] = internet_speed_telekom
-            
+        
+        except ParsingError as e:
+            scraper_logger.error(f"Fehler beim Parsing von URL {response.url}: {str(e)}")
+        
         except Exception as e:
             scraper_logger.error(
                 f"Fehler bei Attribut Extraction von URL {response.url}: {str(e)}"
@@ -238,7 +242,7 @@ class EstateParser(Parser):
                 else:
                     continue
         else:
-            raise ValueError("List has no objects")
+            raise ParsingError("List has no objects")
         
         return url_queue_list
             
