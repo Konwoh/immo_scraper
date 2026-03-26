@@ -8,9 +8,12 @@ Docker Commands:
 
 
 TO-DO:
-- andere Immo-Seiten anschließen
+- ImmoWelt hinzufügen
+    - crawl() in base crawler aufnehmen
+- Hinzufügen von Grundstücken zu immoScout
 - Factory-Pattern vereinfachen
 - Train various Machine Learning Models (e.g. Classification models, recommender systems, regression für preis vorhersage)
     - good deal detector
 - Web-App
+    - Crud Fenster zum hinzufügen von search_param Kombinationen
 - generelle Datenanalyse

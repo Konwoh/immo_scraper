@@ -7,40 +7,49 @@ from sqlalchemy.dialects.postgresql import insert
 from .crawler import create_factory
 from .crawler import crawler_logger
 from datetime import datetime
-import json
 import time
 
 
 def process(param: SearchParams, currentPage: int):
-    headers = Headers('application/json', 'ImmoScout_27.11_26.2_._', 'de-de')
 
     param.page = currentPage
-    immo_scout_factory = create_factory("Immoscout")
-    immo_scout_crawler = immo_scout_factory.create_crawler(param, headers)
-    response = immo_scout_crawler.crawl()
-    response_json = json.loads(response.text)
-    numberOfPages = response_json["numberOfPages"]
+    
+    if param.site == "immoScout":
+        headers = Headers('application/json', 'ImmoScout_27.11_26.2_._', 'de-de')
+        crawler_factory = create_factory("Immoscout")
+    elif param.site == "kleinanzeigen":
+        headers = Headers('*/*', 'Kleinanzeigen/2026.12.0 (com.ebaykleinanzeigen.ebc; build:26.072.16409187; iOS 26.3.1) Alamofire/5.11.1', 'de-DE;q=1.0', 'Basic aXBob25lOmc0Wmk5cTEw')
+        crawler_factory = create_factory("Kleinanzeigen")
+    else:
+        raise ValueError(f"Unsupported site: {param.site}")
+    
+    crawler = crawler_factory.create_crawler(param, headers)
+    response, continue_flag = crawler.crawl()
 
     estate_parser = EstateParserCreator()
-    parser = estate_parser.create_parser()
-    url_queue_list = parser.url_parse(response=response)
-    values = [
-                {
-                    "url": obj.url,
-                    "status": obj.status,
-                }
-                for obj in url_queue_list
-            ]
-    return values, numberOfPages
+    parser = estate_parser.create_parser(param.site)
+    if parser is not None:
+        url_queue_list = parser.url_parse(response=response)
+        if len(url_queue_list) > 0: 
+            values = [
+                        {
+                            "url": obj.url,
+                            "status": obj.status,
+                        }
+                        for obj in url_queue_list
+                    ]
+            return values, continue_flag
+        else:
+            return url_queue_list
+    else:
+        raise ValueError("Parser is None")
 
-cookies = {
-    'IS24VisitId': 'vid217f62bd-6a5b-4ca6-8a1b-bd4bf93c9251',
-}
 
 def main():
+    session = None
     try:
         currentPage = 1
-        numberOfPages = 10
+
         with Session(engine) as session:
             
             param = session.execute(
@@ -55,12 +64,15 @@ def main():
                 crawler_logger.error("No search params available")
                 return   
             
-            while currentPage <= numberOfPages:
+            continue_flag = True
+            while continue_flag:
                 result = retry(lambda: process(param, currentPage))
                 if result is None:
                     raise RuntimeError(f"process() returned None on page {currentPage}")
+                elif result == []:
+                    break
                 
-                values, numberOfPages = result
+                values, continue_flag = result
                 
                 if values:
                     stmt = insert(UrlQueue).values(values).on_conflict_do_nothing(index_elements=["url"])

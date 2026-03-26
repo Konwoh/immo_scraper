@@ -1,4 +1,4 @@
-from typing import Dict, Callable
+from typing import Dict, Callable, Optional
 import time
 from core.loki_handler import get_loki_logger
 from core.exceptions import RequestError
@@ -6,16 +6,18 @@ from core.exceptions import RequestError
 helper_logger = get_loki_logger("helper", {"app": "helper", "env": "dev"})
 
 class Headers:
-    def __init__(self, accept, user_agent, accept_language) -> None:
+    def __init__(self, accept: str, user_agent: str, accept_language: str, authorization: Optional[str] = None) -> None:
         self.accept = accept
         self.user_agent = user_agent
         self.accept_language = accept_language
+        self.authorization = authorization
     
     def build_header(self) -> Dict[str, str]:
         headers = {}
         headers["accept"] = self.accept
         headers["user-agent"] = self.user_agent
         headers["accept-language"] = self.accept_language
+        headers["authorization"] = self.authorization
         
         return headers
 

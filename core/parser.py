@@ -45,7 +45,7 @@ class Parser(ABC):
     def url_parse(self, response) -> List[UrlQueue]:
         pass
 
-class EstateParser(Parser):
+class ImmoScoutParser(Parser):
     
     def parse(self, response: requests.Response) -> RealEstate:
         try:
@@ -245,7 +245,34 @@ class EstateParser(Parser):
             raise ParsingError("List has no objects")
         
         return url_queue_list
-            
+
+class KleinanzeigenParser(Parser):
+    
+    def parse(self, response: requests.Response) -> RealEstate:
+        return RealEstate()
+
+    def url_parse(self, response) -> List[UrlQueue]:
+        try:
+            payload = response.json()
+        except ValueError as e:
+            raise ValueError("Invalid JSON in response") from e 
+
+        url_list = payload["{http://www.ebayclassifiedsgroup.com/schema/ad/v1}ads"]["value"]["ad"]
+        
+        url_queue_list = []
+        
+        if len(url_list) > 0:
+            for url in url_list:
+                if "id" in url.keys():
+                    id = url["id"]
+                    for link_obj in url["link"]:
+                        if link_obj["rel"] == "self-public-website":
+                            url = link_obj["href"]
+                    url_obj = UrlQueue(url=url, status=UrlStatus.open)
+                    url_queue_list.append(url_obj)
+        
+        return url_queue_list
+    
 class ParserFactory(ABC):
     
     @abstractmethod
@@ -253,5 +280,10 @@ class ParserFactory(ABC):
         pass
 
 class EstateParserCreator(ParserFactory):
-    def create_parser(self) -> Parser:
-        return EstateParser()
+    def create_parser(self, site) -> Parser|None:
+        if site == "immoScout":
+            return ImmoScoutParser()
+        elif site == "kleinanzeigen":
+            return KleinanzeigenParser()
+        else:
+            raise ValueError("Site not availabe")
