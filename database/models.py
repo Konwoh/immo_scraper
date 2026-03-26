@@ -22,9 +22,11 @@ class UrlStatus(enum.Enum):
 class SearchParams(Base):
     __tablename__ = "search_params"
     id: Mapped[int] = mapped_column(primary_key=True)
+    site: Mapped[str] = mapped_column(nullable=False)
     country: Mapped[str] = mapped_column(nullable=False)
     state: Mapped[str] = mapped_column(nullable=False)
     city: Mapped[str] = mapped_column(nullable=False)
+    distance: Mapped[int] = mapped_column(nullable=True)
     zip_code: Mapped[str] = mapped_column(nullable=True)
     estate_type: Mapped[str] = mapped_column(nullable=False)
     rent_or_buy: Mapped[str] = mapped_column(nullable=False)
@@ -176,10 +178,14 @@ if __name__ == '__main__':
         session.execute(
             insert(SearchParams), 
             [
-                {"country": "de", "state": "sachsen", "city": "leipzig", "estate_type": "apartment", "rent_or_buy": "buy", "listing_count": 50, "page": 1, "last_used": datetime.now() - timedelta(hours=1)},
-                {"country": "de", "state": "sachsen", "city": "leipzig", "estate_type": "apartment", "rent_or_buy": "rent", "listing_count": 50, "page": 1, "last_used": datetime.now()- timedelta(hours=1)},
-                {"country": "de", "state": "sachsen", "city": "leipzig", "estate_type": "house", "rent_or_buy": "buy", "listing_count": 50, "page": 1, "last_used": datetime.now()- timedelta(hours=1)},
-                {"country": "de", "state": "sachsen", "city": "leipzig", "estate_type": "house", "rent_or_buy": "rent", "listing_count": 50, "page": 1, "last_used": datetime.now()- timedelta(hours=1)},
+                {"site": "immoScout", "country": "de", "state": "sachsen", "city": "leipzig", "estate_type": "apartment", "rent_or_buy": "buy", "listing_count": 50, "page": 1, "last_used": datetime.now() - timedelta(hours=1)},
+                {"site": "immoScout", "country": "de", "state": "sachsen", "city": "leipzig", "estate_type": "apartment", "rent_or_buy": "rent", "listing_count": 50, "page": 1, "last_used": datetime.now()- timedelta(hours=1)},
+                {"site": "immoScout", "country": "de", "state": "sachsen", "city": "leipzig", "estate_type": "house", "rent_or_buy": "buy", "listing_count": 50, "page": 1, "last_used": datetime.now()- timedelta(hours=1)},
+                {"site": "immoScout", "country": "de", "state": "sachsen", "city": "leipzig", "estate_type": "house", "rent_or_buy": "rent", "listing_count": 50, "page": 1, "last_used": datetime.now()- timedelta(hours=1)},
+                {"site": "kleinanzeigen", "country": "de", "state": "sachsen", "city": "leipzig", "distance": 15, "estate_type": "apartment", "rent_or_buy": "buy", "listing_count": 50, "page": 1, "last_used": datetime.now() - timedelta(hours=1)},
+                {"site": "kleinanzeigen", "country": "de", "state": "sachsen", "city": "leipzig", "distance": 15, "estate_type": "apartment", "rent_or_buy": "rent", "listing_count": 50, "page": 1, "last_used": datetime.now()- timedelta(hours=1)},
+                {"site": "kleinanzeigen", "country": "de", "state": "sachsen", "city": "leipzig", "distance": 15, "estate_type": "house", "rent_or_buy": "buy", "listing_count": 50, "page": 1, "last_used": datetime.now()- timedelta(hours=1)},
+                {"site": "kleinanzeigen", "country": "de", "state": "sachsen", "city": "leipzig", "distance": 15, "estate_type": "house", "rent_or_buy": "rent", "listing_count": 50, "page": 1, "last_used": datetime.now()- timedelta(hours=1)},
             ]
         )
         session.commit()
