@@ -8,6 +8,8 @@ Docker Commands:
 
 
 TO-DO:
+- parsing Funktion für Kleinanzeigen schreiben
+- Request aus Worker Class rausbekommen und mit in Parser Class aufnehmen
 - ImmoWelt hinzufügen
     - crawl() in base crawler aufnehmen
 - Hinzufügen von Grundstücken zu immoScout

@@ -5,6 +5,7 @@ from database.models import UrlQueue, UrlStatus, RealEstate
 from sqlalchemy.orm import Session
 from database.models import engine
 from core.exceptions import ParsingError
+from core.helper import Headers
 import requests
 import logging
 
@@ -38,6 +39,10 @@ def read_estate_creator(estate_type: str) -> EstateFactory:
 
 class Parser(ABC):
     @abstractmethod
+    def fetch(self, normal_url) -> str:
+        pass    
+    
+    @abstractmethod
     def parse(self, response) -> RealEstate:
         pass
     
@@ -46,6 +51,14 @@ class Parser(ABC):
         pass
 
 class ImmoScoutParser(Parser):
+    def fetch(self, normal_url: str) -> RealEstate:
+        headers = Headers('application/json', 'ImmoScout_27.14.1_26.3_._', 'de-de')
+        headers = headers.build_header()
+        expose_id = normal_url.split("/")[-1]
+        base_url = f'https://api.mobile.immobilienscout24.de/expose/{expose_id}'
+        response = requests.get(base_url, headers=headers)
+        estate = self.parse(response)
+        return estate
     
     def parse(self, response: requests.Response) -> RealEstate:
         try:
@@ -247,10 +260,30 @@ class ImmoScoutParser(Parser):
         return url_queue_list
 
 class KleinanzeigenParser(Parser):
+    def fetch(self, normal_url: str) -> RealEstate:
+        try:
+            headers = Headers('*/*', 'Kleinanzeigen/2026.12.0 (com.ebaykleinanzeigen.ebc; build:26.072.16409187; iOS 26.3.1) Alamofire/5.11.1', 'de-DE;q=1.0', 'Basic aXBob25lOmc0Wmk5cTEw')
+            headers = headers.build_header()
+            last_string_segment = normal_url.split("/")[-1]
+            expose_id = last_string_segment.split("-")[0]
+            base_url = f'https://api.kleinanzeigen.de/api/ads/{expose_id}'
+            response = requests.get(base_url, headers=headers)
+            estate = self.parse(response)
+            return estate
+        except Exception as e:
+            raise ParsingError(f"KleinanzeigenParser: Fehler beim building der URL: {e}")
     
     def parse(self, response: requests.Response) -> RealEstate:
-        return RealEstate()
-
+        try:
+            payload = response.json()
+        except ValueError as e:
+            raise ValueError("Invalid JSON in response") from e
+        
+        data = {}
+        data["total_costs"] = payload.get("value").get("amount").get("value")
+        
+        
+        
     def url_parse(self, response) -> List[UrlQueue]:
         try:
             payload = response.json()
@@ -276,14 +309,17 @@ class KleinanzeigenParser(Parser):
 class ParserFactory(ABC):
     
     @abstractmethod
-    def create_parser(self) -> Parser:
+    def create_parser(self, site: str) -> Parser:
         pass
 
 class EstateParserCreator(ParserFactory):
-    def create_parser(self, site) -> Parser|None:
-        if site == "immoScout":
-            return ImmoScoutParser()
-        elif site == "kleinanzeigen":
-            return KleinanzeigenParser()
-        else:
-            raise ValueError("Site not availabe")
+    def __init__(self):
+        self._parsers = {
+            "immoScout": ImmoScoutParser(),
+            "kleinanzeigen": KleinanzeigenParser(),
+        }
+
+    def create_parser(self, site) -> Parser:
+        if site in self._parsers:
+            return self._parsers[site]
+        raise ValueError("Site not available")
