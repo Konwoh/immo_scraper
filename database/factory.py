@@ -33,7 +33,7 @@ class EstateFactory(ABC):
             "rent_extra_costs": params.get("rent_extra_costs"),
             "rent_heating_costs": params.get("rent_heating_costs"),
             "rent_deposit": params.get("rent_deposit"),
-            "city": params.get("plz_city"),
+            "city": params.get("city"),
             "zip_code": params.get("zip_code"),
             "address": params.get("address"),
             "rooms": to_float(params.get("rooms")),

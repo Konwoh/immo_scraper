@@ -12,42 +12,50 @@ import logging
 scraper_logger = logging.getLogger("scraper")
 
 def read_estate_creator(estate_type: str) -> EstateFactory:
-    factories = {
-        "Erdgeschosswohnung" : ApartmentEstateFactory(),
-        "Etagenwohnung" : ApartmentEstateFactory(),
-        "Souterrain" : ApartmentEstateFactory(),
-        "Dachgeschoss" : ApartmentEstateFactory(),
-        "Maisonette" : ApartmentEstateFactory(),
-        "Terrassenwohnung" : ApartmentEstateFactory(),
-        "Penthouse" : ApartmentEstateFactory(),
-        "Loft" : ApartmentEstateFactory(),
-        "Hochparterre": ApartmentEstateFactory(),
-        "Sonstige": ApartmentEstateFactory(),
-        "Einfamilienhaus (freistehend)" : HouseEstateFactory(),
-        "Mehrfamilienhaus" : HouseEstateFactory(),
-        "Doppelhaushälfte" : HouseEstateFactory(),
-        "Reihenhaus" : HouseEstateFactory(),
-        "Bungalow" : HouseEstateFactory(),
-        "Villa" : HouseEstateFactory(),
-        "Bauernhaus": HouseEstateFactory()
+    normalized = estate_type.strip().lower()
+
+    apartment_types = {
+        "erdgeschosswohnung",
+        "etagenwohnung",
+        "souterrain",
+        "dachgeschoss",
+        "dachgeschosswohnung",
+        "maisonette",
+        "terrassenwohnung",
+        "penthouse",
+        "loft",
+        "hochparterre",
+        "sonstige",
     }
-    
-    if estate_type in factories:
-        return factories[estate_type] 
+
+    house_types = {
+        "einfamilienhaus (freistehend)",
+        "mehrfamilienhaus",
+        "doppelhaushälfte",
+        "reihenhaus",
+        "bungalow",
+        "villa",
+        "bauernhaus",
+    }
+
+    if normalized in apartment_types:
+        return ApartmentEstateFactory()
+    elif normalized in house_types:
+        return HouseEstateFactory()
     else:
         raise KeyError("No estate_type found")
 
 class Parser(ABC):
     @abstractmethod
-    def fetch(self, normal_url) -> str:
+    def fetch(self, normal_url: str) -> RealEstate:
         pass    
     
     @abstractmethod
-    def parse(self, response) -> RealEstate:
+    def parse(self, response: requests.Response) -> RealEstate:
         pass
     
     @abstractmethod
-    def url_parse(self, response) -> List[UrlQueue]:
+    def url_parse(self, response: requests.Response) -> List[UrlQueue]:
         pass
 
 class ImmoScoutParser(Parser):
@@ -99,7 +107,7 @@ class ImmoScoutParser(Parser):
                 elif section.get("type") == "TITLE":
                     data["title"] = section.get("title")
                 elif section.get("type") == "MAP":
-                    data["plz_city"] = section.get("addressLine2")
+                    data["city"] = section.get("addressLine2")
                     if section.get("addressLine1") != "Die vollständige Adresse der Immobilie erhältst du vom Anbieter.":
                         data["address"] = section.get("addressLine1")
 
@@ -197,8 +205,8 @@ class ImmoScoutParser(Parser):
                         "name": section.get("name"),
                         "rating": section.get("rating", {}).get("value"),
                         "address": section.get("address"),
-                        "homepage": homepage,
-            }
+                        "homepage": homepage,}
+
             immotype = payload.get("adTargetingParameters", {}).get("obj_immotype")
             if immotype:
                 data["listing_type"] = immotype
@@ -219,13 +227,9 @@ class ImmoScoutParser(Parser):
             if internet_speed_telekom:
                 data["internet_speed_telekom"] = internet_speed_telekom
         
-        except ParsingError as e:
-            scraper_logger.error(f"Fehler beim Parsing von URL {response.url}: {str(e)}")
-        
         except Exception as e:
-            scraper_logger.error(
-                f"Fehler bei Attribut Extraction von URL {response.url}: {str(e)}"
-            )
+            scraper_logger.error(f"Fehler bei Attribut Extraction von URL {response.url}: {str(e)}")
+            raise ParsingError(f"Fehler beim Parsing von URL {response.url}: {str(e)}")
             
         factory = read_estate_creator(estate_type=data.get("estate_type", "Sonstige"))
         with Session(engine) as session:
@@ -242,20 +246,21 @@ class ImmoScoutParser(Parser):
         
         url_queue_list = []
         
-        if len(payload["resultListItems"]) > 0:
-            for item in payload["resultListItems"]:
-                if item["type"] == "EXPOSE_RESULT":
-                    id = item["item"]["id"]
-                    url_obj = UrlQueue(url=f"https://www.immobilienscout24.de/expose/{id}", status=UrlStatus.open)
-                    url_queue_list.append(url_obj)
-                elif item["type"] == "DEVELOPER_PROJECT_RESULT":
-                    id = item["item"]["id"]
-                    url_obj = UrlQueue(url=f"https://www.immobilienscout24.de/expose/{id}", status=UrlStatus.open)
-                    url_queue_list.append(url_obj)
-                else:
-                    continue
-        else:
+        items = payload.get("resultListItems", [])
+        if not items:
             raise ParsingError("List has no objects")
+        
+        for item in items:
+            if item["type"] == "EXPOSE_RESULT":
+                id = item["item"]["id"]
+                url_obj = UrlQueue(url=f"https://www.immobilienscout24.de/expose/{id}", status=UrlStatus.open)
+                url_queue_list.append(url_obj)
+            elif item["type"] == "DEVELOPER_PROJECT_RESULT":
+                id = item["item"]["id"]
+                url_obj = UrlQueue(url=f"https://www.immobilienscout24.de/expose/{id}", status=UrlStatus.open)
+                url_queue_list.append(url_obj)
+            else:
+                continue
         
         return url_queue_list
 
@@ -266,25 +271,92 @@ class KleinanzeigenParser(Parser):
             headers = headers.build_header()
             last_string_segment = normal_url.split("/")[-1]
             expose_id = last_string_segment.split("-")[0]
-            base_url = f'https://api.kleinanzeigen.de/api/ads/{expose_id}'
+            base_url = f'https://api.kleinanzeigen.de/api/ads/{expose_id}.json'
             response = requests.get(base_url, headers=headers)
             estate = self.parse(response)
             return estate
         except Exception as e:
-            raise ParsingError(f"KleinanzeigenParser: Fehler beim building der URL: {e}")
+            raise ParsingError(f"KleinanzeigenParser: Fehler beim Fetching: {e}")
     
     def parse(self, response: requests.Response) -> RealEstate:
         try:
             payload = response.json()
+            payload = payload.get("{http://www.ebayclassifiedsgroup.com/schema/ad/v1}ad", {}).get("value")
         except ValueError as e:
             raise ValueError("Invalid JSON in response") from e
+        try:
+            data = {}
+            data["id"] = payload.get("id")
+            data["title"] = payload.get("title", {}).get("value")
+            data["url"] = f'https://www.kleinanzeigen.de/s-anzeige/{data["title"]}/{data["id"]}'
+            data["listing_type"] = payload.get("category", {}).get("localized-name", {}).get("value")
+            if payload.get("category", {}).get("localized-name", {}).get("value") == "Eigentumswohnungen":
+                data["total_costs"] = payload.get("price", {}).get("amount", {}).get("value")
+            data["description"] = payload.get("description", {}).get("value")
+            data["zip_code"] = payload.get("ad-address", {}).get("zip-code", {}).get("value")
+            data["address"] = payload.get("ad-address", {}).get("street", {}).get("value")
+            data["city"] = payload.get("ad-address", {}).get("state", {}).get("value")
+            data["status"] = payload.get("ad-status", {}).get("value")
+            data["agency"] = {"name": payload.get("company", {}).get("name")}
+            
+            for section in payload.get("attributes", {}).get("attribute", []):
+                if section["localized-label"] == "Wohnfläche":
+                    data["living_space"] = section.get("value", [])[0].get("value")
+                    data["living_space_unit"] = section.get("unit")
+                
+                elif section["localized-label"] == "Warmmiete":
+                    data["rent_complete"] = section.get("value", [])[0].get("value")
+                
+                elif section["localized-label"] == "Nebenkosten":
+                    data["rent_extra_costs"] = section.get("value", [])[0].get("value")
+                
+                elif section["localized-label"] == "Zimmer":
+                    data["rooms"] = float(section.get("value", [])[0].get("value"))
+                
+                elif section["localized-label"] == "Schlafzimmer":
+                    data["sleeping_rooms"] = int(section.get("value", [])[0].get("value"))
+                
+                elif section["localized-label"] == "Badezimmer":
+                    data["bathrooms"] = int(section.get("value", [])[0].get("value"))
+                
+                elif section["localized-label"] == "Etage":
+                    data["floor"] = section.get("value", [])[0].get("value")
+                
+                elif section["localized-label"] == "Wohnungstyp":
+                    data["estate_type"] = section.get("value", [])[0].get("localized-label")
+                    
+                elif section["localized-label"] == "Baujahr":
+                    data["building_year"] = section.get("value", [])[0].get("value")
+
+                elif section["localized-label"] == "Keller":
+                    data["basement"] = True if section.get("value", [])[0].get("value") == "true" else False
+                
+                elif section["localized-label"] == "Balkon":
+                    data["balcony"] = True if section.get("value", [])[0].get("value") == "true" else False
+                
+                elif section["localized-label"] == "Garten/-mitnutzung":
+                    data["garden"] = True if section.get("value", [])[0].get("value") == "true" else False
+                
+                elif section["localized-label"] == "Hausgeld":
+                    data["house_money"] = section.get("value", [])[0].get("value")
+                
+                elif section["localized-label"] == "Aktuell vermietet":
+                    data["rented"] = True if section.get("value", [])[0].get("value") == "true" else False
+                
+                elif section["localized-label"] == "Verfügbar ab":
+                    data["available_from"] = section.get("value", [])[0].get("value")
+        except Exception as e:
+            scraper_logger.error(f"Fehler beim Parsing von URL {response.url}: {str(e)}")
+            raise ParsingError(f"KleinanzeigenParser: Fehler beim Parsen: {e}")
         
-        data = {}
-        data["total_costs"] = payload.get("value").get("amount").get("value")
-        
-        
-        
-    def url_parse(self, response) -> List[UrlQueue]:
+        factory = read_estate_creator(estate_type=data.get("estate_type", "Sonstige"))
+        with Session(engine) as session:
+            agency_factory = DefaultAgencyFactory()
+            agency = get_or_create_agency(session, data, agency_factory)
+            estate = factory.get_estate(data, agency)
+        return estate
+    
+    def url_parse(self, response: requests.Response) -> List[UrlQueue]:
         try:
             payload = response.json()
         except ValueError as e:
@@ -295,10 +367,9 @@ class KleinanzeigenParser(Parser):
         url_queue_list = []
         
         if len(url_list) > 0:
-            for url in url_list:
-                if "id" in url.keys():
-                    id = url["id"]
-                    for link_obj in url["link"]:
+            for ad in url_list:
+                if "id" in ad.keys():
+                    for link_obj in ad["link"]:
                         if link_obj["rel"] == "self-public-website":
                             url = link_obj["href"]
                     url_obj = UrlQueue(url=url, status=UrlStatus.open)
@@ -319,7 +390,7 @@ class EstateParserCreator(ParserFactory):
             "kleinanzeigen": KleinanzeigenParser(),
         }
 
-    def create_parser(self, site) -> Parser:
+    def create_parser(self, site: str) -> Parser:
         if site in self._parsers:
             return self._parsers[site]
         raise ValueError("Site not available")

@@ -3,7 +3,7 @@ from database.models import UrlQueue, UrlStatus
 from sqlalchemy.orm import Session
 from sqlalchemy import select, update
 from core.helper import Headers
-from core.parser import Parser
+from core.parser import EstateParserCreator
 import datetime
 import requests
 from core.loki_handler import get_loki_logger
@@ -13,11 +13,9 @@ scraper_logger = get_loki_logger("scraper", {"app": "scraper", "env": "dev"})
 
 class Worker:
     
-    def __init__(self, engine, model: Type[UrlQueue], headers: Headers, estate_parser: Parser) -> None:
+    def __init__(self, engine, model: Type[UrlQueue]) -> None:
         self.engine = engine
         self.model = model
-        self.headers = headers
-        self.estate_parser = estate_parser
         
     def get_row(self):
         stmt = (
@@ -35,7 +33,12 @@ class Worker:
                 return
             job.claimed_at = datetime.datetime.now()
             job.status = UrlStatus.processing
-            result = {"id": job.id, "url": job.url}
+            if 'immobilienscout24' in job.url:
+                result = {"id": job.id, "url": job.url, "site": "immoScout"}
+            elif 'kleinanzeigen' in job.url:
+                result = {"id": job.id, "url": job.url, "site": "kleinanzeigen"}
+            else:
+                raise ValueError("Site not available")
             session.commit()
 
             return result
@@ -73,37 +76,31 @@ class Worker:
     
     def process(self, amount_rows: int):
         counter = 0
+        estate_parser_creator = EstateParserCreator()
         while counter < amount_rows:
             job = None
             try:
-                headers = self.headers.build_header()
                 job = self.get_row()
-                if job is not None:
-                    url = f"https://api.mobile.immobilienscout24.de/expose/{job['url'].split('/')[-1]}"
-                    #url="https://api.mobile.immobilienscout24.de/expose/164276395"
-                    response = requests.get(url, headers=headers)
-                    estate = self.estate_parser.parse(response)
-                    self.finalize_job(job["id"], True, estate)
-                    time.sleep(2)
-                    counter += 1
-                    scraper_logger.info("Extraction successful")
+                if job is None:
+                    scraper_logger.info("No open jobs left")
+                    break
+                
+                parser = estate_parser_creator.create_parser(job["site"])
+                estate = parser.fetch(job["url"])
+                
+                self.finalize_job(job["id"], True, estate)
+                scraper_logger.info("Extraction successful")
+                
+                counter += 1
+                time.sleep(2)
 
             except Exception as exc:
                 if job is None:
                     scraper_logger.error(f"Processing failed: job is None: {str(exc)}")
-                    counter += 1
-                else:
-                    with Session(self.engine) as session:
-                        stmt = (
-                                update(self.model)
-                                .where(self.model.id == job["id"])
-                                .values(
-                                    status=UrlStatus.failed,
-                                )
-                            )
-                        session.execute(stmt)
-                        session.commit()
-                    scraper_logger.error(
-                        f"Processing failed for job={job['id']}, url={job['url']}: {str(exc)}"
-                    )
-                    counter += 1
+                    break
+                    
+                self.finalize_job(job["id"], False)
+                scraper_logger.error(
+                    f"Processing failed for job={job['id']}, url={job['url']}: {str(exc)}"
+                )
+                counter += 1
