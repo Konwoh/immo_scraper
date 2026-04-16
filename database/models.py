@@ -13,12 +13,21 @@ engine = create_engine(os.environ["DB_CONNECTION_STRING"], echo=False)
 class Base(DeclarativeBase):
     pass
 
-class UrlStatus(enum.Enum):
+class Status(enum.Enum):
     open = "open"
     processing = "processing"
     done = "done"
     failed = "failed"
 
+class Job(Base):
+    __tablename__ = "jobs"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    job_type: Mapped[str] = mapped_column(nullable=False)
+    status: Mapped[str] = mapped_column(Enum(Status, name="job_status"), nullable=False)
+    claimed_at: Mapped[datetime|None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
+    
 class SearchParams(Base):
     __tablename__ = "search_params"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -38,7 +47,7 @@ class UrlQueue(Base):
     __tablename__ = "url_queue"
     id: Mapped[int] = mapped_column(primary_key=True)
     url: Mapped[str] = mapped_column(nullable=False, unique=True)
-    status: Mapped[UrlStatus] = mapped_column(Enum(UrlStatus, name="url_status"), nullable=False)
+    status: Mapped[Status] = mapped_column(Enum(Status, name="url_status"), nullable=False)
     claimed_by: Mapped[int | None] = mapped_column(nullable=True)
     claimed_at: Mapped[datetime|None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
