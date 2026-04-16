@@ -1,11 +1,9 @@
 from typing import Type, Optional
-from database.models import UrlQueue, UrlStatus
+from database.models import UrlQueue, Status
 from sqlalchemy.orm import Session
 from sqlalchemy import select, update
-from core.helper import Headers
 from core.parser import EstateParserCreator
 import datetime
-import requests
 from core.loki_handler import get_loki_logger
 import time
 
@@ -32,7 +30,7 @@ class Worker:
                 scraper_logger.info("No open jobs")
                 return
             job.claimed_at = datetime.datetime.now()
-            job.status = UrlStatus.processing
+            job.status = Status.processing
             if 'immobilienscout24' in job.url:
                 result = {"id": job.id, "url": job.url, "site": "immoScout"}
             elif 'kleinanzeigen' in job.url:
@@ -55,7 +53,7 @@ class Worker:
                         update(self.model)
                         .where(self.model.id == job_id)
                         .values(
-                            status=UrlStatus.done,
+                            status=Status.done,
                         )
                     )
                 else:
@@ -63,7 +61,7 @@ class Worker:
                         update(self.model)
                         .where(self.model.id == job_id)
                         .values(
-                            status=UrlStatus.failed,
+                            status=Status.failed,
                         )
                     )
 
@@ -77,6 +75,7 @@ class Worker:
     def process(self, amount_rows: int):
         counter = 0
         estate_parser_creator = EstateParserCreator()
+        parser_cache = {}
         while counter < amount_rows:
             job = None
             try:
@@ -84,8 +83,13 @@ class Worker:
                 if job is None:
                     scraper_logger.info("No open jobs left")
                     break
+                site = job["site"]
                 
-                parser = estate_parser_creator.create_parser(job["site"])
+                if site not in parser_cache:
+                    parser_cache[site] = estate_parser_creator.create_parser(site)
+
+                parser = parser_cache[site]
+                
                 estate = parser.fetch(job["url"])
                 
                 self.finalize_job(job["id"], True, estate)

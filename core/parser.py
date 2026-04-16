@@ -1,10 +1,10 @@
 from typing import List
 from abc import ABC, abstractmethod
 from database.factory import EstateFactory, ApartmentEstateFactory, HouseEstateFactory, get_or_create_agency, DefaultAgencyFactory
-from database.models import UrlQueue, UrlStatus, RealEstate
+from database.models import UrlQueue, Status, RealEstate
 from sqlalchemy.orm import Session
 from database.models import engine
-from core.exceptions import ParsingError
+from core.exceptions import ParsingError, RequestError
 from core.helper import Headers
 import requests
 import logging
@@ -26,6 +26,7 @@ def read_estate_creator(estate_type: str) -> EstateFactory:
         "loft",
         "hochparterre",
         "sonstige",
+        "Andere Wohnungstypen"
     }
 
     house_types = {
@@ -253,11 +254,11 @@ class ImmoScoutParser(Parser):
         for item in items:
             if item["type"] == "EXPOSE_RESULT":
                 id = item["item"]["id"]
-                url_obj = UrlQueue(url=f"https://www.immobilienscout24.de/expose/{id}", status=UrlStatus.open)
+                url_obj = UrlQueue(url=f"https://www.immobilienscout24.de/expose/{id}", status=Status.open)
                 url_queue_list.append(url_obj)
             elif item["type"] == "DEVELOPER_PROJECT_RESULT":
                 id = item["item"]["id"]
-                url_obj = UrlQueue(url=f"https://www.immobilienscout24.de/expose/{id}", status=UrlStatus.open)
+                url_obj = UrlQueue(url=f"https://www.immobilienscout24.de/expose/{id}", status=Status.open)
                 url_queue_list.append(url_obj)
             else:
                 continue
@@ -266,17 +267,20 @@ class ImmoScoutParser(Parser):
 
 class KleinanzeigenParser(Parser):
     def fetch(self, normal_url: str) -> RealEstate:
+        headers = Headers('*/*', 'Kleinanzeigen/2026.12.0 (com.ebaykleinanzeigen.ebc; build:26.072.16409187; iOS 26.3.1) Alamofire/5.11.1', 'de-DE;q=1.0', 'Basic aXBob25lOmc0Wmk5cTEw')
+        headers = headers.build_header()
+        last_string_segment = normal_url.split("/")[-1]
+        expose_id = last_string_segment.split("-")[0]
+        base_url = f'https://api.kleinanzeigen.de/api/ads/{expose_id}.json'
+        response = requests.get(base_url, headers=headers)
         try:
-            headers = Headers('*/*', 'Kleinanzeigen/2026.12.0 (com.ebaykleinanzeigen.ebc; build:26.072.16409187; iOS 26.3.1) Alamofire/5.11.1', 'de-DE;q=1.0', 'Basic aXBob25lOmc0Wmk5cTEw')
-            headers = headers.build_header()
-            last_string_segment = normal_url.split("/")[-1]
-            expose_id = last_string_segment.split("-")[0]
-            base_url = f'https://api.kleinanzeigen.de/api/ads/{expose_id}.json'
-            response = requests.get(base_url, headers=headers)
-            estate = self.parse(response)
-            return estate
-        except Exception as e:
-            raise ParsingError(f"KleinanzeigenParser: Fehler beim Fetching: {e}")
+            response.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            if response.status_code == 404:
+                raise RequestError(f"Inserat {base_url} nicht mehr verfügbar")
+            raise RequestError(f"Kleinanzeigen API Fehler: {e}")
+        estate = self.parse(response)
+        return estate
     
     def parse(self, response: requests.Response) -> RealEstate:
         try:
@@ -372,7 +376,7 @@ class KleinanzeigenParser(Parser):
                     for link_obj in ad["link"]:
                         if link_obj["rel"] == "self-public-website":
                             url = link_obj["href"]
-                    url_obj = UrlQueue(url=url, status=UrlStatus.open)
+                    url_obj = UrlQueue(url=url, status=Status.open)
                     url_queue_list.append(url_obj)
         
         return url_queue_list

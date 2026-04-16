@@ -45,7 +45,7 @@ def process(param: SearchParams, currentPage: int):
         raise ValueError("Parser is None")
 
 
-def main():
+def start_crawler():
     session = None
     try:
         currentPage = 1
@@ -90,9 +90,4 @@ def main():
         crawler_logger.error(f"Error: {str(exc)}")
 
 if __name__ == '__main__':
-    main()
-            
-
-
-#TODO:
-# - Check, ob alle properties überhaupt existieren, wenn nicht -> Log schreiben
+    start_crawler()
