@@ -41,3 +41,22 @@ services:
       depends_on:
         - loki
       restart: unless-stopped
+    api:
+      image: immo-api:latest
+      container_name: api
+      build:
+        context: .
+        dockerfile: core/api/Dockerfile
+      environment:
+        DB_CONNECTION_STRING: ${DB_CONNECTION_STRING}
+      ports:
+        - "8000:8000"
+    worker_loop:
+      image: immo-worker_loop:latest
+      container_name: worker_loop
+      build:
+        context: .
+        dockerfile: core/worker/Dockerfile
+      environment:
+        DB_CONNECTION_STRING: ${DB_CONNECTION_STRING}
+
