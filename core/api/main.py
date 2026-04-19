@@ -1,9 +1,20 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.dialects.postgresql import insert
 from database.models import engine, Job, Status
 from sqlalchemy.orm import Session
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:7000"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_methods=["GET"],
+    allow_headers=["*"])
 
 @app.get("/start_scraper")
 def start_scraper_endpoint():
