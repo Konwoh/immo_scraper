@@ -1,26 +1,4 @@
 services:
-    scraper:
-      image: immo-scraper:latest
-      container_name: scraper
-      build:
-        context: .
-        dockerfile: scraper/Dockerfile
-      environment:
-        DB_CONNECTION_STRING: ${DB_CONNECTION_STRING}
-        LOKI_URL: http://loki:3100
-      depends_on:
-        - loki
-    crawler:
-      image: immo-crawler:latest
-      container_name: crawler
-      build:
-        context: .
-        dockerfile: crawler/Dockerfile
-      environment:
-        DB_CONNECTION_STRING: ${DB_CONNECTION_STRING}
-        LOKI_URL: http://loki:3100
-      depends_on:
-        - loki
     loki:
       image: grafana/loki:2.9.4
       container_name: loki

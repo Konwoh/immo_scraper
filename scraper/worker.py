@@ -1,9 +1,9 @@
+from datetime import datetime, timezone
 from typing import Type, Optional
 from database.models import UrlQueue, Status
 from sqlalchemy.orm import Session
 from sqlalchemy import select, update
 from core.parser import EstateParserCreator
-import datetime
 from core.loki_handler import get_loki_logger
 import time
 
@@ -29,7 +29,7 @@ class Worker:
             if job is None:
                 scraper_logger.info("No open jobs")
                 return
-            job.claimed_at = datetime.datetime.now()
+            job.claimed_at = datetime.now(timezone.utc)
             job.status = Status.processing
             if 'immobilienscout24' in job.url:
                 result = {"id": job.id, "url": job.url, "site": "immoScout"}

@@ -3,14 +3,14 @@ from sqlalchemy.sql import func
 from scraper.base import start_scraper
 from crawler.base import start_crawler
 from sqlalchemy.orm import Session
-from database.models import engine, Job
+from database.models import engine, Job, Status
 import time
 from core.loki_handler import get_loki_logger
 worker_loop_logger = get_loki_logger("core", {"app": "worker_loop_logger", "env": "dev"})
 
 def claim_next_job(session):
-    subquery = (select(Job.id).where(Job.status == "open").order_by(Job.created_at.asc()).limit(1).with_for_update(skip_locked=True).scalar_subquery())
-    stmt = (update(Job).where(Job.id == subquery).values(status="processing",claimed_at=func.now()).returning(Job.id, Job.job_type))
+    subquery = (select(Job.id).where(Job.status == Status.open).order_by(Job.created_at.asc()).limit(1).with_for_update(skip_locked=True).scalar_subquery())
+    stmt = (update(Job).where(Job.id == subquery).values(status=Status.processing, claimed_at=func.now()).returning(Job.id, Job.job_type))
     result = session.execute(stmt)
     row = result.fetchone()
     session.commit()
@@ -23,13 +23,13 @@ def claim_next_job(session):
     }
 
 def mark_job_done(session, job_id: int): 
-    stmt = update(Job).where(Job.id == job_id).values(status='done')
+    stmt = update(Job).where(Job.id == job_id).values(status=Status.done)
     
     session.execute(stmt, {"job_id": job_id})
     session.commit()
 
 def mark_job_failed(session, job_id: int): 
-    stmt = update(Job).where(Job.id == job_id).values(status="failed")
+    stmt = update(Job).where(Job.id == job_id).values(status=Status.failed)
     
     session.execute(stmt)
     session.commit()
@@ -63,7 +63,7 @@ def worker_loop():
             time.sleep(2)
             
         except Exception as exc:
-            worker_loop_logger.exception("Fehler im Worker: %s", exc)
+            worker_loop_logger.exception("Error in worker: %s", exc)
 
             if job is not None:
                 try:

@@ -1,12 +1,12 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import select
+from sqlalchemy import select, update
 from core.parser import EstateParserCreator
 from core.helper import Headers, retry
 from database.models import engine, UrlQueue, SearchParams
 from sqlalchemy.dialects.postgresql import insert
 from .crawler import create_factory
 from .crawler import crawler_logger
-from datetime import datetime
+from datetime import datetime, timezone
 import time
 
 
@@ -64,29 +64,37 @@ def start_crawler():
                 crawler_logger.error("No search params available")
                 return   
             
-            continue_flag = True
-            while continue_flag:
-                result = retry(lambda: process(param, currentPage))
-                if result is None:
-                    raise RuntimeError(f"process() returned None on page {currentPage}")
-                elif result == []:
-                    break
-                
-                values, continue_flag = result
-                
-                if values:
+            param_id = param.id
+            
+        continue_flag = True
+        while continue_flag:
+            result = retry(lambda: process(param, currentPage))
+            if result is None:
+                raise RuntimeError(f"process() returned None on page {currentPage}")
+            elif result == []:
+                break
+            
+            values, continue_flag = result
+            
+            if values:
+                with Session(engine) as session:
                     stmt = insert(UrlQueue).values(values).on_conflict_do_nothing(index_elements=["url"])
                     session.execute(stmt)
-
-                currentPage += 1
-                time.sleep(2)
-                        
-            param.last_used = datetime.now()
+                    session.commit()
+                
+            currentPage += 1
+            time.sleep(2)
+            
+        with Session(engine) as session:
+            stmt = (
+                update(SearchParams)
+                .where(SearchParams.id == param_id)
+                .values(last_used=datetime.now(timezone.utc))
+            )
+            session.execute(stmt)
             session.commit()
                 
     except Exception as exc:
-        if session is not None:
-            session.rollback()
         crawler_logger.error(f"Error: {str(exc)}")
 
 if __name__ == '__main__':

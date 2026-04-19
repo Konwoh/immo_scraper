@@ -1,9 +1,9 @@
 from typing import List
-from sqlalchemy import ForeignKey, create_engine, UniqueConstraint, DateTime, Enum, insert
+from sqlalchemy import ForeignKey, create_engine, UniqueConstraint, DateTime, Enum, insert, event
 from sqlalchemy.orm import DeclarativeBase, declarative_mixin, Mapped, mapped_column, relationship, Session
 from sqlalchemy.sql import func
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 import enum
 load_dotenv()
@@ -24,9 +24,9 @@ class Job(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     job_type: Mapped[str] = mapped_column(nullable=False)
     status: Mapped[str] = mapped_column(Enum(Status, name="job_status"), nullable=False)
-    claimed_at: Mapped[datetime|None] = mapped_column(DateTime, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
+    claimed_at: Mapped[datetime|None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     
 class SearchParams(Base):
     __tablename__ = "search_params"
@@ -41,7 +41,7 @@ class SearchParams(Base):
     rent_or_buy: Mapped[str] = mapped_column(nullable=False)
     listing_count: Mapped[int] = mapped_column(nullable=False)
     page: Mapped[int] = mapped_column(nullable=False)
-    last_used: Mapped[datetime|None] = mapped_column(DateTime, nullable=True)
+    last_used: Mapped[datetime|None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 class UrlQueue(Base):
     __tablename__ = "url_queue"
@@ -49,9 +49,9 @@ class UrlQueue(Base):
     url: Mapped[str] = mapped_column(nullable=False, unique=True)
     status: Mapped[Status] = mapped_column(Enum(Status, name="url_status"), nullable=False)
     claimed_by: Mapped[int | None] = mapped_column(nullable=True)
-    claimed_at: Mapped[datetime|None] = mapped_column(DateTime, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
+    claimed_at: Mapped[datetime|None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
 class Agency(Base):
     __tablename__ = "agency"
@@ -62,8 +62,8 @@ class Agency(Base):
     address: Mapped[str] = mapped_column(nullable=True)
     houses: Mapped[List["House"]] = relationship(back_populates="agency")
     apartments: Mapped[List["Apartment"]] = relationship(back_populates="agency")
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(name={self.name}, rating={self.rating}, homepage={self.homepage}, address={self.address})"
@@ -120,8 +120,8 @@ class RealEstate:
     other_description: Mapped[str] = mapped_column(nullable=True)
     total_costs: Mapped[float] = mapped_column(nullable=True)
     agency_id: Mapped[int] = mapped_column(ForeignKey("agency.id"), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(title={self.title}, price={self.price}, url={self.url})"
@@ -187,14 +187,14 @@ if __name__ == '__main__':
         session.execute(
             insert(SearchParams), 
             [
-                {"site": "immoScout", "country": "de", "state": "sachsen", "city": "leipzig", "estate_type": "apartment", "rent_or_buy": "buy", "listing_count": 50, "page": 1, "last_used": datetime.now() - timedelta(hours=1)},
-                {"site": "immoScout", "country": "de", "state": "sachsen", "city": "leipzig", "estate_type": "apartment", "rent_or_buy": "rent", "listing_count": 50, "page": 1, "last_used": datetime.now()- timedelta(hours=1)},
-                {"site": "immoScout", "country": "de", "state": "sachsen", "city": "leipzig", "estate_type": "house", "rent_or_buy": "buy", "listing_count": 50, "page": 1, "last_used": datetime.now()- timedelta(hours=1)},
-                {"site": "immoScout", "country": "de", "state": "sachsen", "city": "leipzig", "estate_type": "house", "rent_or_buy": "rent", "listing_count": 50, "page": 1, "last_used": datetime.now()- timedelta(hours=1)},
-                {"site": "kleinanzeigen", "country": "de", "state": "sachsen", "city": "leipzig", "distance": 15, "estate_type": "apartment", "rent_or_buy": "buy", "listing_count": 50, "page": 1, "last_used": datetime.now() - timedelta(hours=1)},
-                {"site": "kleinanzeigen", "country": "de", "state": "sachsen", "city": "leipzig", "distance": 15, "estate_type": "apartment", "rent_or_buy": "rent", "listing_count": 50, "page": 1, "last_used": datetime.now()- timedelta(hours=1)},
-                {"site": "kleinanzeigen", "country": "de", "state": "sachsen", "city": "leipzig", "distance": 15, "estate_type": "house", "rent_or_buy": "buy", "listing_count": 50, "page": 1, "last_used": datetime.now()- timedelta(hours=1)},
-                {"site": "kleinanzeigen", "country": "de", "state": "sachsen", "city": "leipzig", "distance": 15, "estate_type": "house", "rent_or_buy": "rent", "listing_count": 50, "page": 1, "last_used": datetime.now()- timedelta(hours=1)},
+                {"site": "immoScout", "country": "de", "state": "sachsen", "city": "leipzig", "estate_type": "apartment", "rent_or_buy": "buy", "listing_count": 50, "page": 1, "last_used": datetime.now(timezone.utc)},
+                {"site": "immoScout", "country": "de", "state": "sachsen", "city": "leipzig", "estate_type": "apartment", "rent_or_buy": "rent", "listing_count": 50, "page": 1, "last_used": datetime.now(timezone.utc)},
+                {"site": "immoScout", "country": "de", "state": "sachsen", "city": "leipzig", "estate_type": "house", "rent_or_buy": "buy", "listing_count": 50, "page": 1, "last_used": datetime.now(timezone.utc)},
+                {"site": "immoScout", "country": "de", "state": "sachsen", "city": "leipzig", "estate_type": "house", "rent_or_buy": "rent", "listing_count": 50, "page": 1, "last_used": datetime.now(timezone.utc)},
+                {"site": "kleinanzeigen", "country": "de", "state": "sachsen", "city": "leipzig", "distance": 15, "estate_type": "apartment", "rent_or_buy": "buy", "listing_count": 50, "page": 1, "last_used": datetime.now(timezone.utc)},
+                {"site": "kleinanzeigen", "country": "de", "state": "sachsen", "city": "leipzig", "distance": 15, "estate_type": "apartment", "rent_or_buy": "rent", "listing_count": 50, "page": 1, "last_used": datetime.now(timezone.utc)},
+                {"site": "kleinanzeigen", "country": "de", "state": "sachsen", "city": "leipzig", "distance": 15, "estate_type": "house", "rent_or_buy": "buy", "listing_count": 50, "page": 1, "last_used": datetime.now(timezone.utc)},
+                {"site": "kleinanzeigen", "country": "de", "state": "sachsen", "city": "leipzig", "distance": 15, "estate_type": "house", "rent_or_buy": "rent", "listing_count": 50, "page": 1, "last_used": datetime.now(timezone.utc)},
             ]
         )
         session.commit()
