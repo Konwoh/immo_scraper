@@ -29,6 +29,8 @@ services:
         DB_CONNECTION_STRING: ${DB_CONNECTION_STRING}
       ports:
         - "8000:8000"
+      volumes:
+        - .:/app
     worker_loop:
       image: immo-worker_loop:latest
       container_name: worker_loop
