@@ -1,6 +1,6 @@
 from typing import List
-from sqlalchemy import ForeignKey, create_engine, UniqueConstraint, DateTime, Enum, insert, event
-from sqlalchemy.orm import DeclarativeBase, declarative_mixin, Mapped, mapped_column, relationship, Session
+from sqlalchemy import ForeignKey, create_engine, UniqueConstraint, DateTime, Enum, insert
+from sqlalchemy.orm import DeclarativeBase, declarative_mixin, Mapped, mapped_column, relationship, Session, sessionmaker
 from sqlalchemy.sql import func
 import os
 from datetime import datetime, timezone
@@ -9,6 +9,15 @@ import enum
 load_dotenv()
 
 engine = create_engine(os.environ["DB_CONNECTION_STRING"], echo=False)
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 class Base(DeclarativeBase):
     pass

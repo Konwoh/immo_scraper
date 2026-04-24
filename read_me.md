@@ -8,7 +8,10 @@ Docker Commands:
 
 
 TO-DO:
--Front-End bauen
+- FastApi Backend bauen:
+    - eventuell response_schema zu get endpoitn hiinzufügen
+    - api router
+- Front-End bauen
 - bei start_crawler funktion argumente hinzufügen, so dass search params übergeben werden können und keine aus der datenbank gezogen werden
     -> Alternative Dropdown Menü, wo User eine Zeile aus DB auswählen kann und die wird dann gescraped
 - Request aus Worker Class rausbekommen und mit in Parser Class aufnehmen
