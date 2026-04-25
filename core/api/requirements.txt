@@ -2,3 +2,5 @@ fastapi
 sqlalchemy
 uvicorn[standard]
 psycopg2-binary
+pydantic[email]
+pwdlib[argon2]

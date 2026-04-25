@@ -8,6 +8,9 @@ Docker Commands:
 
 
 TO-DO:
+- Ersetzen von DB_connection engine durch get_db aus database models
+- Umstrukturierung der Ordner:
+    - database und schema und fast api in ein ordern backend z.B.
 - FastApi Backend bauen:
     - eventuell response_schema zu get endpoitn hiinzufügen
     - api router
