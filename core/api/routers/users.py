@@ -4,9 +4,12 @@ from sqlalchemy.orm import Session
 from core.schemas.pydantic_models import UserRequest, UserResponse
 from core.api.utils import verify_password, get_password_hash
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/user",
+    tags=["User"]
+)
 
-@router.post("/user", status_code=status.HTTP_201_CREATED, response_model=UserResponse)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=UserResponse)
 def create_user(create_user_request: UserRequest, db: Session = Depends(get_db)):
     hashed_password = get_password_hash(create_user_request.password)
     create_user_request.password = hashed_password
@@ -15,7 +18,7 @@ def create_user(create_user_request: UserRequest, db: Session = Depends(get_db))
     db.commit()
     
     return new_user
-@router.get("/users/{user_id}", response_model=UserResponse)
+@router.get("/{user_id}", response_model=UserResponse)
 def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if user is not None:
