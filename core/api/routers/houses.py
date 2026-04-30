@@ -1,5 +1,5 @@
 from fastapi import status, HTTPException, Depends, Path, APIRouter
-from database.models import House,  get_db
+from database.models import House, get_db
 from sqlalchemy.orm import Session
 
 router = APIRouter(

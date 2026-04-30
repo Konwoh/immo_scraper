@@ -2,6 +2,7 @@ from fastapi import status, HTTPException, Depends, Path, APIRouter
 from database.models import Job, get_db
 from sqlalchemy.orm import Session
 from core.schemas.pydantic_models import JobRequest
+from core.api.oauth2 import get_current_user
 
 router = APIRouter(
     prefix="/jobs",
@@ -23,7 +24,7 @@ def get_jobs_by_id(db: Session = Depends(get_db), job_id: int = Path(gt=0)):
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"job with id: {job_id} not found") 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def create_jobs(job_request: JobRequest, db: Session = Depends(get_db)):
+def create_jobs(job_request: JobRequest, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
     new_job = Job(**job_request.model_dump())
     db.add(new_job)
     db.commit()

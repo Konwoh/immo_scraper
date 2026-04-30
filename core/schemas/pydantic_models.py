@@ -1,6 +1,6 @@
 from pydantic import BaseModel, HttpUrl, EmailStr
 from database.models import Status
-from typing import Literal
+from typing import Literal, Optional
 
 class JobRequest(BaseModel):
     job_type: Literal["scraper", "crawler"]
@@ -20,3 +20,10 @@ class UserResponse(BaseModel):
     
     class Config:
         orm_mode = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    id: int

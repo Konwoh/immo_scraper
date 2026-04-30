@@ -2,7 +2,7 @@ from fastapi import FastAPI, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from database.models import Job, Status, get_db
 from sqlalchemy.orm import Session
-from core.api.routers import users, houses, apartments, search_params, jobs, url_queue
+from core.api.routers import users, houses, apartments, search_params, jobs, url_queue, auth
 app = FastAPI()
 
 app.include_router(users.router)
@@ -11,6 +11,7 @@ app.include_router(apartments.router)
 app.include_router(search_params.router)
 app.include_router(jobs.router)
 app.include_router(url_queue.router)
+app.include_router(auth.router)
 
 origins = [
     "http://localhost:7000"
