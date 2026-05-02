@@ -11,13 +11,15 @@ scraper_logger = get_loki_logger("scraper", {"app": "scraper", "env": "dev"})
 
 class Worker:
     
-    def __init__(self, engine, model: Type[UrlQueue]) -> None:
+    def __init__(self, engine, model: Type[UrlQueue], search_params_id: int) -> None:
         self.engine = engine
         self.model = model
+        self.search_params_id = search_params_id
         
     def get_row(self):
         stmt = (
             select(self.model)
+            .filter(UrlQueue.search_params_id == self.search_params_id)
             .where(self.model.status == "open", self.model.claimed_at.is_(None))
             .order_by(self.model.created_at.asc())
             .with_for_update(skip_locked=True)

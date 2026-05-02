@@ -1,5 +1,5 @@
 from fastapi import status, HTTPException, Depends, Path, APIRouter
-from database.models import Job, get_db
+from database.models import Job, get_db, SearchParams
 from sqlalchemy.orm import Session
 from core.schemas.pydantic_models import JobRequest
 from core.api.oauth2 import get_current_user
@@ -24,7 +24,12 @@ def get_jobs_by_id(db: Session = Depends(get_db), job_id: int = Path(gt=0)):
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"job with id: {job_id} not found") 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def create_jobs(job_request: JobRequest, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
+def create_jobs(job_request: JobRequest, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    search_param = (db.query(SearchParams).filter(SearchParams.id == job_request.search_params_id, SearchParams.user_id == current_user.id).first())
+    
+    if search_param is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not authorized to create this job")
+            
     new_job = Job(**job_request.model_dump())
     db.add(new_job)
     db.commit()

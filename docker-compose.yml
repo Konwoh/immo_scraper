@@ -27,6 +27,7 @@ services:
         dockerfile: core/api/Dockerfile
       environment:
         DB_CONNECTION_STRING: ${DB_CONNECTION_STRING}
+        LOKI_URL: http://loki:3100
       ports:
         - "8000:8000"
       volumes:
@@ -39,4 +40,4 @@ services:
         dockerfile: core/worker/Dockerfile
       environment:
         DB_CONNECTION_STRING: ${DB_CONNECTION_STRING}
-
+        LOKI_URL: http://loki:3100

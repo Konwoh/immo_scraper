@@ -33,6 +33,7 @@ def process(param: SearchParams, currentPage: int):
         if len(url_queue_list) > 0: 
             values = [
                         {
+                            "search_params_id": param.id,
                             "url": obj.url,
                             "status": obj.status,
                         }
@@ -45,7 +46,7 @@ def process(param: SearchParams, currentPage: int):
         raise ValueError("Parser is None")
 
 
-def start_crawler():
+def start_crawler(search_params_id: int):
     session = None
     try:
         currentPage = 1
@@ -54,15 +55,15 @@ def start_crawler():
             
             param = session.execute(
                 select(SearchParams)
+                .filter(SearchParams.id == search_params_id)
                 .order_by(SearchParams.last_used.asc().nullsfirst())
                 .limit(1)
                 .with_for_update(skip_locked=True)
             ).scalar_one_or_none()
-            
+             
             if param is None:
                 session.rollback()
-                crawler_logger.error("No search params available")
-                return   
+                raise RuntimeError(f"No search params available for id={search_params_id}")
             
             param_id = param.id
             
@@ -94,8 +95,9 @@ def start_crawler():
             session.execute(stmt)
             session.commit()
                 
-    except Exception as exc:
-        crawler_logger.error(f"Error: {str(exc)}")
+    except Exception:
+        crawler_logger.exception("Error while processing crawler job")
+        raise
 
 if __name__ == '__main__':
     start_crawler()

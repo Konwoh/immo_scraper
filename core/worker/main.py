@@ -10,7 +10,7 @@ worker_loop_logger = get_loki_logger("core", {"app": "worker_loop_logger", "env"
 
 def claim_next_job(session):
     subquery = (select(Job.id).where(Job.status == Status.open).order_by(Job.created_at.asc()).limit(1).with_for_update(skip_locked=True).scalar_subquery())
-    stmt = (update(Job).where(Job.id == subquery).values(status=Status.processing, claimed_at=func.now()).returning(Job.id, Job.job_type))
+    stmt = (update(Job).where(Job.id == subquery).values(status=Status.processing, claimed_at=func.now()).returning(Job.id, Job.job_type, Job.search_params_id))
     result = session.execute(stmt)
     row = result.fetchone()
     session.commit()
@@ -20,6 +20,7 @@ def claim_next_job(session):
     return {
         "id": row.id,
         "job_type": row.job_type,
+        "search_params_id": row.search_params_id
     }
 
 def mark_job_done(session, job_id: int): 
@@ -36,9 +37,9 @@ def mark_job_failed(session, job_id: int):
 
 def process_job(job: dict):
     if job["job_type"] == "crawler":
-        start_crawler()
+        start_crawler(job["search_params_id"])
     elif job["job_type"] == "scraper":
-        start_scraper()
+        start_scraper(job["search_params_id"])
     else:
         raise ValueError(f"Unbekannter job_type: {job['job_type']}")
 

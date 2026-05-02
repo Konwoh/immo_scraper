@@ -8,12 +8,13 @@ Docker Commands:
 
 
 TO-DO:
-- Ersetzen von DB_connection engine durch get_db aus database models
+- Warum werden Häuser von Ebay bei apartments gespeichert (warhscheinlich weil sie als estate_type Sonstige klassifiziert werden)
+- FastAPI:
+    - current_user in allen Endpoint hinzufügen
+    - m:n Tabelle (search_result) zwischen Search_Params und house/apartments befüllen lassen
+- URL-QUeue wird in crawler/base.py mit values obj aufgefüllt -> ändern
 - Umstrukturierung der Ordner:
     - database und schema und fast api in ein ordern backend z.B.
-- FastApi Backend bauen:
-    - eventuell response_schema zu get endpoitn hiinzufügen
-    - api router
 - Front-End bauen
 - bei start_crawler funktion argumente hinzufügen, so dass search params übergeben werden können und keine aus der datenbank gezogen werden
     -> Alternative Dropdown Menü, wo User eine Zeile aus DB auswählen kann und die wird dann gescraped

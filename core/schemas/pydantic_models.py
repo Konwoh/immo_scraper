@@ -5,6 +5,19 @@ from typing import Literal, Optional
 class JobRequest(BaseModel):
     job_type: Literal["scraper", "crawler"]
     status: Status = Status.open
+    search_params_id: int
+
+class SearchParamRequest(BaseModel):
+    site: str
+    country: str
+    state: str
+    city: str
+    distance: Optional[int] = None
+    zip_code: Optional[str] = None
+    estate_type: Literal["apartment", "house"]
+    rent_or_buy: Literal["buy", "rent"]
+    page: int
+    listing_count: int
 
 class UrlQueueRequest(BaseModel):
     url: HttpUrl
