@@ -8,7 +8,6 @@ Docker Commands:
 
 
 TO-DO:
-- Warum werden Häuser von Ebay bei apartments gespeichert (warhscheinlich weil sie als estate_type Sonstige klassifiziert werden)
 - FastAPI:
     - current_user in allen Endpoint hinzufügen
     - m:n Tabelle (search_result) zwischen Search_Params und house/apartments befüllen lassen

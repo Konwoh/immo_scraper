@@ -26,17 +26,22 @@ def read_estate_creator(estate_type: str) -> EstateFactory:
         "loft",
         "hochparterre",
         "sonstige",
-        "Andere Wohnungstypen"
+        "andere wohnungstypen"
     }
 
     house_types = {
         "einfamilienhaus (freistehend)",
+        "einfamilienhaus freistehend",
         "mehrfamilienhaus",
         "doppelhaushälfte",
         "reihenhaus",
         "bungalow",
         "villa",
         "bauernhaus",
+        "andere haustypen",
+        "andere",
+        "haus_mieten",
+        "haus_kaufen"
     }
 
     if normalized in apartment_types:
@@ -326,8 +331,8 @@ class KleinanzeigenParser(Parser):
                 elif section["localized-label"] == "Etage":
                     data["floor"] = section.get("value", [])[0].get("value")
                 
-                elif section["localized-label"] == "Wohnungstyp":
-                    data["estate_type"] = section.get("value", [])[0].get("localized-label")
+                elif section["localized-label"] == "Wohnungstyp" or section["localized-label"] == "Haustyp":
+                    data["estate_type"] = section.get("value", [])[0].get("localized-label")          
                     
                 elif section["localized-label"] == "Baujahr":
                     data["building_year"] = section.get("value", [])[0].get("value")
@@ -349,6 +354,19 @@ class KleinanzeigenParser(Parser):
                 
                 elif section["localized-label"] == "Verfügbar ab":
                     data["available_from"] = section.get("value", [])[0].get("value")
+            
+            if not data.get("estate_type"):
+                category = payload.get("category", {}).get("id-name", {}).get("value")
+
+                if category == "Haus_mieten":
+                    data["estate_type"] = "Andere Haustypen"
+                elif category == "Haus_kaufen":
+                    data["estate_type"] = "Andere Haustypen"
+                elif category == "Wohnung_mieten":
+                    data["estate_type"] = "Andere Wohnungstypen"
+                elif category == "Wohnung_kaufen":
+                    data["estate_type"] = "Andere Wohnungstypen"
+                                       
         except Exception as e:
             scraper_logger.error(f"Fehler beim Parsing von URL {response.url}: {str(e)}")
             raise ParsingError(f"KleinanzeigenParser: Fehler beim Parsen: {e}")
