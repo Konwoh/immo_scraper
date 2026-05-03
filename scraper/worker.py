@@ -1,11 +1,12 @@
 from datetime import datetime, timezone
 from typing import Type, Optional
-from database.models import UrlQueue, Status
+from database.models import UrlQueue, Status, SearchResults, Apartment, House
 from sqlalchemy.orm import Session
 from sqlalchemy import select, update
 from core.parser import EstateParserCreator
 from core.loki_handler import get_loki_logger
 import time
+from sqlalchemy.exc import IntegrityError
 
 scraper_logger = get_loki_logger("scraper", {"app": "scraper", "env": "dev"})
 
@@ -47,28 +48,59 @@ class Worker:
         with Session(self.engine) as session:
             try:
                 if estate_obj is not None:
-                    session.add(estate_obj)
-                    session.flush()
-
-                if success:
-                    stmt = (
-                        update(self.model)
-                        .where(self.model.id == job_id)
-                        .values(
-                            status=Status.done,
-                        )
+                    persisted = None
+                # Ab hier wird das RealEstate-Objekt "estate_obj" in die jeweilige house oder apartments Tabelle gespeichert. 
+                # Zusätzlich wird in der Verknüpfungstabelle search_results ein Eintrag für jedes Estate pro search_param angelegt
+                # wenn in unterschiedlichen search_params die gleichen estate kommen, sollen diese über search_results referenziert werden und nicht doppelt
+                # in die house oder apartmens tabellen geschrieben werden
+                try:
+                    with session.begin_nested():
+                            session.add(estate_obj)
+                            session.flush()
+                            persisted = estate_obj
+                except IntegrityError: # Fehler, wenn estate_obj schon in house oder apartments tabelle existiert
+                    if isinstance(estate_obj, House):
+                        persisted = session.execute(
+                            select(House).where(
+                                House.url == estate_obj.url,
+                                House.title == estate_obj.title,
+                            ) # Referenz des original eintrag bekommen um das dann in search_results tabelle referenzieren zu können
+                        ).scalar_one()
+                    elif isinstance(estate_obj, Apartment):
+                        persisted = session.execute(
+                            select(Apartment).where(
+                                Apartment.url == estate_obj.url,
+                                Apartment.title == estate_obj.title,
+                            )
+                        ).scalar_one()
+                    else:
+                        raise TypeError(f"Unknown estate type: {type(persisted)}")                
+                        
+                if isinstance(persisted, House):
+                    link = SearchResults(
+                        search_params_id=self.search_params_id,
+                        house_id=persisted.id,
+                        apartment_id=None
+                    )
+                elif isinstance(persisted, Apartment):
+                    link = SearchResults(
+                        search_params_id=self.search_params_id,
+                        house_id=None,
+                        apartment_id=persisted.id
                     )
                 else:
-                    stmt = (
-                        update(self.model)
-                        .where(self.model.id == job_id)
-                        .values(
-                            status=Status.failed,
-                        )
-                    )
-
+                    raise TypeError("Unknown estate type")
+                    
+                session.add(link)
+                try:
+                    session.flush()
+                except IntegrityError:
+                    session.rollback()
+                    
+                stmt = (update(self.model).where(self.model.id == job_id).values(status=Status.done if success else Status.failed))
                 session.execute(stmt)
                 session.commit()
+                
             except Exception:
                 session.rollback()
                 scraper_logger.error("Finalizing the job failed: Session rollback")
@@ -93,7 +125,6 @@ class Worker:
                 parser = parser_cache[site]
                 
                 estate = parser.fetch(job["url"])
-                
                 self.finalize_job(job["id"], True, estate)
                 scraper_logger.info("Extraction successful")
                 

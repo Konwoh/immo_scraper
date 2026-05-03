@@ -79,7 +79,7 @@ def start_crawler(search_params_id: int):
             
             if values:
                 with Session(engine) as session:
-                    stmt = insert(UrlQueue).values(values).on_conflict_do_nothing(index_elements=["url"])
+                    stmt = insert(UrlQueue).values(values)
                     session.execute(stmt)
                     session.commit()
                 
