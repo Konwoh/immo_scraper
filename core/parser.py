@@ -326,7 +326,8 @@ class KleinanzeigenParser(Parser):
                     data["sleeping_rooms"] = int(section.get("value", [])[0].get("value"))
                 
                 elif section["localized-label"] == "Badezimmer":
-                    data["bathrooms"] = int(section.get("value", [])[0].get("value"))
+                    value = section.get("value", [])[0].get("value")
+                    data["bathrooms"] = int(float(str(value).replace(",", ".")))
                 
                 elif section["localized-label"] == "Etage":
                     data["floor"] = section.get("value", [])[0].get("value")
