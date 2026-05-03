@@ -20,6 +20,7 @@ class SearchParamRequest(BaseModel):
     listing_count: int
 
 class UrlQueueRequest(BaseModel):
+    search_params_id: int
     url: HttpUrl
     status: Status = Status.open
 

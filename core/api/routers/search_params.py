@@ -17,8 +17,8 @@ def get_search_params(db: Session = Depends(get_db), current_user = Depends(get_
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No search params found")
 
 @router.get("/{search_params_id}", status_code=status.HTTP_200_OK)
-def get_search_params_by_id(db: Session = Depends(get_db), search_params_id: int = Path(gt=0), current_user: int = Depends(get_current_user)):
-    search_param = db.query(SearchParams).filter(SearchParams.id == search_params_id).first()
+def get_search_params_by_id(db: Session = Depends(get_db), search_params_id: int = Path(gt=0), current_user = Depends(get_current_user)):
+    search_param = db.query(SearchParams).filter(SearchParams.id == search_params_id, SearchParams.user_id == current_user.id).first()
     if search_param is not None:
         return search_param
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"search param with id: {search_params_id} not found")
