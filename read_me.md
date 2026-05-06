@@ -10,7 +10,8 @@ Docker Commands:
 TO-DO:
 - FastAPI:
     - current_user in allen Endpoint hinzufügen
-    - m:n Tabelle (search_result) zwischen Search_Params und house/apartments befüllen lassen
+    - m:n Tabelle (search_result) zwischen Search_Params und house/apartments befüllen lassen -> nochmal überprüfen ob es klappt
+- Fehler bei Bathrooms mit String "1.5" 
 - URL-QUeue wird in crawler/base.py mit values obj aufgefüllt -> ändern
 - Umstrukturierung der Ordner:
     - database und schema und fast api in ein ordern backend z.B.

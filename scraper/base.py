@@ -1,7 +1,7 @@
-from database.models import create_engine, UrlQueue
-from core.helper import retry
+from backend.database.models import create_engine, UrlQueue
+from backend.shared.helper import retry
 import os
-from scraper.worker import Worker
+from backend.worker.scraper_worker import Worker
 
 def start_scraper(search_params_id: int):
     engine = create_engine(os.environ["DB_CONNECTION_STRING"], echo=False)

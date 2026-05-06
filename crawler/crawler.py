@@ -2,10 +2,10 @@ from abc import ABC, abstractmethod
 from typing import Optional
 import requests
 import json
-from core.helper import Headers
-from core.loki_handler import get_loki_logger
-from database.models import SearchParams
-from core.exceptions import RequestError
+from backend.shared.helper import Headers
+from backend.shared.loki_handler import get_loki_logger
+from backend.database.models import SearchParams
+from backend.shared.exceptions import RequestError
 
 crawler_logger = get_loki_logger("crawler", {"app": "crawler", "env": "dev"})
 

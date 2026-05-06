@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import select, update
-from core.parser import EstateParserCreator
-from core.helper import Headers, retry
-from database.models import engine, UrlQueue, SearchParams
+from backend.parser import EstateParserCreator
+from backend.shared.helper import Headers, retry
+from backend.database.models import engine, UrlQueue, SearchParams
 from sqlalchemy.dialects.postgresql import insert
 from .crawler import create_factory
 from .crawler import crawler_logger
@@ -100,4 +100,4 @@ def start_crawler(search_params_id: int):
         raise
 
 if __name__ == '__main__':
-    start_crawler()
+    start_crawler(1)
