@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from backend.database.models import engine, Job, Status
 import time
 from backend.shared.loki_handler import get_loki_logger
-worker_loop_logger = get_loki_logger("core", {"app": "worker_loop_logger", "env": "dev"})
+worker_loop_logger = get_loki_logger("backend", {"app": "worker_loop_logger", "env": "dev"})
 
 def claim_next_job(session):
     subquery = (select(Job.id).where(Job.status == Status.open).order_by(Job.created_at.asc()).limit(1).with_for_update(skip_locked=True).scalar_subquery())

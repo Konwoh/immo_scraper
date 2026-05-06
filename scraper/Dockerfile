@@ -5,7 +5,6 @@ COPY scraper/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY scraper/ scraper/
-COPY database/ database/
-COPY core/ core/
+COPY backend/ backend/
 
 CMD ["python", "-m", "scraper.base"]

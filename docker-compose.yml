@@ -24,7 +24,7 @@ services:
       container_name: api
       build:
         context: .
-        dockerfile: core/api/Dockerfile
+        dockerfile: backend/api/Dockerfile
       environment:
         DB_CONNECTION_STRING: ${DB_CONNECTION_STRING}
         LOKI_URL: http://loki:3100
@@ -37,7 +37,7 @@ services:
       container_name: worker_loop
       build:
         context: .
-        dockerfile: core/worker/Dockerfile
+        dockerfile: backend/worker/Dockerfile
       environment:
         DB_CONNECTION_STRING: ${DB_CONNECTION_STRING}
         LOKI_URL: http://loki:3100
