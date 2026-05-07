@@ -6,6 +6,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend/ backend/
 COPY crawler/ crawler/
-COPY scraper/ scraper/
 
-CMD ["python", "-m", "backend.worker.main"]
+CMD ["python", "-m", "backend.worker.job_loop"]

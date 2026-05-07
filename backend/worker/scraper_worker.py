@@ -3,7 +3,7 @@ from typing import Type, Optional
 from backend.database.models import UrlQueue, Status, SearchResults, Apartment, House
 from sqlalchemy.orm import Session
 from sqlalchemy import select, update
-from backend.parser import EstateParserCreator
+from backend.parser.factory import EstateParserCreator
 from backend.shared.loki_handler import get_loki_logger
 import time
 from sqlalchemy.exc import IntegrityError
