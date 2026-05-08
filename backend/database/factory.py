@@ -74,7 +74,7 @@ class EstateFactory(ABC):
         }
     
     @abstractmethod
-    def get_estate(self, params: Dict[str, Any], agency: Agency | None) -> RealEstate:
+    def get_estate(self, params: Dict[str, Any], agency: Agency | None) -> Apartment|House:
         pass
 
 class HouseEstateFactory(EstateFactory):

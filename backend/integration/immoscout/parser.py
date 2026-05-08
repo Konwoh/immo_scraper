@@ -1,6 +1,6 @@
 from typing import List
 from backend.database.factory import get_or_create_agency, DefaultAgencyFactory
-from backend.database.models import UrlQueue, Status, RealEstate
+from backend.database.models import UrlQueue, Status, RealEstate, House, Apartment
 from backend.parser.base_parser import read_estate_creator, Parser
 from sqlalchemy.orm import Session
 from backend.database.models import engine
@@ -12,7 +12,7 @@ import logging
 scraper_logger = logging.getLogger("scraper")
 
 class ImmoScoutParser(Parser):
-    def fetch(self, normal_url: str) -> RealEstate:
+    def fetch(self, normal_url: str) -> House|Apartment:
         headers = Headers('application/json', 'ImmoScout_27.14.1_26.3_._', 'de-de')
         headers = headers.build_header()
         expose_id = normal_url.split("/")[-1]
@@ -21,7 +21,7 @@ class ImmoScoutParser(Parser):
         estate = self.parse(response)
         return estate
     
-    def parse(self, response: requests.Response) -> RealEstate:
+    def parse(self, response: requests.Response) -> House|Apartment:
         try:
             payload = response.json()
         except ValueError as e:

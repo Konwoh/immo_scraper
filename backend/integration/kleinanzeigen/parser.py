@@ -1,6 +1,6 @@
 from typing import List
 from backend.database.factory import get_or_create_agency, DefaultAgencyFactory
-from backend.database.models import UrlQueue, Status, RealEstate
+from backend.database.models import UrlQueue, Status, RealEstate, House, Apartment
 from backend.parser.base_parser import read_estate_creator, Parser
 from sqlalchemy.orm import Session
 from backend.database.models import engine
@@ -12,7 +12,7 @@ import logging
 scraper_logger = logging.getLogger("scraper")
 
 class KleinanzeigenParser(Parser):
-    def fetch(self, normal_url: str) -> RealEstate:
+    def fetch(self, normal_url: str) -> House|Apartment:
         headers = Headers('*/*', 'Kleinanzeigen/2026.12.0 (com.ebaykleinanzeigen.ebc; build:26.072.16409187; iOS 26.3.1) Alamofire/5.11.1', 'de-DE;q=1.0', 'Basic aXBob25lOmc0Wmk5cTEw')
         headers = headers.build_header()
         last_string_segment = normal_url.split("/")[-1]
@@ -28,7 +28,7 @@ class KleinanzeigenParser(Parser):
         estate = self.parse(response)
         return estate
     
-    def parse(self, response: requests.Response) -> RealEstate:
+    def parse(self, response: requests.Response) -> House|Apartment:
         try:
             payload = response.json()
             payload = payload.get("{http://www.ebayclassifiedsgroup.com/schema/ad/v1}ad", {}).get("value")

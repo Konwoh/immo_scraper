@@ -1,7 +1,7 @@
 from typing import List
 from abc import ABC, abstractmethod
 from backend.database.factory import EstateFactory, ApartmentEstateFactory, HouseEstateFactory
-from backend.database.models import UrlQueue, RealEstate
+from backend.database.models import UrlQueue, RealEstate, House, Apartment
 import requests
 import logging
 
@@ -49,7 +49,7 @@ def read_estate_creator(estate_type: str) -> EstateFactory:
 
 class Parser(ABC):
     @abstractmethod
-    def fetch(self, normal_url: str) -> RealEstate:
+    def fetch(self, normal_url: str) -> House|Apartment:
         pass    
     
     @abstractmethod

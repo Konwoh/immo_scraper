@@ -9,15 +9,12 @@ Docker Commands:
 
 TO-DO:
 - FastAPI:
+    - wenn ein scraper job mit einer search_params_id inserted wird, für die es garn keine url_queue Objekte gibt, dann kommt kein Fehler oder Warnung
     - current_user in allen Endpoint hinzufügen
     - m:n Tabelle (search_result) zwischen Search_Params und house/apartments befüllen lassen -> nochmal überprüfen ob es klappt
 - Fehler bei Bathrooms mit String "1.5" 
 - URL-QUeue wird in crawler/base.py mit values obj aufgefüllt -> ändern
-- Umstrukturierung der Ordner:
-    - database und schema und fast api in ein ordern backend z.B.
 - Front-End bauen
-- bei start_crawler funktion argumente hinzufügen, so dass search params übergeben werden können und keine aus der datenbank gezogen werden
-    -> Alternative Dropdown Menü, wo User eine Zeile aus DB auswählen kann und die wird dann gescraped
 - Request aus Worker Class rausbekommen und mit in Parser Class aufnehmen
 - ImmoWelt hinzufügen
     - crawl() in base crawler aufnehmen
