@@ -1,6 +1,6 @@
 from typing import List
 from backend.database.factory import get_or_create_agency, DefaultAgencyFactory
-from backend.database.models import UrlQueue, Status, RealEstate, House, Apartment
+from backend.database.models import UrlQueue, Status, House, Apartment
 from backend.parser.base_parser import read_estate_creator, Parser
 from sqlalchemy.orm import Session
 from backend.database.models import engine

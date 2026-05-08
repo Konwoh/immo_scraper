@@ -1,6 +1,6 @@
 from typing import List
 from backend.database.factory import get_or_create_agency, DefaultAgencyFactory
-from backend.database.models import UrlQueue, Status, RealEstate, House, Apartment
+from backend.database.models import UrlQueue, Status, House, Apartment
 from backend.parser.base_parser import read_estate_creator, Parser
 from sqlalchemy.orm import Session
 from backend.database.models import engine
@@ -36,18 +36,18 @@ class KleinanzeigenParser(Parser):
             raise ValueError("Invalid JSON in response") from e
         try:
             data = {}
-            data["id"] = payload.get("id")
-            data["title"] = payload.get("title", {}).get("value")
-            data["url"] = f'https://www.kleinanzeigen.de/s-anzeige/{data["title"]}/{data["id"]}'
-            data["listing_type"] = payload.get("category", {}).get("localized-name", {}).get("value")
+            data["id"]                  = payload.get("id")
+            data["title"]               = payload.get("title", {}).get("value")
+            data["url"]                 = f'https://www.kleinanzeigen.de/s-anzeige/{data["title"]}/{data["id"]}'
+            data["listing_type"]        = payload.get("category", {}).get("localized-name", {}).get("value")
             if payload.get("category", {}).get("localized-name", {}).get("value") == "Eigentumswohnungen":
-                data["total_costs"] = payload.get("price", {}).get("amount", {}).get("value")
-            data["description"] = payload.get("description", {}).get("value")
-            data["zip_code"] = payload.get("ad-address", {}).get("zip-code", {}).get("value")
-            data["address"] = payload.get("ad-address", {}).get("street", {}).get("value")
-            data["city"] = payload.get("ad-address", {}).get("state", {}).get("value")
-            data["status"] = payload.get("ad-status", {}).get("value")
-            data["agency"] = {"name": payload.get("company", {}).get("name")}
+                data["total_costs"]     = payload.get("price", {}).get("amount", {}).get("value")
+            data["general_description"] = payload.get("description", {}).get("value")
+            data["zip_code"]            = payload.get("ad-address", {}).get("zip-code", {}).get("value")
+            data["address"]             = payload.get("ad-address", {}).get("street", {}).get("value")
+            data["city"]                = payload.get("ad-address", {}).get("state", {}).get("value")
+            data["status"]              = payload.get("ad-status", {}).get("value")
+            data["agency"]              = {"name": payload.get("company", {}).get("name")}
             
             for section in payload.get("attributes", {}).get("attribute", []):
                 if section["localized-label"] == "Wohnfläche":
