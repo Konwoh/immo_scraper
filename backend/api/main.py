@@ -14,13 +14,13 @@ app.include_router(url_queue.router)
 app.include_router(auth.router)
 
 origins = [
-    "http://localhost:7000"
+    "http://localhost:5173"
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"])
 
 @app.get("/start_scraper", status_code=status.HTTP_200_OK)
