@@ -182,16 +182,3 @@
     border-right-color: var(--border);
   }
 }
-
-table td {
-    border-top: thin solid; 
-    border-bottom: thin solid;
-}
-
-table td:first-child {
-     border-left: thin solid;
-}
-
-table td:last-child {
-     border-right: thin solid;
-}

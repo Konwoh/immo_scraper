@@ -2,7 +2,11 @@
   --text: #6b6375;
   --text-h: #08060d;
   --bg: #fff;
+  --surface: #fff;
+  --surface-soft: #f8fafc;
+  --surface-muted: #f1f5f9;
   --border: #e5e4e7;
+  --border-strong: #d8d6de;
   --code-bg: #f4f3ec;
   --accent: #aa3bff;
   --accent-bg: rgba(170, 59, 255, 0.1);
@@ -35,7 +39,11 @@
     --text: #9ca3af;
     --text-h: #f3f4f6;
     --bg: #16171d;
+    --surface: #1d1f27;
+    --surface-soft: #232631;
+    --surface-muted: #2b2e3a;
     --border: #2e303a;
+    --border-strong: #3b3f4d;
     --code-bg: #1f2028;
     --accent: #c084fc;
     --accent-bg: rgba(192, 132, 252, 0.15);
@@ -64,6 +72,414 @@
 
 body {
   margin: 0;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.auth-page {
+  display: grid;
+  min-height: 100svh;
+  place-items: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.auth-form {
+  display: grid;
+  gap: 18px;
+  width: min(100%, 420px);
+  text-align: left;
+}
+
+.auth-form h1 {
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.auth-form label {
+  display: grid;
+  gap: 8px;
+  color: var(--text-h);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.auth-form input {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--text-h);
+  background: var(--bg);
+}
+
+.auth-form button,
+.app-toolbar button {
+  border: 1px solid var(--text-h);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: var(--bg);
+  background: var(--text-h);
+}
+
+.app-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 24px 0;
+}
+
+.crud-page {
+  width: 100%;
+  padding: 0 24px 40px;
+  box-sizing: border-box;
+}
+
+.crud-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  text-align: left;
+}
+
+.crud-primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--text-h);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: var(--bg);
+  background: var(--text-h);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.crud-primary-button:hover {
+  opacity: 0.88;
+}
+
+.crud-form-panel {
+  margin-bottom: 18px;
+}
+
+.crud-form {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
+  text-align: left;
+}
+
+.crud-form-header,
+.crud-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 22px;
+}
+
+.crud-form-header {
+  border-bottom: 1px solid var(--border);
+}
+
+.crud-form-header h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+  font-weight: 650;
+}
+
+.crud-form-header p {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.crud-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  padding: 22px;
+}
+
+.crud-form-wide {
+  grid-column: 1 / -1;
+}
+
+.crud-form label {
+  display: grid;
+  gap: 8px;
+  color: var(--text-h);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.crud-form label span {
+  margin-left: 4px;
+  color: #dc2626;
+}
+
+.crud-form input,
+.crud-form textarea,
+.crud-form select {
+  width: 100%;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  color: var(--text-h);
+  background: var(--surface);
+  font: inherit;
+}
+
+.crud-form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.crud-form input:focus,
+.crud-form textarea:focus,
+.crud-form select:focus {
+  border-color: var(--accent);
+  outline: 3px solid var(--accent-bg);
+}
+
+.crud-form-actions {
+  border-top: 1px solid var(--border);
+}
+
+.crud-form-action-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.crud-danger-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #dc2626;
+  background: #fef2f2;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.crud-table-shell {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
+}
+
+.crud-table-header,
+.crud-table-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 22px;
+}
+
+.crud-table-header {
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.crud-table-header h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+  font-weight: 650;
+}
+
+.crud-table-header p,
+.crud-table-footer p {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.crud-secondary-button,
+.crud-icon-button {
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  color: var(--text-h);
+  background: var(--surface);
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.crud-secondary-button {
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.crud-secondary-button:hover,
+.crud-icon-button:hover {
+  border-color: var(--text);
+  background: var(--surface-muted);
+}
+
+.crud-table-scroll {
+  overflow-x: auto;
+  padding: 12px;
+  background: var(--surface-soft);
+}
+
+.crud-table {
+  width: 100%;
+  min-width: 780px;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+  text-align: left;
+}
+
+.crud-table th {
+  padding: 0 14px 6px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.crud-column-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-transform: inherit;
+}
+
+.crud-column-button:hover {
+  color: var(--text-h);
+}
+
+.crud-table tbody tr {
+  background: var(--surface);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
+  transition:
+    background 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.crud-table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--surface) 86%, var(--surface-muted));
+}
+
+.crud-table tbody tr:hover {
+  background: color-mix(in srgb, var(--surface) 78%, var(--accent-bg));
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+}
+
+.crud-table td {
+  padding: 16px 14px;
+  color: var(--text-h);
+  font-size: 14px;
+  vertical-align: middle;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.crud-table td:first-child {
+  border-left: 1px solid var(--border);
+  border-radius: 8px 0 0 8px;
+  font-weight: 650;
+}
+
+.crud-table td:last-child {
+  border-right: 1px solid var(--border);
+  border-radius: 0 8px 8px 0;
+}
+
+.crud-actions-heading {
+  text-align: right;
+}
+
+.crud-row-actions,
+.crud-pagination {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.crud-icon-button {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  padding: 0;
+  font-size: 18px;
+}
+
+.crud-icon-button-danger {
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.crud-icon-button-danger:hover {
+  border-color: #f87171;
+  background: #fef2f2;
+}
+
+.crud-empty-cell {
+  padding: 56px 16px;
+  text-align: center;
+  color: var(--text);
+}
+
+.crud-skeleton {
+  width: 100%;
+  height: 14px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--surface-muted),
+    var(--border),
+    var(--surface-muted)
+  );
+}
+
+.crud-skeleton-actions {
+  width: 80px;
+  margin-left: auto;
+}
+
+.crud-table-footer {
+  border-top: 1px solid var(--border);
+}
+
+.crud-error {
+  margin-bottom: 16px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #b91c1c;
+  background: #fef2f2;
+  text-align: left;
 }
 
 h1,
@@ -110,7 +526,21 @@ code {
   background: var(--code-bg);
 }
 
-table td {
-    border-top: thin solid; 
-    border-bottom: thin solid;
+@media (max-width: 720px) {
+  .crud-page {
+    padding-inline: 12px;
+  }
+
+  .crud-table-header,
+  .crud-table-footer,
+  .crud-form-header,
+  .crud-form-actions,
+  .crud-page-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .crud-form-grid {
+    grid-template-columns: 1fr;
+  }
 }

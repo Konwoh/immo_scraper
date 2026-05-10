@@ -1,131 +1,106 @@
-import React, { useState } from "react";
-import axios from "axios";
+import { HousesPage } from "@/routes/HousePage";
+import { useState, type FormEvent } from "react";
 
 const API_BASE = "http://localhost:8000";
 
+type LoginResponse = {
+  access_token: string;
+  token_type: string;
+};
+
 function App() {
-  const [token, setToken] = useState(localStorage.getItem("token") || "");
+  const [token, setToken] = useState(() => localStorage.getItem("token") ?? "");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // LOGIN
-  const login = async () => {
+  const handleLogin = async (event: FormEvent) => {
+    event.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    const formData = new FormData();
+    formData.append("username", username);
+    formData.append("password", password);
+
     try {
-      // FormData erstellen
-      const formData = new FormData();
-      formData.append("username", username);
-      formData.append("password", password);
-
-      // Login Request
-      const response = await axios.post(
-        `${API_BASE}/login`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      const accessToken = response.data.access_token;
-
-      localStorage.setItem("token", accessToken);
-      setToken(accessToken);
-
-    } catch (error) {
-      console.error("Login fehlgeschlagen:", error);
-    }
-  };
-
-  // ITEMS LADEN
-  const fetchItems = async () => {
-    try {
-      const response = await axios.get(`${API_BASE}/houses/`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await fetch(`${API_BASE}/login`, {
+        method: "POST",
+        body: formData,
       });
 
-      setItems(response.data);
+      if (!response.ok) {
+        throw new Error("Login fehlgeschlagen");
+      }
 
-    } catch (error) {
-      console.error("Fehler beim Laden:", error);
+      const loginResponse = (await response.json()) as LoginResponse;
+      localStorage.setItem("token", loginResponse.access_token);
+      setToken(loginResponse.access_token);
+      setPassword("");
+    } catch (loginError) {
+      setError(
+        loginError instanceof Error
+          ? loginError.message
+          : "Login fehlgeschlagen",
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
-  // LOGOUT
-  const logout = () => {
+  const handleLogout = () => {
     localStorage.removeItem("token");
     setToken("");
-    setItems([]);
   };
 
-  // LOGIN SCREEN
   if (!token) {
     return (
-      <div>
-        <h1>Login</h1>
+      <main className="auth-page">
+        <form className="auth-form" onSubmit={handleLogin}>
+          <h1>Login</h1>
 
-        <input
-          type="text"
-          placeholder="Benutzername"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
+          {error && <p role="alert">{error}</p>}
 
-        <input
-          type="password"
-          placeholder="Passwort"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+          <label>
+            E-Mail
+            <input
+              type="email"
+              autoComplete="username"
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              required
+            />
+          </label>
 
-        <button onClick={login}>
-          Einloggen
-        </button>
-      </div>
+          <label>
+            Passwort
+            <input
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+            />
+          </label>
+
+          <button type="submit" disabled={loading}>
+            {loading ? "Einloggen..." : "Einloggen"}
+          </button>
+        </form>
+      </main>
     );
   }
 
-  // APP SCREEN
   return (
-    <div>
-      <h1>Items</h1>
-
-      <button onClick={fetchItems}>
-        Items laden
-      </button>
-
-      <button onClick={logout}>
-        Logout
-      </button>
-
-      <table className="table table-hover">
-        <thead>
-            <tr>
-                <th>Titel</th>
-                <th>URL</th>
-                <th>Immobilien Art</th>
-                <th>Preis</th>
-                <th>Stadt</th>
-                <th>Adresse</th>
-            </tr>
-        </thead>
-        <tbody>
-        {items.map((item) => (
-          <tr key={item.id}>
-            <td>{item.title}</td>
-            <td>{item.url}</td>
-            <td>{item.estate_type}</td>
-            <td>{item.price}</td>
-            <td>{item.city}</td>
-            <td>{item.address}</td>
-          </tr>
-        ))}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <header className="app-toolbar">
+        <button type="button" onClick={handleLogout}>
+          Logout
+        </button>
+      </header>
+      <HousesPage />
+    </>
   );
 }
 
