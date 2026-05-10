@@ -1,8 +1,7 @@
-from fastapi import status, HTTPException, Depends, Path, APIRouter
+from fastapi import status, HTTPException, Depends, Path, APIRouter, Response
 from backend.database.models import House, get_db, SearchParams, SearchResults
 from sqlalchemy.orm import Session
 from backend.api.auth.oauth2 import get_current_user
-from sqlalchemy import select
 
 router = APIRouter(
     prefix="/houses",
@@ -41,3 +40,35 @@ def get_house_by_id(house_id: int = Path(gt=0), db: Session = Depends(get_db), c
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to retrieve this house")
 
     return house
+
+@router.delete("/{house_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_house(house_id: int = Path(gt=0), db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    house = db.query(House).filter(House.id == house_id).first()
+
+    if house is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"House with id {house_id} not found")
+
+    search_result_ids = [
+        result_id
+        for (result_id,) in (
+            db.query(SearchResults.id)
+            .join(SearchParams, SearchResults.search_params_id == SearchParams.id)
+            .filter(
+                SearchResults.house_id == house_id,
+                SearchParams.user_id == current_user.id,
+            )
+            .all()
+        )
+    ]
+
+    if not search_result_ids:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to delete this house")
+
+    (
+        db.query(SearchResults)
+        .filter(SearchResults.id.in_(search_result_ids))
+        .delete(synchronize_session=False)
+    )
+    db.commit()
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

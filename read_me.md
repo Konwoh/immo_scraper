@@ -1,15 +1,15 @@
-Docker Commands:
-- scraper: 
-    - docker build -f scraper/Dockerfile -t scraper .
-    - docker run --env-file .env -v ${PWD}/logging:/app/logging scraper
-- crawler:
-    - docker build -f crawler/Dockerfile -t crawler .
-    - docker run --env-file .env -v ${PWD}/logging:/app/logging crawler
-
-
 TO-DO:
 - FastAPI:
+    - POST, PUT, DELETE Endpoints zu den fehlenden Sachen noch hinzufügen
+    - Formulare zum erstellen von Immobilien an reale Spaltenamen anpassen in <entity>.config.ts
     - Überprüfen, ob das mit den check_online_availability klappt -> warten bis haus auf offline gesetzt ist
+
+- Web-App
+    - genaueres Fehler Logging im Frontend
+    - Seitenleiste zur Navigation
+    - Seite zum starten der Jobs
+    - Admin Seite
+
 - Fehler bei Bathrooms mit String "1.5" 
 - URL-QUeue wird in crawler/base.py mit values obj aufgefüllt -> ändern
 - Front-End bauen
@@ -20,6 +20,5 @@ TO-DO:
 - Factory-Pattern vereinfachen
 - Train various Machine Learning Models (e.g. Classification models, recommender systems, regression für preis vorhersage)
     - good deal detector
-- Web-App
-    - Crud Fenster zum hinzufügen von search_param Kombinationen
+
 - generelle Datenanalyse
