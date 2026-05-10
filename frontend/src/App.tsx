@@ -1,5 +1,7 @@
+import { SidebarNavigation } from "@/components/sidebar/SidebarNavigation";
 import { HousesPage } from "@/routes/HousePage";
 import { useState, type FormEvent } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 const API_BASE = "http://localhost:8000";
 
@@ -93,14 +95,73 @@ function App() {
   }
 
   return (
-    <>
-      <header className="app-toolbar">
-        <button type="button" onClick={handleLogout}>
-          Logout
-        </button>
-      </header>
-      <HousesPage />
-    </>
+    <BrowserRouter>
+      <div className="app-shell">
+        <SidebarNavigation onLogout={handleLogout} />
+        <main className="app-content">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/tables" element={<Navigate to="/tables/houses" replace />} />
+            <Route path="/tables/houses" element={<HousesPage />} />
+            <Route
+              path="/tables/apartments"
+              element={<TablePlaceholderPage title="Wohnungen" />}
+            />
+            <Route
+              path="/tables/jobs"
+              element={<TablePlaceholderPage title="Jobs" />}
+            />
+            <Route
+              path="/tables/search-parameters"
+              element={<TablePlaceholderPage title="Suchparameter" />}
+            />
+            <Route
+              path="/tables/brokers"
+              element={<TablePlaceholderPage title="Makler" />}
+            />
+            <Route path="/jobs" element={<JobsPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
+      </div>
+    </BrowserRouter>
+  );
+}
+
+function HomePage() {
+  return (
+    <section className="dashboard-page">
+      <h1>Startseite</h1>
+      <p>
+        Willkommen im Immo Scraper Dashboard. Wähle links einen Bereich aus, um
+        die Daten oder Jobs zu verwalten.
+      </p>
+    </section>
+  );
+}
+
+function JobsPage() {
+  return (
+    <section className="dashboard-page">
+      <h1>Job Übersicht</h1>
+      <p>
+        Hier entsteht die Übersicht für laufende, geplante und abgeschlossene
+        Scraper-Jobs.
+      </p>
+    </section>
+  );
+}
+
+type TablePlaceholderPageProps = {
+  title: string;
+};
+
+function TablePlaceholderPage({ title }: TablePlaceholderPageProps) {
+  return (
+    <section className="dashboard-page">
+      <h1>{title}</h1>
+      <p>Die Tabellenansicht für {title} kann hier angebunden werden.</p>
+    </section>
   );
 }
 

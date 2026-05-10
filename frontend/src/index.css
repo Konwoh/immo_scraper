@@ -59,10 +59,9 @@
 }
 
 #root {
-  width: 1126px;
+  width: min(1280px, 100%);
   max-width: 100%;
   margin: 0 auto;
-  text-align: center;
   border-inline: 1px solid var(--border);
   min-height: 100svh;
   display: flex;
@@ -139,9 +138,170 @@ button:disabled {
   padding: 16px 24px 0;
 }
 
+.app-shell {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  min-height: 100svh;
+  background: var(--surface-soft);
+}
+
+.sidebar-navigation {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  height: 100svh;
+  border-right: 1px solid var(--border);
+  padding: 24px 18px;
+  box-sizing: border-box;
+  background: var(--surface);
+  text-align: left;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-h);
+}
+
+.sidebar-brand-mark {
+  display: inline-grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--bg);
+  background: var(--text-h);
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.sidebar-brand strong,
+.sidebar-brand span {
+  display: block;
+}
+
+.sidebar-brand strong {
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.sidebar-brand div > span {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.sidebar-menu {
+  display: grid;
+  gap: 8px;
+}
+
+.sidebar-menu-group {
+  display: grid;
+  gap: 8px;
+}
+
+.sidebar-menu-item,
+.sidebar-submenu-item,
+.sidebar-logout-button {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--text);
+  background: transparent;
+  text-decoration: none;
+  text-align: left;
+  font-size: 15px;
+  font-weight: 650;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.sidebar-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.sidebar-menu-item:hover,
+.sidebar-menu-item-active {
+  border-color: var(--border-strong);
+  color: var(--text-h);
+  background: var(--surface-muted);
+}
+
+.sidebar-menu-item-active {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.sidebar-menu-chevron {
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.sidebar-submenu {
+  display: grid;
+  gap: 4px;
+  margin-left: 12px;
+  padding-left: 12px;
+  border-left: 1px solid var(--border);
+}
+
+.sidebar-submenu-item {
+  padding: 8px 10px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sidebar-submenu-item:hover,
+.sidebar-submenu-item-active {
+  color: var(--text-h);
+  background: var(--surface-muted);
+}
+
+.sidebar-submenu-item-active {
+  border-color: var(--border);
+}
+
+.sidebar-logout-button {
+  margin-top: auto;
+  border-color: var(--border);
+}
+
+.sidebar-logout-button:hover {
+  border-color: var(--text);
+  color: var(--text-h);
+  background: var(--surface-muted);
+}
+
+.app-content {
+  min-width: 0;
+  padding: 32px;
+}
+
+.dashboard-page {
+  display: grid;
+  gap: 12px;
+  max-width: 760px;
+  text-align: left;
+}
+
+.dashboard-page h1 {
+  margin-bottom: 0;
+}
+
 .crud-page {
   width: 100%;
-  padding: 0 24px 40px;
+  padding: 0 0 40px;
   box-sizing: border-box;
 }
 
@@ -491,7 +651,7 @@ h2 {
 
 h1 {
   font-size: 56px;
-  letter-spacing: -1.68px;
+  letter-spacing: 0;
   margin: 32px 0;
   @media (max-width: 1024px) {
     font-size: 36px;
@@ -527,6 +687,61 @@ code {
 }
 
 @media (max-width: 720px) {
+  #root {
+    border-inline: 0;
+  }
+
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar-navigation {
+    position: static;
+    height: auto;
+    gap: 16px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+    padding: 16px;
+  }
+
+  .sidebar-menu {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar-menu-item {
+    min-height: 48px;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .sidebar-menu-item-active {
+    box-shadow: inset 0 -3px 0 var(--accent);
+  }
+
+  .sidebar-menu-group {
+    gap: 6px;
+  }
+
+  .sidebar-submenu {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-left: 0;
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .sidebar-submenu-item {
+    text-align: center;
+  }
+
+  .sidebar-logout-button {
+    margin-top: 0;
+    text-align: center;
+  }
+
+  .app-content {
+    padding: 20px 12px 32px;
+  }
+
   .crud-page {
     padding-inline: 12px;
   }
