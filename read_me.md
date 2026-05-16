@@ -1,8 +1,8 @@
 TO-DO:
 - FastAPI:
     - POST, PUT, DELETE Endpoints zu den fehlenden Sachen noch hinzufügen
-    - Formulare zum erstellen von Immobilien an reale Spaltenamen anpassen in <entity>.config.ts
     - Überprüfen, ob das mit den check_online_availability klappt -> warten bis haus auf offline gesetzt ist
+        -> klappt nicht zu 100%, neues Verfahren implementieren, wo neue URLs normal inserted werden und bei den URLs, die nicht gefunden wurden, wird nochmal ein separater URL fetch gemacht und geguckt
 
 - Web-App
     - genaueres Fehler Logging im Frontend

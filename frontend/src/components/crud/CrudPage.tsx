@@ -148,7 +148,7 @@ export function CrudPage<T extends { id: string | number }>({
             type="button"
             onClick={() => setShowCreateForm(true)}
           >
-            Haus hinzufügen
+            {config.name} hinzufügen
           </button>
         )}
       </header>
@@ -158,7 +158,7 @@ export function CrudPage<T extends { id: string | number }>({
       {showCreateForm && handleCreate && (
         <section className="crud-form-panel">
           <CrudForm
-            title="Haus hinzufügen"
+            title={`${config.name} hinzufügen`}
             fields={config.formFields}
             mode="create"
             onSubmit={handleCreate}

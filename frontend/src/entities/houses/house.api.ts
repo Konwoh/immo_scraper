@@ -37,43 +37,6 @@ export const houseApi = {
     return response.json();
   },
 
-  async create(data: Partial<House>): Promise<House> {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      throw new Error("Fehler beim Erstellen");
-    }
-
-    return response.json();
-  },
-
-  async update(
-    id: number,
-    data: Partial<House>
-  ): Promise<House> {
-    const response = await fetch(`${API_URL}/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      throw new Error("Fehler beim Speichern");
-    }
-
-    return response.json();
-  },
-
   async delete(id: number): Promise<void> {
     const response = await fetch(`${API_URL}/${id}`, {
       method: "DELETE",
