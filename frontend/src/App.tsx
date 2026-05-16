@@ -1,5 +1,7 @@
 import { SidebarNavigation } from "@/components/sidebar/SidebarNavigation";
 import { HousesPage } from "@/routes/HousePage";
+import { ApartmentPage } from "@/routes/ApartmentPage";
+import { JobPage } from "@/routes/JobPage";
 import { useState, type FormEvent } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
@@ -103,14 +105,8 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/tables" element={<Navigate to="/tables/houses" replace />} />
             <Route path="/tables/houses" element={<HousesPage />} />
-            <Route
-              path="/tables/apartments"
-              element={<TablePlaceholderPage title="Wohnungen" />}
-            />
-            <Route
-              path="/tables/jobs"
-              element={<TablePlaceholderPage title="Jobs" />}
-            />
+            <Route path="/tables/apartments" element={<ApartmentPage/>} />
+            <Route path="/tables/jobs" element={<JobPage />} />
             <Route
               path="/tables/search-parameters"
               element={<TablePlaceholderPage title="Suchparameter" />}
