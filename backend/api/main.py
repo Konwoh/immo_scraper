@@ -23,18 +23,3 @@ app.add_middleware(
     allow_origins=origins,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"])
-
-@app.get("/start_scraper", status_code=status.HTTP_200_OK)
-def start_scraper_endpoint(db: Session = Depends(get_db)):
-    job = Job(job_type="scraper", status=Status.open)
-    db.add(job)
-    db.commit()
-    # ToDO: Success Meldung in response gegebn mit response_model von pydantic
-        
-        
-@app.get("/start_crawler", status_code=status.HTTP_200_OK)
-def start_crawler_endpoint(db: Session = Depends(get_db)):
-    job = Job(job_type="crawler", status=Status.open)
-    db.add(job)
-    db.commit()
-    # ToDO: Success Meldung in response gegebn mit response_model von pydantic
