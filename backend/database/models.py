@@ -41,12 +41,24 @@ class Job(Base):
     __tablename__ = "jobs"
     id: Mapped[int] = mapped_column(primary_key=True)
     search_params_id: Mapped[int] = mapped_column(ForeignKey("search_params.id", ondelete="CASCADE"), nullable=False)
+    schedule_id: Mapped[int | None] = mapped_column(ForeignKey("job_schedule.id", ondelete="SET NULL"), nullable=True)
     job_type: Mapped[str] = mapped_column(nullable=False)
     status: Mapped[str] = mapped_column(Enum(Status, name="job_status"), nullable=False)
+    scheduled_for: Mapped[datetime|None] = mapped_column(DateTime(timezone=True), nullable=True)
     claimed_at: Mapped[datetime|None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
-    
+
+class JobSchedule(Base):
+    __tablename__ = 'job_schedule'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    search_params_id: Mapped[int] = mapped_column(ForeignKey("search_params.id", ondelete="CASCADE"), nullable=False)
+    job_type: Mapped[str] = mapped_column(nullable=False)
+    interval: Mapped[str] = mapped_column(nullable=False)
+    enabled: Mapped[bool] = mapped_column(nullable=False)
+    last_run: Mapped[datetime|None] = mapped_column(DateTime(timezone=True), nullable=True)
+    next_run: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
 class SearchParams(Base):
     __tablename__ = "search_params"
     id: Mapped[int] = mapped_column(primary_key=True)

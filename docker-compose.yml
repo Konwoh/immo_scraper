@@ -33,7 +33,7 @@ services:
       volumes:
         - .:/app
     worker_loop:
-      image: immo-worker_loop:latest
+      image: immo-worker:latest
       container_name: worker_loop
       build:
         context: .
@@ -41,3 +41,16 @@ services:
       environment:
         DB_CONNECTION_STRING: ${DB_CONNECTION_STRING}
         LOKI_URL: http://loki:3100
+      command: ["python", "-m", "backend.worker.job_loop"]
+      restart: unless-stopped
+    schedule_loop:
+      image: immo-worker:latest
+      container_name: schedule_loop
+      build:
+        context: .
+        dockerfile: backend/worker/Dockerfile
+      environment:
+        DB_CONNECTION_STRING: ${DB_CONNECTION_STRING}
+        LOKI_URL: http://loki:3100
+      command: ["python", "-m", "backend.worker.schedule_loop"]
+      restart: unless-stopped

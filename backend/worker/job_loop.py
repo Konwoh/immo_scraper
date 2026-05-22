@@ -6,7 +6,7 @@ from backend.shared.loki_handler import get_loki_logger
 from backend.services.scraper_service import ScraperService
 from backend.services.crawler_service import CrawlerService
 
-worker_loop_logger = get_loki_logger("backend", {"app": "worker_loop_logger", "env": "dev"})
+job_loop_logger = get_loki_logger("backend", {"app": "job_loop_logger", "env": "dev"})
 
 def worker_loop():
     job_service = JobService(CrawlerService(), ScraperService())
@@ -31,14 +31,14 @@ def worker_loop():
             time.sleep(2)
             
         except Exception as exc:
-            worker_loop_logger.exception("Error in worker: %s", exc)
+            job_loop_logger.exception("Error in worker: %s", exc)
 
             if job is not None:
                 try:
                     with Session(engine) as session:
                         job_service.mark_job_failed(session, job["id"])
                 except Exception as db_exc:
-                    worker_loop_logger.exception("Konnte Job %s nicht auf failed setzen: %s", job["id"], db_exc)
+                    job_loop_logger.exception("Konnte Job %s nicht auf failed setzen: %s", job["id"], db_exc)
 
             time.sleep(2)
 

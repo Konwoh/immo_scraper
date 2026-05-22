@@ -1,12 +1,11 @@
 TO-DO:
 - FastAPI:
-    - POST, PUT, DELETE Endpoints zu den fehlenden Sachen noch hinzufügen
+    - DELETE Endpoints für user
+    - JWT mit Refresh Token einbauen
     - Überprüfen, ob das mit den check_online_availability klappt -> warten bis haus auf offline gesetzt ist
-        -> klappt nicht zu 100%, neues Verfahren implementieren, wo neue URLs normal inserted werden und bei den URLs, die nicht gefunden wurden, wird nochmal ein separater URL fetch gemacht und geguckt
 
 - Web-App
     - genaueres Fehler Logging im Frontend
-    - Seitenleiste zur Navigation
     - Seite zum starten der Jobs
     - Admin Seite
 
