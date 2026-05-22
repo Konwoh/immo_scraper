@@ -1,5 +1,5 @@
 from fastapi import status, HTTPException, Depends, Path, APIRouter
-from backend.database.models import Job, get_db, SearchParams, UrlQueue
+from backend.database.models import Job, get_db, SearchParams, UrlQueue, Status
 from sqlalchemy.orm import Session
 from backend.schemas.job import JobRequest
 from backend.api.auth.oauth2 import get_current_user
@@ -33,10 +33,11 @@ def create_jobs(job_request: JobRequest, db: Session = Depends(get_db), current_
     
     if search_param is None:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to create this job")
-            
-    check_url = (db.query(UrlQueue).filter(UrlQueue.search_params_id == job_request.search_params_id)).all()
-    if not check_url:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"No url queue objects found for search param id: {job_request.search_params_id}")
+    
+    if job_request.job_type == "scraper":
+        check_url = (db.query(UrlQueue).filter(UrlQueue.search_params_id == job_request.search_params_id, UrlQueue.status == Status.open)).all()
+        if not check_url:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"No url queue objects found for search param id: {job_request.search_params_id}")
         
     new_job = Job(**job_request.model_dump())
     db.add(new_job)
