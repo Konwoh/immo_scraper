@@ -49,7 +49,11 @@ def read_estate_creator(estate_type: str) -> EstateFactory:
 
 class Parser(ABC):
     @abstractmethod
-    def fetch(self, normal_url: str) -> House|Apartment:
+    def fetch_base(self, normal_url: str) -> requests.Response:
+        pass   
+
+    @abstractmethod
+    def build_estate(self, normal_url: str) -> House|Apartment:
         pass    
     
     @abstractmethod
@@ -58,4 +62,8 @@ class Parser(ABC):
     
     @abstractmethod
     def url_parse(self, response: requests.Response) -> List[UrlQueue]:
+        pass
+    
+    @abstractmethod
+    def is_online(self, response: requests.Response) -> bool:
         pass

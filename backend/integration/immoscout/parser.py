@@ -4,7 +4,7 @@ from backend.database.models import UrlQueue, Status, House, Apartment
 from backend.parser.base_parser import read_estate_creator, Parser
 from sqlalchemy.orm import Session
 from backend.database.models import engine
-from backend.shared.exceptions import ParsingError
+from backend.shared.exceptions import ParsingError, RequestError
 from backend.shared.helper import Headers
 import requests
 import logging
@@ -12,12 +12,22 @@ import logging
 scraper_logger = logging.getLogger("scraper")
 
 class ImmoScoutParser(Parser):
-    def fetch(self, normal_url: str) -> House|Apartment:
+    def fetch_base(self, normal_url: str) -> requests.Response:
         headers = Headers('application/json', 'ImmoScout_27.14.1_26.3_._', 'de-de')
         headers = headers.build_header()
         expose_id = normal_url.split("/")[-1]
         base_url = f'https://api.mobile.immobilienscout24.de/expose/{expose_id}'
         response = requests.get(base_url, headers=headers)
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            if response.status_code == 404:
+                raise RequestError(f"Inserat {base_url} nicht mehr verfügbar")
+            raise RequestError(f"ImmoScout API Fehler: {e}")
+        return response
+    
+    def build_estate(self, normal_url: str) -> House|Apartment:
+        response = self.fetch_base(normal_url)
         estate = self.parse(response)
         return estate
     
@@ -216,3 +226,26 @@ class ImmoScoutParser(Parser):
                 continue
         
         return url_queue_list
+
+    def is_online(self, response) -> bool:
+        try:
+            payload = response.json()
+        except ValueError as e:
+            raise ValueError("Invalid JSON in response") from e
+        
+        error = payload.get("error")
+
+        if error and "ERROR_RESOURCE_NOT_FOUND" in error:
+            return False
+        elif payload.get("sections") is None:
+            raise ParsingError("Section Key is not in JSON")
+        
+        header = payload.get("header")
+        if header is not None:
+            status = header.get("publicationState")
+            if status == "active":
+                return True
+            else:
+                return False
+        else:
+            raise ParsingError("No header found")

@@ -12,7 +12,7 @@ import logging
 scraper_logger = logging.getLogger("scraper")
 
 class KleinanzeigenParser(Parser):
-    def fetch(self, normal_url: str) -> House|Apartment:
+    def fetch_base(self, normal_url: str) -> requests.Response:
         headers = Headers('*/*', 'Kleinanzeigen/2026.12.0 (com.ebaykleinanzeigen.ebc; build:26.072.16409187; iOS 26.3.1) Alamofire/5.11.1', 'de-DE;q=1.0', 'Basic aXBob25lOmc0Wmk5cTEw')
         headers = headers.build_header()
         last_string_segment = normal_url.split("/")[-1]
@@ -23,8 +23,12 @@ class KleinanzeigenParser(Parser):
             response.raise_for_status()
         except requests.exceptions.HTTPError as e:
             if response.status_code == 404:
-                raise RequestError(f"Inserat {base_url} nicht mehr verfügbar")
+                raise RequestError(f"Inserat {base_url} nicht verfügbar")
             raise RequestError(f"Kleinanzeigen API Fehler: {e}")
+        return response
+    
+    def build_estate(self, normal_url: str) -> House|Apartment:
+        response = self.fetch_base(normal_url)
         estate = self.parse(response)
         return estate
     
@@ -140,3 +144,19 @@ class KleinanzeigenParser(Parser):
                     url_queue_list.append(url_obj)
         
         return url_queue_list
+    
+    def is_online(self, response) -> bool:
+        try:
+            payload = response.json()
+            payload = payload.get("{http://www.ebayclassifiedsgroup.com/schema/ad/v1}ad", {}).get("value")
+        except Exception as e:
+            raise ParsingError("Invalid JSON in response") from e
+        
+        try:
+            status = payload.get("ad-status", {}).get("value")
+            if status == "ACTIVE":
+                return True
+            else:
+                return False
+        except Exception as e:
+            raise ParsingError(message="Error while accessing ad-status")

@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from typing import Type, Optional, List
 from backend.database.models import UrlQueue, Status, SearchResults, Apartment, House
+from backend.shared.exceptions import RequestError, ParsingError
 from sqlalchemy.orm import Session
 from sqlalchemy import select, update
 from backend.parser.factory import EstateParserCreator
@@ -143,7 +144,7 @@ class Worker:
 
                 parser = parser_cache[site]
                 
-                estate = parser.fetch(url_queue_obj["url"])
+                estate = parser.build_estate(url_queue_obj["url"])
                 
                 if estate is None:
                     raise ValueError("Parser returned None")
@@ -170,10 +171,10 @@ class Worker:
                 )
                 counter += 1
                 
-        self.check_online_availability(found_house_ids, "House")
-        self.check_online_availability(found_apartment_ids, "Apartment")
+        self.check_online_availability(found_house_ids, "House", parser_cache, estate_parser_creator)
+        self.check_online_availability(found_apartment_ids, "Apartment", parser_cache, estate_parser_creator)
 
-    def check_online_availability(self, estate_id_list: List[int], estate_type: str):
+    def check_online_availability(self, estate_id_list: List[int], estate_type: str, parser_cache: dict[str, Parser], estate_parser_creator):
         with Session(self.engine) as session:
             if estate_type == "House":
                 offline_ids = (
@@ -186,8 +187,12 @@ class Worker:
 
                 offline_ids = [x[0] for x in offline_ids]
 
-                session.query(House).filter(House.id.in_(offline_ids)).update({House.is_online: False}, synchronize_session=False)   
-                         
+                #session.query(House).filter(House.id.in_(offline_ids)).update({House.is_online: False}, synchronize_session=False)   
+                not_found_urls = (session.query(House.url).filter(House.id.in_(offline_ids)).all())
+                not_found_urls = [x[0] for x in not_found_urls]
+                
+                self.update_online_status(not_found_urls, parser_cache, session, estate_type, estate_parser_creator)
+                        
             elif estate_type == "Apartment":
                 offline_ids = (
                     session.query(Apartment.id)
@@ -199,5 +204,42 @@ class Worker:
 
                 offline_ids = [x[0] for x in offline_ids]
 
-                session.query(Apartment).filter(Apartment.id.in_(offline_ids)).update({Apartment.is_online: False}, synchronize_session=False)                   
+                #session.query(Apartment).filter(Apartment.id.in_(offline_ids)).update({Apartment.is_online: False}, synchronize_session=False)                   
+                not_found_urls = (session.query(Apartment.url).filter(Apartment.id.in_(offline_ids)).all())
+                not_found_urls = [x[0] for x in not_found_urls]
+                
+                self.update_online_status(not_found_urls, parser_cache, session, estate_type, estate_parser_creator)
+                
             session.commit()
+
+    def update_online_status(self, not_found_urls: List, parser_cache: dict[str, Parser], session: Session, estate_type: str, estate_parser_creator: EstateParserCreator):
+        for url in not_found_urls:
+            if "kleinanzeigen" in url:
+                site = "kleinanzeigen"
+            elif "immobilienscout24" in url:
+                site =  "immoScout"
+            else:
+                raise ValueError(f"No known site in url found: {url}")
+            
+            if site not in parser_cache:
+                parser_cache[site] = estate_parser_creator.create_parser(site)
+            
+            parser = parser_cache[site]
+            
+            try:
+                response = parser.fetch_base(url)
+                is_online = parser.is_online(response)
+            
+            except RequestError as e:
+                scraper_logger.error(f"Availability request failed for url={url}: {e}")
+                continue
+
+            except (ParsingError, ValueError) as e:
+                scraper_logger.error(f"Availability parsing failed for url={url}: {e}")
+                continue  
+            
+            if is_online == False:
+                if estate_type == "House":
+                    session.query(House).filter(House.url == url).update({House.is_online: False}, synchronize_session=False)
+                elif estate_type == "Apartment":
+                    session.query(Apartment).filter(Apartment.url == url).update({Apartment.is_online: False}, synchronize_session=False)
