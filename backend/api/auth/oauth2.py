@@ -15,6 +15,9 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+REFRESH_SECRET_KEY = str(os.getenv("REFRESH_SECRET_KEY"))  # Keep this different from access secret
+ACCESS_TOKEN_EXPIRE_MINUTES = 15
+REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 
 def create_access_token(data: dict):
     to_encode = data.copy()
@@ -45,4 +48,10 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     token_data = verify_access_token(token=token, credentials_exception=credentials_exception)
     
     user = db.query(User).filter(User.id == token_data.id).first()
-    return user 
+    return user
+
+def create_refresh_token(data: dict, expires_delta: timedelta|None = None):
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(days=7))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, REFRESH_SECRET_KEY, algorithm=ALGORITHM)

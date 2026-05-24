@@ -3,7 +3,7 @@ from sqlalchemy import ForeignKey, create_engine, UniqueConstraint, DateTime, En
 from sqlalchemy.orm import DeclarativeBase, declarative_mixin, Mapped, mapped_column, relationship, Session, sessionmaker
 from sqlalchemy.sql import func
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 import enum
 
@@ -28,6 +28,13 @@ class Status(enum.Enum):
     processing = "processing"
     done = "done"
     failed = "failed"
+
+class RefreshToken(Base):
+    __tablename__ = "refresh_tokens"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    token: Mapped[str] = mapped_column(nullable=False, unique=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc) + timedelta(days=7))
 
 class User(Base):
     __tablename__ = "users"
