@@ -1,8 +1,7 @@
-from backend.database.models import JobSchedule, Status
-from sqlalchemy import update, select
+from backend.database.models import JobSchedule
+from sqlalchemy import select
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
-from typing import List
 
 class ScheduleService():
     def __init__(self):

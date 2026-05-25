@@ -1,5 +1,4 @@
 from backend.database.models import create_engine, UrlQueue
-from backend.shared.helper import retry
 import os
 from backend.worker.scraper_worker import Worker
 

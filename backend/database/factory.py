@@ -1,6 +1,6 @@
 from typing import Dict, Any
 from abc import ABC, abstractmethod
-from .models import Agency, House, RealEstate, Apartment
+from .models import Agency, House, Apartment
 from backend.shared.helper import to_float, to_int
 from sqlalchemy import select
 
