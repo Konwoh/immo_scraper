@@ -1,6 +1,7 @@
 import type { SearchParams } from "./search_params.types";
 
-const API_URL = "http://localhost:8000/search_params";
+const API_BASE = import.meta.env.VITE_BASE_URL
+const API_URL = `http://${API_BASE}:8000/search_params`;
 
 function getAuthHeaders(): Record<string, string> {
   const token = localStorage.getItem("token");

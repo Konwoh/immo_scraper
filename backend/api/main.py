@@ -3,6 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.database.models import Job, Status, get_db
 from sqlalchemy.orm import Session
 from backend.api.routers import users, houses, apartments, search_params, jobs, url_queue, auth, job_schedule
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+BASE_URL = os.getenv("BASE_URL")
 app = FastAPI()
 
 app.include_router(users.router)
@@ -15,7 +20,8 @@ app.include_router(auth.router)
 app.include_router(job_schedule.router)
 
 origins = [
-    "http://localhost:5173"
+    "http://localhost:5173",
+    f"http://{BASE_URL}:5173"
 ]
 
 app.add_middleware(

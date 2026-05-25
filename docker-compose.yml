@@ -54,3 +54,17 @@ services:
         LOKI_URL: http://loki:3100
       command: ["python", "-m", "backend.worker.schedule_loop"]
       restart: unless-stopped
+    frontend:
+      image: immo-frontend:latest
+      container_name: frontend
+      build:
+        context: ./frontend
+        dockerfile: Dockerfile
+      ports:
+        - "5173:5173"
+      volumes:
+        - ./frontend:/app
+        - /app/node_modules
+      depends_on:
+        - api
+      restart: unless-stopped

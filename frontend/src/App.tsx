@@ -6,7 +6,8 @@ import { SearchParamsPage } from "@/routes/SearchParamsPage";
 import { useState, type FormEvent } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
-const API_BASE = "http://localhost:8000";
+const BASE = import.meta.env.VITE_BASE_URL
+const API_BASE = `http://${BASE}:8000`;
 
 type LoginResponse = {
   access_token: string;

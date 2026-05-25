@@ -1,6 +1,7 @@
 import type { Job } from "./job.types";
 
-const API_URL = "http://localhost:8000/jobs";
+const API_BASE = import.meta.env.VITE_BASE_URL
+const API_URL = `http://${API_BASE}:8000/jobs`;
 
 function getAuthHeaders(): Record<string, string> {
   const token = localStorage.getItem("token");
