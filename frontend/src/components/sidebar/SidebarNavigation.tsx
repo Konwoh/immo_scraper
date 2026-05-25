@@ -16,7 +16,7 @@ const tableNavigationItems: NavigationItem[] = [
   { label: "Wohnungen", path: "/tables/apartments" },
   { label: "Jobs", path: "/tables/jobs" },
   { label: "Suchparameter", path: "/tables/search-parameters" },
-  { label: "Makler", path: "/tables/brokers" },
+  { label: "Job-Planung", path: "/tables/job-schedule" },
 ];
 
 type SidebarNavigationProps = {

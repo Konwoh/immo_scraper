@@ -2,9 +2,11 @@ import { SidebarNavigation } from "@/components/sidebar/SidebarNavigation";
 import { HousesPage } from "@/routes/HousePage";
 import { ApartmentPage } from "@/routes/ApartmentPage";
 import { JobPage } from "@/routes/JobPage";
+import {JobSchedulePage} from "@/routes/JobSchedulePage";
 import { SearchParamsPage } from "@/routes/SearchParamsPage";
 import { useState, type FormEvent } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { jobScheduleApi } from "./entities/job_schedule/job_schedule.api";
 
 const BASE = import.meta.env.VITE_BASE_URL
 const API_BASE = `http://${BASE}:8000`;
@@ -109,12 +111,8 @@ function App() {
             <Route path="/tables/houses" element={<HousesPage />} />
             <Route path="/tables/apartments" element={<ApartmentPage/>} />
             <Route path="/tables/jobs" element={<JobPage />} />
-            <Route path="/tables/search-parameters" element={<SearchParamsPage/>}
-            />
-            <Route
-              path="/tables/brokers"
-              element={<TablePlaceholderPage title="Makler" />}
-            />
+            <Route path="/tables/search-parameters" element={<SearchParamsPage/>}/>
+            <Route path="/tables/job-schedule" element={<JobSchedulePage/>}/>
             <Route path="/jobs" element={<JobsPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
@@ -144,19 +142,6 @@ function JobsPage() {
         Hier entsteht die Übersicht für laufende, geplante und abgeschlossene
         Scraper-Jobs.
       </p>
-    </section>
-  );
-}
-
-type TablePlaceholderPageProps = {
-  title: string;
-};
-
-function TablePlaceholderPage({ title }: TablePlaceholderPageProps) {
-  return (
-    <section className="dashboard-page">
-      <h1>{title}</h1>
-      <p>Die Tabellenansicht für {title} kann hier angebunden werden.</p>
     </section>
   );
 }
