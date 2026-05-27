@@ -6,7 +6,6 @@ import {JobSchedulePage} from "@/routes/JobSchedulePage";
 import { SearchParamsPage } from "@/routes/SearchParamsPage";
 import { useState, type FormEvent } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { jobScheduleApi } from "./entities/job_schedule/job_schedule.api";
 
 const BASE = import.meta.env.VITE_BASE_URL
 const API_BASE = `http://${BASE}:8000`;

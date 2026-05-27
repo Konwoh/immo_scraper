@@ -1,12 +1,12 @@
 TO-DO:
 - FastAPI:
     - DELETE Endpoints für user
-    - Frontend Änderunge für Refresh Token umsetzen
+    - Frontend Änderungen für Refresh Token umsetzen
     - Token nicht mehr in localStorage packen
     - Überprüfen, ob das mit den check_online_availability klappt -> warten bis haus auf offline gesetzt ist
 
 - Web-App
-    - Input Form für Job Scheduler bauen
+    - Input Form für Job Scheduler bauen + Form zum Deaktivieren der Job Scheduler machen
     - genaueres Fehler Logging im Frontend
     - Seite zum starten der Jobs
     - Admin Seite
