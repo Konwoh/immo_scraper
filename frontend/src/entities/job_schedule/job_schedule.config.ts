@@ -14,8 +14,8 @@ const formatDateTime = (value: unknown) => {
 };
 
 export const jobScheduleConfig = {
-  name: "Jobs",
-  route: "/jobs",
+  name: "Jobs Schedule",
+  route: "/jobs_schedules",
   idField: "id",
 
   columns: [

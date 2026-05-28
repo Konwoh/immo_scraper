@@ -8,6 +8,8 @@ export function SearchParamsPage() {
     <CrudPage
       config={searchParamsConfig}
       api={searchParamsApi}
+      show_table={true}
+      show_button={true}
     />
   );
 }

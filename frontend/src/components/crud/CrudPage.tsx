@@ -34,15 +34,19 @@ type CrudApi<T extends { id: string | number }> = {
 type CrudPageProps<T extends { id: string | number }> = {
   config: CrudConfig<T>;
   api: CrudApi<T>;
+  show_table: boolean;
+  show_button: boolean;
 };
 
 export function CrudPage<T extends { id: string | number }>({
   config,
   api,
+  show_table,
+  show_button,
 }: CrudPageProps<T>) {
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(!show_table);
   const [error, setError] = useState<string | null>(null);
 
   const applyLoadError = (loadError: unknown) => {
@@ -142,7 +146,7 @@ export function CrudPage<T extends { id: string | number }>({
           <h1>{config.name}</h1>
         </div>
 
-        {api.create && (
+        {api.create && show_button &&(
           <button
             className="crud-primary-button"
             type="button"
@@ -166,13 +170,14 @@ export function CrudPage<T extends { id: string | number }>({
           />
         </section>
       )}
-
-      <CrudTable
-        columns={config.columns}
-        data={data}
-        loading={loading}
-        onDelete={handleDelete}
-      />
+      {show_table && (
+        <CrudTable
+          columns={config.columns}
+          data={data}
+          loading={loading}
+          onDelete={handleDelete}
+        />
+      )}
     </main>
   );
 }

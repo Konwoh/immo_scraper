@@ -8,6 +8,8 @@ export function HousesPage() {
     <CrudPage
       config={houseConfig}
       api={houseApi}
+      show_table={true}
+      show_button={true}
     />
   );
 }

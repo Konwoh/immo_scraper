@@ -8,6 +8,8 @@ export function ApartmentPage() {
     <CrudPage
       config={apartmentConfig}
       api={apartmentApi}
+      show_table={true}
+      show_button={true}
     />
   );
 }

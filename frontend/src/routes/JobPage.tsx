@@ -8,6 +8,8 @@ export function JobPage() {
     <CrudPage
       config={jobConfig}
       api={jobApi}
+      show_table={true}
+      show_button={true}
     />
   );
 }
