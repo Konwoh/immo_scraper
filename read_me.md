@@ -1,7 +1,7 @@
 TO-DO:
 - FastAPI:
-    - DELETE Endpoints für user
     - Frontend Änderungen für Refresh Token umsetzen
+    - DELETE Endpoints für user
     - Token nicht mehr in localStorage packen
     - Überprüfen, ob das mit den check_online_availability klappt -> warten bis haus auf offline gesetzt ist
 

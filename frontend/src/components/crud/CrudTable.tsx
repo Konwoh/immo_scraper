@@ -15,7 +15,7 @@ type CrudTableProps<T> = {
 
   onEdit?: (row: T) => void;
   onDelete?: (row: T) => void;
-
+  extraActions?: (row: T) => ReactNode;
   currentPage?: number;
   totalPages?: number;
   onPageChange?: (page: number) => void;
@@ -27,6 +27,7 @@ export function CrudTable<T extends { id: string | number }>({
   loading = false,
   onEdit,
   onDelete,
+  extraActions,
   currentPage = 1,
   totalPages = 1,
   onPageChange,
@@ -117,6 +118,8 @@ export function CrudTable<T extends { id: string | number }>({
 
                   <td>
                     <div className="crud-row-actions">
+                      {extraActions?.(row)}
+
                       {onEdit && (
                         <button
                           onClick={() => onEdit(row)}

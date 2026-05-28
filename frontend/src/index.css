@@ -494,6 +494,12 @@ button:disabled {
   font-weight: 600;
 }
 
+.crud-row-action-button {
+  min-width: 108px;
+  padding-inline: 10px;
+  white-space: nowrap;
+}
+
 .crud-secondary-button:hover,
 .crud-icon-button:hover {
   border-color: var(--text);

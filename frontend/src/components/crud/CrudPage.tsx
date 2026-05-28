@@ -38,6 +38,7 @@ type CrudPageProps<T extends { id: string | number }> = {
   show_button: boolean;
   hideCancel: boolean;
   keepFormOpenAfterCreate: boolean;
+  extraActions?: (row: T, reloadData: () => Promise<void>) => ReactNode;
 };
 
 export function CrudPage<T extends { id: string | number }>({
@@ -47,6 +48,7 @@ export function CrudPage<T extends { id: string | number }>({
   show_button,
   hideCancel,
   keepFormOpenAfterCreate,
+  extraActions,
 }: CrudPageProps<T>) {
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
@@ -182,6 +184,9 @@ export function CrudPage<T extends { id: string | number }>({
           data={data}
           loading={loading}
           onDelete={handleDelete}
+          extraActions={
+            extraActions ? (row) => extraActions(row, reloadData) : undefined
+          }
         />
       )}
     </main>

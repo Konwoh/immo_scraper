@@ -28,7 +28,6 @@ export const jobScheduleApi = {
     const response = await fetch(`${API_URL}/`, {
       headers: getAuthHeaders(),
     });
-
     if (!response.ok) {
       throw new Error("Fehler beim Laden");
     }
@@ -40,7 +39,6 @@ export const jobScheduleApi = {
     const response = await fetch(`${API_URL}/${id}`, {
       headers: getAuthHeaders(),
     });
-
     if (!response.ok) {
       throw new Error("Nicht gefunden");
     }
@@ -66,6 +64,26 @@ export const jobScheduleApi = {
 
     if (!response.ok) {
       throw new Error("Konnte nicht erstellt werden");
+    }
+
+    return response.json();
+  },
+
+  async update(data: Partial<JobSchedule>, id: number): Promise<JobSchedule> {
+    const response = await fetch(`${API_URL}/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({
+        ...data,
+        next_run: toIsoDateTime(data.next_run),
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Konnte nicht aktualisiert werden");
     }
 
     return response.json();

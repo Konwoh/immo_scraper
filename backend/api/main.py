@@ -21,11 +21,12 @@ app.include_router(job_schedule.router)
 
 origins = [
     "http://localhost:5173",
+    "http://127.0.0.1:5173",
     f"http://{BASE_URL}:5173"
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
     allow_headers=["*"])

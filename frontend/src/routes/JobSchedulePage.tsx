@@ -32,6 +32,10 @@ export function JobSchedulePage({
   const [searchParamsError, setSearchParamsError] = useState<string | null>(
     null,
   );
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [updatingScheduleId, setUpdatingScheduleId] = useState<number | null>(
+    null,
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -79,11 +83,39 @@ export function JobSchedulePage({
     [searchParams],
   );
 
+  const updateScheduleEnabled = async (
+    row: JobSchedule,
+    enabled: boolean,
+    reloadData: () => Promise<void>,
+  ) => {
+    setActionError(null);
+    setUpdatingScheduleId(row.id);
+
+    try {
+      await jobScheduleApi.update({ enabled }, row.id);
+      await reloadData();
+    } catch (updateError) {
+      setActionError(
+        updateError instanceof Error
+          ? updateError.message
+          : "Job-Schedule konnte nicht aktualisiert werden",
+      );
+    } finally {
+      setUpdatingScheduleId(null);
+    }
+  };
+
   return (
     <>
       {searchParamsError && (
         <p className="crud-error" role="alert">
           {searchParamsError}
+        </p>
+      )}
+
+      {actionError && (
+        <p className="crud-error" role="alert">
+          {actionError}
         </p>
       )}
 
@@ -94,6 +126,31 @@ export function JobSchedulePage({
         show_button={show_button}
         hideCancel={true}
         keepFormOpenAfterCreate={true}
+        extraActions={(row, reloadData) => {
+          const isUpdating = updatingScheduleId === row.id;
+
+          return (
+            <>
+              <button
+                type="button"
+                className="crud-secondary-button crud-row-action-button"
+                disabled={row.enabled || isUpdating}
+                onClick={() => updateScheduleEnabled(row, true, reloadData)}
+              >
+                Aktivieren
+              </button>
+
+              <button
+                type="button"
+                className="crud-secondary-button crud-row-action-button"
+                disabled={!row.enabled || isUpdating}
+                onClick={() => updateScheduleEnabled(row, false, reloadData)}
+              >
+                Deaktivieren
+              </button>
+            </>
+          );
+        }}
       />
     </>
   );
