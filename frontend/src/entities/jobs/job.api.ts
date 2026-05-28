@@ -1,23 +1,11 @@
+import { apiFetch, API_BASE } from "@/api/client";
 import type { Job } from "./job.types";
 
-const API_BASE = import.meta.env.VITE_BASE_URL
-const API_URL = `http://${API_BASE}:8000/jobs`;
-
-function getAuthHeaders(): Record<string, string> {
-  const token = localStorage.getItem("token");
-
-  return token
-    ? {
-        Authorization: `Bearer ${token}`,
-      }
-    : {};
-}
+const API_URL = `${API_BASE}/jobs`;
 
 export const jobApi = {
   async list(): Promise<Job[]> {
-    const response = await fetch(`${API_URL}/`, {
-      headers: getAuthHeaders(),
-    });
+    const response = await apiFetch(`${API_URL}/`);
 
     if (!response.ok) {
       throw new Error("Fehler beim Laden");
@@ -27,9 +15,7 @@ export const jobApi = {
   },
 
   async get(id: number): Promise<Job> {
-    const response = await fetch(`${API_URL}/${id}`, {
-      headers: getAuthHeaders(),
-    });
+    const response = await apiFetch(`${API_URL}/${id}`);
 
     if (!response.ok) {
       throw new Error("Nicht gefunden");
@@ -39,11 +25,10 @@ export const jobApi = {
   },
 
   async create(data: Partial<Job>): Promise<Job> {
-    const response = await fetch(`${API_URL}/`, {
+    const response = await apiFetch(`${API_URL}/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...getAuthHeaders(),
       },
       body: JSON.stringify({
         job_type: data.job_type,

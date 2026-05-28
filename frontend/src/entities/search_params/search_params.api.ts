@@ -1,23 +1,11 @@
+import { apiFetch, API_BASE } from "@/api/client";
 import type { SearchParams } from "./search_params.types";
 
-const API_BASE = import.meta.env.VITE_BASE_URL
-const API_URL = `http://${API_BASE}:8000/search_params`;
-
-function getAuthHeaders(): Record<string, string> {
-  const token = localStorage.getItem("token");
-
-  return token
-    ? {
-        Authorization: `Bearer ${token}`,
-      }
-    : {};
-}
+const API_URL = `${API_BASE}/search_params`;
 
 export const searchParamsApi = {
   async list(): Promise<SearchParams[]> {
-    const response = await fetch(`${API_URL}/`, {
-      headers: getAuthHeaders(),
-    });
+    const response = await apiFetch(`${API_URL}/`);
 
     if (!response.ok) {
       throw new Error("Fehler beim Laden");
@@ -27,9 +15,7 @@ export const searchParamsApi = {
   },
 
   async get(id: number): Promise<SearchParams> {
-    const response = await fetch(`${API_URL}/${id}`, {
-      headers: getAuthHeaders(),
-    });
+    const response = await apiFetch(`${API_URL}/${id}`);
 
     if (!response.ok) {
       throw new Error("Nicht gefunden");
@@ -39,11 +25,10 @@ export const searchParamsApi = {
   },
 
   async create(data: Partial<SearchParams>): Promise<SearchParams> {
-    const response = await fetch(`${API_URL}/`, {
+    const response = await apiFetch(`${API_URL}/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...getAuthHeaders(),
       },
       body: JSON.stringify({
         site: data.site,
@@ -66,9 +51,8 @@ export const searchParamsApi = {
     return response.json();
   },
   async delete(id: number): Promise<void> {
-    const response = await fetch(`${API_URL}/${id}`, {
+    const response = await apiFetch(`${API_URL}/${id}`, {
       method: "DELETE",
-      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
@@ -76,9 +60,8 @@ export const searchParamsApi = {
     }
   },
   async update(id: number): Promise<SearchParams> {
-    const response = await fetch(`${API_URL}/${id}`, {
+    const response = await apiFetch(`${API_URL}/${id}`, {
       method: "PUT",
-      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {

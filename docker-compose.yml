@@ -27,6 +27,7 @@ services:
         dockerfile: backend/api/Dockerfile
       environment:
         DB_CONNECTION_STRING: ${DB_CONNECTION_STRING}
+        BASE_URL: ${BASE_URL}
         LOKI_URL: http://loki:3100
       ports:
         - "8000:8000"

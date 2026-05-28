@@ -1,7 +1,5 @@
-from fastapi import FastAPI, status, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.database.models import Job, Status, get_db
-from sqlalchemy.orm import Session
 from backend.api.routers import users, houses, apartments, search_params, jobs, url_queue, auth, job_schedule
 import os
 from dotenv import load_dotenv
@@ -28,5 +26,6 @@ origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
     allow_headers=["*"])

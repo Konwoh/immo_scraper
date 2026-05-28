@@ -1,49 +1,59 @@
+import {
+  login,
+  logout,
+  restoreSession,
+  setAuthExpiredHandler,
+} from "@/api/client";
 import { SidebarNavigation } from "@/components/sidebar/SidebarNavigation";
 import { HousesPage } from "@/routes/HousePage";
 import { ApartmentPage } from "@/routes/ApartmentPage";
 import { JobPage } from "@/routes/JobPage";
-import {JobSchedulePage} from "@/routes/JobSchedulePage";
+import { JobSchedulePage } from "@/routes/JobSchedulePage";
 import { SearchParamsPage } from "@/routes/SearchParamsPage";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
-const BASE = import.meta.env.VITE_BASE_URL
-const API_BASE = `http://${BASE}:8000`;
-
-type LoginResponse = {
-  access_token: string;
-  token_type: string;
-};
-
 function App() {
-  const [token, setToken] = useState(() => localStorage.getItem("token") ?? "");
+  const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    setAuthExpiredHandler(() => setAuthenticated(false));
+
+    const loadSession = async () => {
+      try {
+        const hasSession = await restoreSession();
+
+        if (isMounted) {
+          setAuthenticated(hasSession);
+        }
+      } catch {
+        if (isMounted) {
+          setAuthenticated(false);
+        }
+      }
+    };
+
+    void loadSession();
+
+    return () => {
+      isMounted = false;
+      setAuthExpiredHandler(null);
+    };
+  }, []);
 
   const handleLogin = async (event: FormEvent) => {
     event.preventDefault();
     setError(null);
     setLoading(true);
 
-    const formData = new FormData();
-    formData.append("username", username);
-    formData.append("password", password);
-
     try {
-      const response = await fetch(`${API_BASE}/login`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Login fehlgeschlagen");
-      }
-
-      const loginResponse = (await response.json()) as LoginResponse;
-      localStorage.setItem("token", loginResponse.access_token);
-      setToken(loginResponse.access_token);
+      await login(username, password);
+      setAuthenticated(true);
       setPassword("");
     } catch (loginError) {
       setError(
@@ -57,11 +67,22 @@ function App() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    setToken("");
+    setAuthenticated(false);
+    setPassword("");
+    void logout();
   };
 
-  if (!token) {
+  if (authenticated === null) {
+    return (
+      <main className="auth-page">
+        <form className="auth-form">
+          <h1>Session wird geprüft...</h1>
+        </form>
+      </main>
+    );
+  }
+
+  if (!authenticated) {
     return (
       <main className="auth-page">
         <form className="auth-form" onSubmit={handleLogin}>

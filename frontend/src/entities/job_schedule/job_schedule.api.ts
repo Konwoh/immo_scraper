@@ -1,7 +1,7 @@
+import { apiFetch, API_BASE } from "@/api/client";
 import type { JobSchedule } from "./job_schedule.types";
 
-const API_BASE = import.meta.env.VITE_BASE_URL
-const API_URL = `http://${API_BASE}:8000/jobs_schedules`;
+const API_URL = `${API_BASE}/jobs_schedules`;
 
 const toIsoDateTime = (value: string | undefined) => {
   if (!value) {
@@ -13,21 +13,9 @@ const toIsoDateTime = (value: string | undefined) => {
   return Number.isNaN(date.getTime()) ? value : date.toISOString();
 };
 
-function getAuthHeaders(): Record<string, string> {
-  const token = localStorage.getItem("token");
-
-  return token
-    ? {
-        Authorization: `Bearer ${token}`,
-      }
-    : {};
-}
-
 export const jobScheduleApi = {
   async list(): Promise<JobSchedule[]> {
-    const response = await fetch(`${API_URL}/`, {
-      headers: getAuthHeaders(),
-    });
+    const response = await apiFetch(`${API_URL}/`);
     if (!response.ok) {
       throw new Error("Fehler beim Laden");
     }
@@ -36,9 +24,7 @@ export const jobScheduleApi = {
   },
 
   async get(id: number): Promise<JobSchedule> {
-    const response = await fetch(`${API_URL}/${id}`, {
-      headers: getAuthHeaders(),
-    });
+    const response = await apiFetch(`${API_URL}/${id}`);
     if (!response.ok) {
       throw new Error("Nicht gefunden");
     }
@@ -47,11 +33,10 @@ export const jobScheduleApi = {
   },
 
   async create(data: Partial<JobSchedule>): Promise<JobSchedule> {
-    const response = await fetch(`${API_URL}/`, {
+    const response = await apiFetch(`${API_URL}/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...getAuthHeaders(),
       },
       body: JSON.stringify({
         job_type: data.job_type,
@@ -70,11 +55,10 @@ export const jobScheduleApi = {
   },
 
   async update(data: Partial<JobSchedule>, id: number): Promise<JobSchedule> {
-    const response = await fetch(`${API_URL}/${id}`, {
+    const response = await apiFetch(`${API_URL}/${id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
-        ...getAuthHeaders(),
       },
       body: JSON.stringify({
         ...data,
