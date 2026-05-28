@@ -11,10 +11,10 @@ export type CrudColumn<T> = {
 export type CrudField<T> = {
   key: keyof T;
   label: string;
-  type: "text" | "number" | "textarea" | "select";
+  type: "text" | "number" | "datetime-local" | "textarea" | "select";
   required?: boolean;
   placeholder?: string;
-  options?: { label: string; value: string }[];
+  options?: { label: string; value: string | number | boolean }[];
 };
 
 export type CrudConfig<T> = {
@@ -36,6 +36,8 @@ type CrudPageProps<T extends { id: string | number }> = {
   api: CrudApi<T>;
   show_table: boolean;
   show_button: boolean;
+  hideCancel: boolean;
+  keepFormOpenAfterCreate: boolean;
 };
 
 export function CrudPage<T extends { id: string | number }>({
@@ -43,6 +45,8 @@ export function CrudPage<T extends { id: string | number }>({
   api,
   show_table,
   show_button,
+  hideCancel,
+  keepFormOpenAfterCreate,
 }: CrudPageProps<T>) {
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
@@ -127,7 +131,9 @@ export function CrudPage<T extends { id: string | number }>({
 
         try {
           await api.create?.(formData);
-          setShowCreateForm(false);
+          if (!keepFormOpenAfterCreate) {
+            setShowCreateForm(false);
+          }
           await reloadData();
         } catch (createError) {
           setError(
@@ -166,7 +172,7 @@ export function CrudPage<T extends { id: string | number }>({
             fields={config.formFields}
             mode="create"
             onSubmit={handleCreate}
-            onCancel={() => setShowCreateForm(false)}
+            onCancel={hideCancel ? undefined : () => setShowCreateForm(false)}
           />
         </section>
       )}

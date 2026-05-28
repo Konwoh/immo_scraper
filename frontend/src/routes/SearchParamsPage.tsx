@@ -10,6 +10,8 @@ export function SearchParamsPage() {
       api={searchParamsApi}
       show_table={true}
       show_button={true}
+      hideCancel={false}
+      keepFormOpenAfterCreate={false}
     />
   );
 }

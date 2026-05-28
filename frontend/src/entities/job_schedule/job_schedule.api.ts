@@ -3,6 +3,16 @@ import type { JobSchedule } from "./job_schedule.types";
 const API_BASE = import.meta.env.VITE_BASE_URL
 const API_URL = `http://${API_BASE}:8000/jobs_schedules`;
 
+const toIsoDateTime = (value: string | undefined) => {
+  if (!value) {
+    return value;
+  }
+
+  const date = new Date(value);
+
+  return Number.isNaN(date.getTime()) ? value : date.toISOString();
+};
+
 function getAuthHeaders(): Record<string, string> {
   const token = localStorage.getItem("token");
 
@@ -50,7 +60,7 @@ export const jobScheduleApi = {
         interval: data.interval,
         search_params_id: data.search_params_id,
         enabled: data.enabled,
-        next_run: data.next_run
+        next_run: toIsoDateTime(data.next_run)
       }),
     });
 

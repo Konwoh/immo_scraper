@@ -10,6 +10,8 @@ export function HousesPage() {
       api={houseApi}
       show_table={true}
       show_button={true}
+      hideCancel={false}
+      keepFormOpenAfterCreate={false}
     />
   );
 }

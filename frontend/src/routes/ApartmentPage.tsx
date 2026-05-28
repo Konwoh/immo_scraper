@@ -10,6 +10,8 @@ export function ApartmentPage() {
       api={apartmentApi}
       show_table={true}
       show_button={true}
+      hideCancel={false}
+      keepFormOpenAfterCreate={false}
     />
   );
 }

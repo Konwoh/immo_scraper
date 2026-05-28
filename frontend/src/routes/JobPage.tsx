@@ -10,6 +10,8 @@ export function JobPage() {
       api={jobApi}
       show_table={true}
       show_button={true}
+      hideCancel={false}
+      keepFormOpenAfterCreate={false}
     />
   );
 }

@@ -5,10 +5,17 @@ import { useState, type FormEvent } from "react";
 export type CrudField<T> = {
   key: keyof T;
   label: string;
-  type?: "text" | "number" | "email" | "password" | "textarea" | "select";
+  type?:
+    | "text"
+    | "number"
+    | "email"
+    | "password"
+    | "datetime-local"
+    | "textarea"
+    | "select";
   placeholder?: string;
   required?: boolean;
-  options?: { label: string; value: string | number }[];
+  options?: { label: string; value: string | number | boolean }[];
 };
 
 type CrudFormProps<T> = {
@@ -33,7 +40,7 @@ export function CrudForm<T>({
 }: CrudFormProps<T>) {
   const [formData, setFormData] = useState<Partial<T>>(initialData ?? {});
 
-  function handleChange(key: keyof T, value: string | number) {
+  function handleChange(key: keyof T, value: string | number | boolean) {
     setFormData((prev) => ({
       ...prev,
       [key]: value,
@@ -103,15 +110,22 @@ export function CrudForm<T>({
                 <select
                   required={field.required}
                   value={String(value)}
-                  onChange={(e) =>
-                    handleChange(field.key, e.target.value)
-                  }
+                  onChange={(e) => {
+                    const selectedOption = field.options?.find(
+                      (option) => String(option.value) === e.target.value,
+                    );
+
+                    handleChange(
+                      field.key,
+                      selectedOption?.value ?? e.target.value,
+                    );
+                  }}
                 >
                   <option value="">Bitte auswählen</option>
                   {field.options?.map((option) => (
                     <option
                       key={String(option.value)}
-                      value={option.value}
+                      value={String(option.value)}
                     >
                       {option.label}
                     </option>

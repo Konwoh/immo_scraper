@@ -1,4 +1,3 @@
-import { CrudPage } from "@/components/crud/CrudPage";
 import { SidebarNavigation } from "@/components/sidebar/SidebarNavigation";
 import { HousesPage } from "@/routes/HousePage";
 import { ApartmentPage } from "@/routes/ApartmentPage";
@@ -7,8 +6,6 @@ import {JobSchedulePage} from "@/routes/JobSchedulePage";
 import { SearchParamsPage } from "@/routes/SearchParamsPage";
 import { useState, type FormEvent } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { jobScheduleConfig } from "./entities/job_schedule/job_schedule.config";
-import { jobScheduleApi } from "./entities/job_schedule/job_schedule.api";
 
 const BASE = import.meta.env.VITE_BASE_URL
 const API_BASE = `http://${BASE}:8000`;
@@ -139,11 +136,7 @@ function HomePage() {
 function JobSchedulePageSingle() {
   return (
     <section className="dashboard-page">
-        <CrudPage
-          config={jobScheduleConfig}
-          api={jobScheduleApi}
-          show_table={false}
-        />
+      <JobSchedulePage show_table={false} />
     </section>
   );
 }

@@ -54,9 +54,10 @@ export const jobScheduleConfig = {
   formFields: [
     {
       key: "search_params_id",
-      label: "Suchparameter-ID",
-      type: "number",
+      label: "Suchparameter",
+      type: "select",
       required: true,
+      options: [],
     },
     {
       key: "job_type",
@@ -78,6 +79,7 @@ export const jobScheduleConfig = {
       key: "interval",
       label: "Interval",
       type: "select",
+      required: true,
       options: [
         {
           label: "Stündlich",
@@ -92,6 +94,28 @@ export const jobScheduleConfig = {
           value: "weekly",
         },
       ],
+    },
+    {
+      key: "enabled",
+      label: "Aktiviert",
+      type: "select",
+      required: true,
+      options: [
+        {
+          label: "Ja",
+          value: true,
+        },
+        {
+          label: "Nein",
+          value: false,
+        },
+      ],
+    },
+    {
+      key: "next_run",
+      label: "Nächster Run",
+      type: "datetime-local",
+      required: true,
     },
   ],
 } satisfies CrudConfig<JobSchedule>;
