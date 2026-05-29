@@ -102,6 +102,22 @@ export async function logout(): Promise<void> {
   }
 }
 
+export async function register(email: string, password: string): Promise<void> {
+
+  const response = await fetchWithTimeout(`${API_BASE}/user`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email, password }),
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Registrierung fehlgeschlagen");
+  }
+}
+
 export async function apiFetch(
   input: RequestInfo | URL,
   init: ApiFetchOptions = {},

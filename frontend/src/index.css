@@ -62,7 +62,6 @@
   width: min(1280px, 100%);
   max-width: 100%;
   margin: 0 auto;
-  border-inline: 1px solid var(--border);
   min-height: 100svh;
   display: flex;
   flex-direction: column;
@@ -89,6 +88,8 @@ button:disabled {
 
 .auth-page {
   display: grid;
+  align-content: center;
+  gap: 12px;
   min-height: 100svh;
   place-items: center;
   padding: 24px;
@@ -124,12 +125,30 @@ button:disabled {
 }
 
 .auth-form button,
-.app-toolbar button {
+.app-toolbar button,
+.auth-link {
   border: 1px solid var(--text-h);
   border-radius: 8px;
   padding: 10px 14px;
   color: var(--bg);
   background: var(--text-h);
+}
+
+.auth-link {
+  box-sizing: border-box;
+  width: min(100%, 420px);
+  text-decoration: none;
+  text-align: center;
+}
+
+.auth-error {
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #b91c1c;
+  background: #fef2f2;
+  font-size: 14px;
+  text-align: center;
 }
 
 .app-toolbar {

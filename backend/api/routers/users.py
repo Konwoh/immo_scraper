@@ -9,10 +9,16 @@ router = APIRouter(
     tags=["User"]
 )
 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=UserResponse)
+@router.post("", status_code=status.HTTP_201_CREATED, response_model=UserResponse)
 def create_user(create_user_request: UserRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == create_user_request.email).first()
+    
+    if user is not None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User already exists")
+    
     hashed_password = get_password_hash(create_user_request.password)
     create_user_request.password = hashed_password
+    
     new_user = User(**create_user_request.model_dump())
     db.add(new_user)
     db.commit()
