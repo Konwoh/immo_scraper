@@ -1,5 +1,7 @@
 TO-DO:
 - FastAPI:
+    - User Registrierungsseite bauen
+    - User Berechtigungssystem bauen
     - DELETE Endpoints für user
     - Überprüfen, ob das mit den check_online_availability klappt -> warten bis haus auf offline gesetzt ist
 

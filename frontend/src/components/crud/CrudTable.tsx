@@ -1,6 +1,6 @@
 // components/crud/CrudTable.tsx
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 type Column<T> = {
   key: keyof T;
@@ -32,6 +32,32 @@ export function CrudTable<T extends { id: string | number }>({
   totalPages = 1,
   onPageChange,
 }: CrudTableProps<T>) {
+  const itemsPerPage = 25;
+  const [localCurrentPage, setLocalCurrentPage] = useState(1);
+  const hasControlledPagination = Boolean(onPageChange);
+  const computedTotalPages = Math.max(1, Math.ceil(data.length / itemsPerPage));
+  const pageCount = hasControlledPagination
+    ? Math.max(1, totalPages)
+    : computedTotalPages;
+  const activePage = Math.min(
+    Math.max(hasControlledPagination ? currentPage : localCurrentPage, 1),
+    pageCount,
+  );
+  const visibleRows = hasControlledPagination
+    ? data
+    : data.slice((activePage - 1) * itemsPerPage, activePage * itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    const nextPage = Math.min(Math.max(page, 1), pageCount);
+
+    if (hasControlledPagination) {
+      onPageChange?.(nextPage);
+      return;
+    }
+
+    setLocalCurrentPage(nextPage);
+  };
+
   return (
     <div className="crud-table-shell">
       {/* Header */}
@@ -102,7 +128,7 @@ export function CrudTable<T extends { id: string | number }>({
                 </td>
               </tr>
             ) : (
-              data.map((row) => (
+              visibleRows.map((row) => (
                 <tr
                   key={String(row.id)}
                 >
@@ -151,21 +177,21 @@ export function CrudTable<T extends { id: string | number }>({
       {/* Footer / Pagination */}
       <div className="crud-table-footer">
         <p>
-          Seite {currentPage} von {totalPages}
+          Seite {activePage} von {pageCount}
         </p>
 
         <div className="crud-pagination">
           <button
-            disabled={currentPage <= 1}
-            onClick={() => onPageChange?.(currentPage - 1)}
+            disabled={activePage <= 1}
+            onClick={() => handlePageChange(activePage - 1)}
             className="crud-icon-button"
           >
             <span aria-hidden="true">‹</span>
           </button>
 
           <button
-            disabled={currentPage >= totalPages}
-            onClick={() => onPageChange?.(currentPage + 1)}
+            disabled={activePage >= pageCount}
+            onClick={() => handlePageChange(activePage + 1)}
             className="crud-icon-button"
           >
             <span aria-hidden="true">›</span>
