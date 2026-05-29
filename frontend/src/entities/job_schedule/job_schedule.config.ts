@@ -93,6 +93,14 @@ export const jobScheduleConfig = {
           label: "Wöchentlich",
           value: "weekly",
         },
+        {
+          label: "3-Stündlich",
+          value: "3-hourly",
+        },
+        {
+          label: "6-Stündlich",
+          value: "6-hourly",
+        },
       ],
     },
     {
