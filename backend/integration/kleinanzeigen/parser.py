@@ -23,8 +23,8 @@ class KleinanzeigenParser(Parser):
             response.raise_for_status()
         except requests.exceptions.HTTPError as e:
             if response.status_code == 404:
-                raise RequestError(f"Inserat {base_url} nicht verfügbar")
-            raise RequestError(f"Kleinanzeigen API Fehler: {e}")
+                raise RequestError(f"Inserat {base_url} nicht verfügbar", status_code=response.status_code)
+            raise RequestError(f"Kleinanzeigen API Fehler: {e}", status_code=response.status_code)
         return response
     
     def build_estate(self, normal_url: str) -> House|Apartment:

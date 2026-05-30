@@ -89,6 +89,7 @@ class Worker:
                     else:
                         raise TypeError(f"Unknown estate type: {type(estate_obj)}")
                     
+                persisted.is_online = True
                 estate_id = persisted.id
                         
                 if isinstance(persisted, House):
@@ -212,6 +213,16 @@ class Worker:
                 
             session.commit()
 
+    def set_online_status(self, session: Session, estate_type: str, url: str, is_online: bool):
+        if estate_type == "House":
+            model = House
+        elif estate_type == "Apartment":
+            model = Apartment
+        else:
+            raise ValueError(f"Unknown estate type: {estate_type}")
+
+        session.query(model).filter(model.url == url).update({model.is_online: is_online}, synchronize_session=False)
+
     def update_online_status(self, not_found_urls: List, parser_cache: dict[str, Parser], session: Session, estate_type: str, estate_parser_creator: EstateParserCreator):
         for url in not_found_urls:
             if "kleinanzeigen" in url:
@@ -231,15 +242,14 @@ class Worker:
                 is_online = parser.is_online(response)
             
             except RequestError as e:
-                scraper_logger.error(f"Availability request failed for url={url}: {e}")
+                if e.status_code == 404:
+                    self.set_online_status(session, estate_type, url, False)
+                else:
+                    scraper_logger.error(f"Availability request failed for url={url}: {e}")
                 continue
 
             except (ParsingError, ValueError) as e:
                 scraper_logger.error(f"Availability parsing failed for url={url}: {e}")
                 continue  
             
-            if is_online == False:
-                if estate_type == "House":
-                    session.query(House).filter(House.url == url).update({House.is_online: False}, synchronize_session=False)
-                elif estate_type == "Apartment":
-                    session.query(Apartment).filter(Apartment.url == url).update({Apartment.is_online: False}, synchronize_session=False)
+            self.set_online_status(session, estate_type, url, is_online)

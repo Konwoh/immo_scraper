@@ -22,8 +22,8 @@ class ImmoScoutParser(Parser):
             response.raise_for_status()
         except requests.exceptions.HTTPError as e:
             if response.status_code == 404:
-                raise RequestError(f"Inserat {base_url} nicht mehr verfügbar")
-            raise RequestError(f"ImmoScout API Fehler: {e}")
+                raise RequestError(f"Inserat {base_url} nicht mehr verfügbar", status_code=response.status_code)
+            raise RequestError(f"ImmoScout API Fehler: {e}", status_code=response.status_code)
         return response
     
     def build_estate(self, normal_url: str) -> House|Apartment:
