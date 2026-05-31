@@ -102,6 +102,7 @@ class Agency(Base):
     address: Mapped[str] = mapped_column(nullable=True)
     houses: Mapped[List["House"]] = relationship(back_populates="agency")
     apartments: Mapped[List["Apartment"]] = relationship(back_populates="agency")
+    properties: Mapped[List["Property"]] = relationship(back_populates="agency")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     
@@ -114,13 +115,17 @@ class SearchResults(Base):
     search_params_id: Mapped[int] = mapped_column(ForeignKey("search_params.id"), nullable=False)
     house_id: Mapped[int] = mapped_column(ForeignKey("houses.id", ondelete="CASCADE"), nullable=True)
     apartment_id: Mapped[int] = mapped_column(ForeignKey("apartments.id", ondelete="CASCADE"), nullable=True)
+    property_id: Mapped[int] = mapped_column(ForeignKey("property.id", ondelete="CASCADE"), nullable=True)
     
     __table_args__ = (
         UniqueConstraint("search_params_id", "house_id", name="uq_search_result_house"),
         UniqueConstraint("search_params_id", "apartment_id", name="uq_search_result_apartment"),
+        UniqueConstraint("search_params_id", "property_id", name="uq_search_result_property"),
+        
         CheckConstraint(
-            "(house_id IS NOT NULL AND apartment_id IS NULL) OR "
-            "(house_id IS NULL AND apartment_id IS NOT NULL)",
+            "(house_id IS NOT NULL AND apartment_id IS NULL AND property_id is NULL) OR "
+            "(house_id IS NULL AND apartment_id IS NOT NULL AND property_id is NULL) OR "
+            "(house_id IS NULL AND apartment_id IS NULL AND property_id IS NOT NULL)",
             name="ck_search_result_exactly_one_estate"
         ),
     )
@@ -238,6 +243,42 @@ class Apartment(RealEstate, Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     agency: Mapped[Agency | None] = relationship(back_populates="apartments")
 
+class Property(Base):
+    __tablename__ = "property"
+    __table_args__ = (UniqueConstraint("url", "title", name="uq_property_url_title"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(nullable=False)
+    url: Mapped[str] = mapped_column(nullable=False)
+    listing_type: Mapped[str] = mapped_column(nullable=True)
+    city: Mapped[str] = mapped_column(nullable=True)
+    zip_code: Mapped[str] = mapped_column(nullable=True)
+    address: Mapped[str] = mapped_column(nullable=True)
+    price: Mapped[str] = mapped_column(nullable=True)
+    price_m2: Mapped[str] = mapped_column(nullable=True)
+    space: Mapped[str] = mapped_column(nullable=True)
+    development: Mapped[str] = mapped_column(nullable=True)
+    building_permit: Mapped[str] = mapped_column(nullable=True)
+    available_from: Mapped[str] = mapped_column(nullable=True)
+    recommended_use: Mapped[str] = mapped_column(nullable=True)
+    floor_area_ratio: Mapped[str] = mapped_column(nullable=True)
+    floor_space_index: Mapped[str] = mapped_column(nullable=True)
+    provision: Mapped[str] = mapped_column(nullable=True)
+    incidental_purchase_costs: Mapped[str] = mapped_column(nullable=True)
+    property_acquisition_tax: Mapped[str] = mapped_column(nullable=True)
+    brokerage_commission: Mapped[str] = mapped_column(nullable=True)
+    notary_fees: Mapped[str] = mapped_column(nullable=True)
+    land_registry_entry: Mapped[str] = mapped_column(nullable=True)
+    land_transfer_tax: Mapped[str] = mapped_column(nullable=True)
+    general_description: Mapped[str] = mapped_column(nullable=True)
+    object_description: Mapped[str] = mapped_column(nullable=True)
+    place_description: Mapped[str] = mapped_column(nullable=True)
+    other_description: Mapped[str] = mapped_column(nullable=True)
+    total_costs: Mapped[float] = mapped_column(nullable=True)
+    agency_id: Mapped[int] = mapped_column(ForeignKey("agency.id"), nullable=True)
+    agency: Mapped[Agency | None] = relationship(back_populates="properties")
+    is_online: Mapped[bool] = mapped_column(nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
         
 if __name__ == '__main__':
     Base.metadata.create_all(engine)

@@ -8,7 +8,7 @@ class SearchParamRequest(BaseModel):
     city: str
     distance: Optional[int] = None
     zip_code: Optional[str] = None
-    estate_type: Literal["apartment", "house"]
+    estate_type: Literal["apartment", "house", "property"]
     rent_or_buy: Literal["buy", "rent"]
     page: int
     listing_count: int

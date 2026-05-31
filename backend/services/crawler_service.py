@@ -95,6 +95,6 @@ class CrawlerService:
                 session.execute(stmt)
                 session.commit()
                     
-        except Exception:
-            crawler_logger.exception("Error while processing crawler job")
+        except Exception as e:
+            crawler_logger.exception("Error while processing crawler job: ", e)
             raise

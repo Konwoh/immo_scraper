@@ -1,6 +1,6 @@
 from typing import List
 from backend.database.factory import get_or_create_agency, DefaultAgencyFactory
-from backend.database.models import UrlQueue, Status, House, Apartment
+from backend.database.models import UrlQueue, Status, House, Apartment, Property
 from backend.parser.base_parser import read_estate_creator, Parser
 from sqlalchemy.orm import Session
 from backend.database.models import engine
@@ -26,12 +26,12 @@ class ImmoScoutParser(Parser):
             raise RequestError(f"ImmoScout API Fehler: {e}", status_code=response.status_code)
         return response
     
-    def build_estate(self, normal_url: str) -> House|Apartment:
+    def build_estate(self, normal_url: str) -> House|Apartment|Property:
         response = self.fetch_base(normal_url)
         estate = self.parse(response)
         return estate
     
-    def parse(self, response: requests.Response) -> House|Apartment:
+    def parse(self, response: requests.Response) -> House|Apartment|Property:
         try:
             payload = response.json()
         except ValueError as e:
@@ -96,7 +96,19 @@ class ImmoScoutParser(Parser):
                             data["garage_parking_slots"] = int(attribute.get("text"))
                         elif attribute.get("label") == "Bezugsfrei ab:":
                             data["available_from"] = attribute.get("text")
-
+                        elif attribute.get("label") == "Grundstücksfläche ca.:":
+                            data["space"] = attribute.get("text")
+                        elif attribute.get("label") == "Baugenehmigung:":
+                            data["building_permit"] = attribute.get("text")
+                        elif attribute.get("label") == "Erschließung:":
+                            data["development"] = attribute.get("text")
+                        elif attribute.get("label") == "Empfohlene Nutzung:":
+                            data["recommended_use"] = attribute.get("text")
+                        elif attribute.get("label") == "Geschossflächenzahl:":
+                            data["floor_space_index"] = attribute.get("text")
+                        elif attribute.get("label") == "Verfügbar ab:":
+                            data["available_from"] = attribute.get("text")
+                                                  
                 elif section.get("type") == "ATTRIBUTE_LIST" and section.get("title") == "Kosten":
                     for attribute in section.get("attributes", []):
                         if attribute.get("label") == "Kaufpreis:":
@@ -125,6 +137,7 @@ class ImmoScoutParser(Parser):
                     data["land_transfer_tax"] = section.get("landTransferTax", {}).get("percentage")
                     data["notary_fees"] = section.get("notaryCosts", {}).get("percentage")
                     data["land_registry_entry"] = section.get("landRegistryEntry", {}).get("percentage")
+                    data["land_transfer_tax"] = section.get("landTransferTax", {}).get("percentage")
 
                 elif section.get("type") == "ATTRIBUTE_LIST" and section.get("title") == "Bausubstanz & Energieausweis":
                     for attribute in section.get("attributes", []):
@@ -173,7 +186,9 @@ class ImmoScoutParser(Parser):
             immotype = payload.get("adTargetingParameters", {}).get("obj_immotype")
             if immotype:
                 data["listing_type"] = immotype
-            
+            if immotype == "grundstueck_wohnen_kauf" or immotype == "grundstueck_wohnen_mieten":
+                data["estate_type"] = immotype
+                
             zip_code = payload.get("adTargetingParameters", {}).get("obj_zipCode")
             if zip_code:
                 data["zip_code"] = zip_code

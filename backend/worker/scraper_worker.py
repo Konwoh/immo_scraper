@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from typing import Type, Optional, List
-from backend.database.models import UrlQueue, Status, SearchResults, Apartment, House
+from backend.database.models import UrlQueue, Status, SearchResults, Apartment, House, Property
 from backend.shared.exceptions import RequestError, ParsingError
 from sqlalchemy.orm import Session
 from sqlalchemy import select, update
@@ -86,6 +86,13 @@ class Worker:
                                 Apartment.title == estate_obj.title,
                             )
                         ).scalar_one()
+                    elif isinstance(estate_obj, Property):
+                        persisted = session.execute(
+                            select(Property).where(
+                                Property.url == estate_obj.url,
+                                Property.title == estate_obj.title,
+                            )
+                        ).scalar_one()
                     else:
                         raise TypeError(f"Unknown estate type: {type(estate_obj)}")
                     
@@ -96,13 +103,22 @@ class Worker:
                     link = SearchResults(
                         search_params_id=self.search_params_id,
                         house_id=persisted.id,
-                        apartment_id=None
+                        apartment_id=None,
+                        property_id=None
                     )
                 elif isinstance(persisted, Apartment):
                     link = SearchResults(
                         search_params_id=self.search_params_id,
                         house_id=None,
-                        apartment_id=persisted.id
+                        apartment_id=persisted.id,
+                        property_id=None
+                    )
+                elif isinstance(persisted, Property):
+                    link = SearchResults(
+                        search_params_id=self.search_params_id,
+                        house_id=None,
+                        apartment_id=None,
+                        property_id=persisted.id
                     )
                 else:
                     raise TypeError("Unknown estate type")
@@ -131,6 +147,8 @@ class Worker:
         parser_cache: dict[str, Parser] = {}
         found_house_ids: List[int] = []
         found_apartment_ids: List[int] = []
+        found_property_ids: List[int] = []
+        
         while counter < amount_rows:
             url_queue_obj = None
             try:
@@ -157,7 +175,8 @@ class Worker:
                         found_house_ids.append(estate_id)
                     elif isinstance(estate, Apartment):
                         found_apartment_ids.append(estate_id)
-                
+                    elif isinstance(estate, Property):
+                        found_property_ids.append(estate_id)            
                 counter += 1
                 time.sleep(random.uniform(2, 4))
 
@@ -174,6 +193,8 @@ class Worker:
                 
         self.check_online_availability(found_house_ids, "House", parser_cache, estate_parser_creator)
         self.check_online_availability(found_apartment_ids, "Apartment", parser_cache, estate_parser_creator)
+        self.check_online_availability(found_property_ids, "Property", parser_cache, estate_parser_creator)
+        
 
     def check_online_availability(self, estate_id_list: List[int], estate_type: str, parser_cache: dict[str, Parser], estate_parser_creator):
         with Session(self.engine) as session:
@@ -210,7 +231,22 @@ class Worker:
                 not_found_urls = [x[0] for x in not_found_urls]
                 
                 self.update_online_status(not_found_urls, parser_cache, session, estate_type, estate_parser_creator)
-                
+
+            elif estate_type == "Property":
+                            offline_ids = (
+                                session.query(Property.id)
+                                .join(SearchResults, Property.id == SearchResults.property_id)
+                                .filter(SearchResults.search_params_id == self.search_params_id)
+                                .filter(Property.id.notin_(estate_id_list))
+                                .all()
+                            )
+
+                            offline_ids = [x[0] for x in offline_ids]
+
+                            not_found_urls = (session.query(Property.url).filter(Property.id.in_(offline_ids)).all())
+                            not_found_urls = [x[0] for x in not_found_urls]
+                            
+                            self.update_online_status(not_found_urls, parser_cache, session, estate_type, estate_parser_creator)
             session.commit()
 
     def set_online_status(self, session: Session, estate_type: str, url: str, is_online: bool):
@@ -218,6 +254,8 @@ class Worker:
             model = House
         elif estate_type == "Apartment":
             model = Apartment
+        elif estate_type == "Property":
+            model = Property
         else:
             raise ValueError(f"Unknown estate type: {estate_type}")
 

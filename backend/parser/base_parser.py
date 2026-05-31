@@ -1,13 +1,13 @@
 from typing import List
 from abc import ABC, abstractmethod
-from backend.database.factory import EstateFactory, ApartmentEstateFactory, HouseEstateFactory
-from backend.database.models import UrlQueue, RealEstate, House, Apartment
+from backend.database.factory import EstateFactory, PropertyFactory, ApartmentEstateFactory, HouseEstateFactory, PropertyEstateFactory
+from backend.database.models import UrlQueue, RealEstate, House, Apartment, Property
 import requests
 import logging
 
 scraper_logger = logging.getLogger("scraper")
 
-def read_estate_creator(estate_type: str) -> EstateFactory:
+def read_estate_creator(estate_type: str) -> EstateFactory|PropertyFactory:
     normalized = estate_type.strip().lower()
 
     apartment_types = {
@@ -39,11 +39,18 @@ def read_estate_creator(estate_type: str) -> EstateFactory:
         "haus_mieten",
         "haus_kaufen"
     }
-
+    
+    property_types = {
+        "grundstueck_wohnen_kauf",
+        "grundstueck_wohnen_mieten"
+    }
+    
     if normalized in apartment_types:
         return ApartmentEstateFactory()
     elif normalized in house_types:
         return HouseEstateFactory()
+    elif normalized in property_types:
+        return PropertyEstateFactory()
     else:
         raise KeyError("No estate_type found")
 
@@ -53,7 +60,7 @@ class Parser(ABC):
         pass   
 
     @abstractmethod
-    def build_estate(self, normal_url: str) -> House|Apartment:
+    def build_estate(self, normal_url: str) -> House|Apartment|Property:
         pass    
     
     @abstractmethod

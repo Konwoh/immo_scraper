@@ -1,8 +1,46 @@
 from typing import Dict, Any
 from abc import ABC, abstractmethod
-from .models import Agency, House, Apartment
+from .models import Agency, House, Apartment, Property
 from backend.shared.helper import to_float, to_int
 from sqlalchemy import select
+
+class PropertyFactory(ABC):
+    @abstractmethod
+    def get_estate(self, params: Dict[str, Any], agency: Agency | None) -> Property:
+        pass
+
+class PropertyEstateFactory(PropertyFactory):
+    def get_estate(self, params: Dict[str, Any], agency: Agency | None) -> Property:
+        return Property(
+            title=params.get("title"),
+            url=params.get("url"),
+            listing_type=params.get("listing_type"),
+            city=params.get("city"),
+            zip_code=params.get("zip_code"),
+            address=params.get("address"),
+            price=params.get("price"),
+            price_m2=params.get("price_m2"),
+            space=params.get("space"),
+            development=params.get("development"),
+            building_permit=params.get("building_permit"),
+            available_from=params.get("available_from"),
+            recommended_use=params.get("recommended_use"),
+            floor_area_ratio=params.get("floor_area_ratio"),
+            floor_space_index=params.get("floor_space_index"),
+            provision=params.get("provision"),
+            incidental_purchase_costs=params.get("incidental_purchase_costs"),
+            property_acquisition_tax=params.get("property_acquisition_tax"),
+            brokerage_commission=params.get("broker_commision"),
+            notary_fees=params.get("notary_fees"),
+            land_registry_entry=params.get("land_registry_entry"),
+            land_transfer_tax=params.get("land_transfer_tax"),
+            general_description=params.get("general_description"),
+            object_description=params.get("object_description"),
+            place_description=params.get("place_description"),
+            other_description=params.get("other_description"),
+            total_costs=to_float(params.get("total_costs")),
+            agency=agency,
+        )
 
 class AgencyFactory(ABC):
     @abstractmethod
@@ -54,7 +92,7 @@ class EstateFactory(ABC):
             "rent_income": params.get("rent_income"),
             "incidental_purchase_costs": params.get("incidental_purchase_costs"),
             "property_acquisition_tax": params.get("property_acquisition_tax"),
-            "brokerage_commission": params.get("brokerage_commission"),
+            "brokerage_commission": params.get("broker_commision"),
             "notary_fees": params.get("notary_fees"),
             "land_registry_entry": params.get("land_registry_entry"),
             "building_year": params.get("building_year"),

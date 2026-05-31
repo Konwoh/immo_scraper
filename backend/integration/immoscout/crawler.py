@@ -14,6 +14,9 @@ class ImmoScoutCrawler(BaseCrawler):
         self.rent_or_buy = rent_or_buy
 
     def build_url(self) -> str:
+        if self.estate_type == "property":
+            return f"https://api.mobile.immobilienscout24.de/search/list?pagenumber={self.page}&realestatetype=living{self.rent_or_buy}site&searchType=region&geocodes=/{self.country}/{self.state}/{self.city}&pagesize={self.listing_count}"
+            
         return f"https://api.mobile.immobilienscout24.de/search/list?pagenumber={self.page}&realestatetype={self.estate_type + self.rent_or_buy}&searchType=region&geocodes=/{self.country}/{self.state}/{self.city}&pagesize={self.listing_count}"
     
     def crawl(self) -> tuple[requests.Response, int]:
