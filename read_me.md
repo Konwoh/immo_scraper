@@ -1,6 +1,5 @@
 TO-DO:
 - FastAPI:
-    - User Registrierungsseite bauen
     - User Berechtigungssystem bauen
     - DELETE Endpoints für user
     - Überprüfen, ob das mit den check_online_availability klappt -> warten bis haus auf offline gesetzt ist
@@ -10,7 +9,6 @@ TO-DO:
     - Admin Seite
 
 - Fehler bei Bathrooms mit String "1.5" 
-- URL-QUeue wird in crawler/base.py mit values obj aufgefüllt -> ändern
 - ImmoWelt hinzufügen
     - crawl() in base crawler aufnehmen
 - Hinzufügen von Grundstücken zu immoScout

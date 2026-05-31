@@ -14,6 +14,7 @@ const navigationItems: NavigationItem[] = [
 const tableNavigationItems: NavigationItem[] = [
   { label: "Häuser", path: "/tables/houses" },
   { label: "Wohnungen", path: "/tables/apartments" },
+  { label: "Grundstücke", path: "/tables/properties" },
   { label: "Jobs", path: "/tables/jobs" },
   { label: "Suchparameter", path: "/tables/search-parameters" },
   { label: "Job-Planung", path: "/tables/job-schedule" },

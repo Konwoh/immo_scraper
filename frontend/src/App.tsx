@@ -2,6 +2,7 @@ import { logout, restoreSession, setAuthExpiredHandler } from "@/api/client";
 import { SidebarNavigation } from "@/components/sidebar/SidebarNavigation";
 import { HousesPage } from "@/routes/HousePage";
 import { ApartmentPage } from "@/routes/ApartmentPage";
+import { PropertyPage } from "@/routes/PropertyPage";
 import { JobPage } from "@/routes/JobPage";
 import { JobSchedulePage } from "@/routes/JobSchedulePage";
 import { SearchParamsPage } from "@/routes/SearchParamsPage";
@@ -74,6 +75,7 @@ function App() {
           <Route path="/tables" element={<Navigate to="/tables/houses" replace />} />
           <Route path="/tables/houses" element={<HousesPage />} />
           <Route path="/tables/apartments" element={<ApartmentPage/>} />
+          <Route path="/tables/properties" element={<PropertyPage/>} />
           <Route path="/tables/jobs" element={<JobPage />} />
           <Route path="/tables/search-parameters" element={<SearchParamsPage/>}/>
           <Route path="/tables/job-schedule" element={<JobSchedulePage/>}/>

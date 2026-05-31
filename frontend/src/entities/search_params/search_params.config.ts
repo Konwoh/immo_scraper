@@ -115,6 +115,10 @@ export const searchParamsConfig = {
           label: "Haus",
           value: "house",
         },
+        {
+          label: "Grundstück",
+          value: "property",
+        },
       ],
     },
     {
