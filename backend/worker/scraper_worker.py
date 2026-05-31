@@ -127,8 +127,8 @@ class Worker:
                     with session.begin_nested():
                         session.add(link)
                         session.flush()
-                except IntegrityError:
-                    pass
+                except IntegrityError as e:
+                    scraper_logger.error(f"Inserting in DB failed: {str(e)}")
                     
                 stmt = (update(self.model).where(self.model.id == job_id).values(status=Status.done if success else Status.failed))
                 session.execute(stmt)
