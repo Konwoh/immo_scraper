@@ -15,5 +15,5 @@ TO-DO:
 - Factory-Pattern vereinfachen
 - Train various Machine Learning Models (e.g. Classification models, recommender systems, regression für preis vorhersage)
     - good deal detector
--test
+
 - generelle Datenanalyse
