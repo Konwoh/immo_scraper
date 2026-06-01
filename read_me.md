@@ -9,9 +9,6 @@ TO-DO:
     - genaueres Fehler Logging im Frontend
     - Admin Seite
 
-- General
-    - CI/CD Pipeline so dass nicht jedes Mal Container manuell neu gestartet werden müssen
-
 - Fehler bei Bathrooms mit String "1.5" 
 - ImmoWelt hinzufügen
     - crawl() in base crawler aufnehmen
