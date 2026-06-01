@@ -7,17 +7,11 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, ARM64]
 
     steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.PI_HOST }}
-          username: ${{ secrets.PI_USER }}
-          key: ${{ secrets.PI_SSH_KEY }}
-          script: |
-            cd /home/konwo/Coding/Python/immo_scraper
-            git pull
-            docker compose down
-            docker compose up -d --build
+      - name: Deploy locally on Raspberry Pi
+        run: |
+          cd /home/konwo/Coding/Python/immo_scraper
+          git pull
+          docker compose up -d --build
