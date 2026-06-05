@@ -2,27 +2,31 @@ from fastapi import status, HTTPException, Depends, Path, APIRouter, Response
 from backend.database.models import Property, get_db, SearchParams, SearchResults
 from sqlalchemy.orm import Session
 from backend.api.auth.oauth2 import get_current_user
+from backend.schemas.Property import PropertyResponse
+from backend.schemas.pagination import Page, PaginationDep, paginate
 
 router = APIRouter(
     prefix="/properties",
     tags=["Property"]
 )
 
-@router.get("/", status_code=status.HTTP_200_OK)
-def get_properties(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+@router.get("/", status_code=status.HTTP_200_OK, response_model=Page[PropertyResponse])
+def get_properties(pagination: PaginationDep, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     property_ids = (
         db.query(SearchResults.property_id)
         .join(SearchParams, SearchResults.search_params_id == SearchParams.id)
         .filter(SearchParams.user_id == current_user.id)
     )
 
-    properties = db.query(Property).filter(Property.id.in_(property_ids)).all()
-    
+    query = db.query(Property).filter(Property.id.in_(property_ids))
+
+    properties = paginate(query, pagination)
+
     if properties is not None:
         return properties
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No properties found")
 
-@router.get("/{property_id}", status_code=status.HTTP_200_OK)
+@router.get("/{property_id}", status_code=status.HTTP_200_OK, response_model=PropertyResponse)
 def get_property_by_id(property_id: int = Path(gt=0), db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     
     allowed_property_ids = (

@@ -2,27 +2,31 @@ from fastapi import status, HTTPException, Depends, Path, APIRouter, Response
 from backend.database.models import House, get_db, SearchParams, SearchResults
 from sqlalchemy.orm import Session
 from backend.api.auth.oauth2 import get_current_user
+from backend.schemas.House import HouseResponse
+from backend.schemas.pagination import Page, PaginationDep, paginate
 
 router = APIRouter(
     prefix="/houses",
     tags=["House"]
 )
 
-@router.get("/", status_code=status.HTTP_200_OK)
-def get_houses(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+@router.get("/", status_code=status.HTTP_200_OK, response_model=Page[HouseResponse])
+def get_houses(pagination: PaginationDep, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     house_ids = (
         db.query(SearchResults.house_id)
         .join(SearchParams, SearchResults.search_params_id == SearchParams.id)
         .filter(SearchParams.user_id == current_user.id)
     )
 
-    houses = db.query(House).filter(House.id.in_(house_ids)).all()
+    query = db.query(House).filter(House.id.in_(house_ids))
+    
+    houses = paginate(query, pagination)
     
     if houses is not None:
         return houses
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No houses found")
 
-@router.get("/{house_id}", status_code=status.HTTP_200_OK)
+@router.get("/{house_id}", status_code=status.HTTP_200_OK, response_model=HouseResponse)
 def get_house_by_id(house_id: int = Path(gt=0), db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     
     allowed_house_ids = (
