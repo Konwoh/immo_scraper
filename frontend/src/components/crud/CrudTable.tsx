@@ -18,6 +18,10 @@ type CrudTableProps<T> = {
   extraActions?: (row: T) => ReactNode;
   currentPage?: number;
   totalPages?: number;
+  totalItems?: number;
+  startIndex?: number;
+  endIndex?: number;
+  currentPageSize?: number;
   onPageChange?: (page: number) => void;
 };
 
@@ -30,6 +34,10 @@ export function CrudTable<T extends { id: string | number }>({
   extraActions,
   currentPage = 1,
   totalPages = 1,
+  totalItems,
+  startIndex,
+  endIndex,
+  currentPageSize,
   onPageChange,
 }: CrudTableProps<T>) {
   const itemsPerPage = 25;
@@ -46,6 +54,14 @@ export function CrudTable<T extends { id: string | number }>({
   const visibleRows = hasControlledPagination
     ? data
     : data.slice((activePage - 1) * itemsPerPage, activePage * itemsPerPage);
+  const loadedItemCount = hasControlledPagination
+    ? (currentPageSize ?? data.length)
+    : data.length;
+  const totalItemCount = totalItems ?? data.length;
+  const pageSummary =
+    hasControlledPagination && totalItems !== undefined
+      ? `${startIndex ?? 0}-${endIndex ?? 0} von ${totalItems} Einträgen - Seite ${activePage} von ${pageCount}`
+      : `Seite ${activePage} von ${pageCount}`;
 
   const handlePageChange = (page: number) => {
     const nextPage = Math.min(Math.max(page, 1), pageCount);
@@ -68,7 +84,7 @@ export function CrudTable<T extends { id: string | number }>({
           </h2>
 
           <p>
-            {data.length} Einträge geladen
+            {loadedItemCount} von {totalItemCount} Einträge geladen
           </p>
         </div>
 
@@ -177,11 +193,12 @@ export function CrudTable<T extends { id: string | number }>({
       {/* Footer / Pagination */}
       <div className="crud-table-footer">
         <p>
-          Seite {activePage} von {pageCount}
+          {pageSummary}
         </p>
 
         <div className="crud-pagination">
           <button
+            type="button"
             disabled={activePage <= 1}
             onClick={() => handlePageChange(activePage - 1)}
             className="crud-icon-button"
@@ -190,6 +207,7 @@ export function CrudTable<T extends { id: string | number }>({
           </button>
 
           <button
+            type="button"
             disabled={activePage >= pageCount}
             onClick={() => handlePageChange(activePage + 1)}
             className="crud-icon-button"

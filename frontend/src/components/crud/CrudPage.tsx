@@ -1,4 +1,11 @@
 import { useEffect, useState, type ReactNode } from "react";
+import {
+  DEFAULT_PAGE_SIZE,
+  isPaginatedResponse,
+  type ListResponse,
+  type PaginatedResponse,
+  type PaginationParams,
+} from "@/api/pagination";
 import { CrudForm } from "./CrudForm";
 import { CrudTable } from "./CrudTable";
 
@@ -26,7 +33,7 @@ export type CrudConfig<T> = {
 };
 
 type CrudApi<T extends { id: string | number }> = {
-  list: () => Promise<T[]>;
+  list: (params?: PaginationParams) => Promise<ListResponse<T>>;
   create?: (data: Partial<T>) => Promise<T>;
   delete?: (id: number) => Promise<void>;
 };
@@ -51,6 +58,10 @@ export function CrudPage<T extends { id: string | number }>({
   extraActions,
 }: CrudPageProps<T>) {
   const [data, setData] = useState<T[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState<PaginatedResponse<T> | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(!show_table);
   const [error, setError] = useState<string | null>(null);
@@ -63,13 +74,28 @@ export function CrudPage<T extends { id: string | number }>({
     );
   };
 
-  const reloadData = async () => {
+  const applyListResponse = (response: ListResponse<T>) => {
+    if (isPaginatedResponse(response)) {
+      setData(response.items);
+      setPagination(response);
+      setCurrentPage(response.current_page);
+      return;
+    }
+
+    setData(response);
+    setPagination(null);
+  };
+
+  const reloadData = async (page = currentPage) => {
     setError(null);
     setLoading(true);
 
     try {
-      const items = await api.list();
-      setData(items);
+      const response = await api.list({
+        page,
+        page_size: DEFAULT_PAGE_SIZE,
+      });
+      applyListResponse(response);
     } catch (loadError) {
       applyLoadError(loadError);
     } finally {
@@ -81,11 +107,17 @@ export function CrudPage<T extends { id: string | number }>({
     let isMounted = true;
 
     const loadInitialData = async () => {
+      setError(null);
+      setLoading(true);
+
       try {
-        const items = await api.list();
+        const response = await api.list({
+          page: currentPage,
+          page_size: DEFAULT_PAGE_SIZE,
+        });
 
         if (isMounted) {
-          setData(items);
+          applyListResponse(response);
         }
       } catch (loadError) {
         if (isMounted) {
@@ -103,7 +135,7 @@ export function CrudPage<T extends { id: string | number }>({
     return () => {
       isMounted = false;
     };
-  }, [api]);
+  }, [api, currentPage]);
 
   const handleDelete = api.delete
     ? async (row: T) => {
@@ -147,6 +179,11 @@ export function CrudPage<T extends { id: string | number }>({
       }
     : undefined;
 
+  const handlePageChange = (page: number) => {
+    setLoading(true);
+    setCurrentPage(page);
+  };
+
   return (
     <main className="crud-page">
       <header className="crud-page-header">
@@ -184,6 +221,13 @@ export function CrudPage<T extends { id: string | number }>({
           data={data}
           loading={loading}
           onDelete={handleDelete}
+          currentPage={currentPage}
+          totalPages={pagination?.total_pages ?? 1}
+          totalItems={pagination?.total_items}
+          startIndex={pagination?.start_index}
+          endIndex={pagination?.end_index}
+          currentPageSize={pagination?.current_page_size}
+          onPageChange={pagination ? handlePageChange : undefined}
           extraActions={
             extraActions ? (row) => extraActions(row, reloadData) : undefined
           }

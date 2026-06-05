@@ -1,11 +1,18 @@
 import { apiFetch, API_BASE } from "@/api/client";
+import {
+  buildPaginationQuery,
+  type PaginatedResponse,
+  type PaginationParams,
+} from "@/api/pagination";
 import type { Property } from "./property.types";
 
 const API_URL = `${API_BASE}/properties`;
 
 export const propertyApi = {
-  async list(): Promise<Property[]> {
-    const response = await apiFetch(`${API_URL}/`);
+  async list(params?: PaginationParams): Promise<PaginatedResponse<Property>> {
+    const response = await apiFetch(
+      `${API_URL}/${buildPaginationQuery(params)}`,
+    );
 
     if (!response.ok) {
       throw new Error("Fehler beim Laden");
