@@ -1,5 +1,3 @@
-export const DEFAULT_PAGE_SIZE = 10;
-
 export type PaginationParams = {
   page?: number;
   page_size?: number;

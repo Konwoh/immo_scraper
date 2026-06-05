@@ -1,6 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
 import {
-  DEFAULT_PAGE_SIZE,
   isPaginatedResponse,
   type ListResponse,
   type PaginatedResponse,
@@ -93,7 +92,6 @@ export function CrudPage<T extends { id: string | number }>({
     try {
       const response = await api.list({
         page,
-        page_size: DEFAULT_PAGE_SIZE,
       });
       applyListResponse(response);
     } catch (loadError) {
@@ -113,7 +111,6 @@ export function CrudPage<T extends { id: string | number }>({
       try {
         const response = await api.list({
           page: currentPage,
-          page_size: DEFAULT_PAGE_SIZE,
         });
 
         if (isMounted) {
