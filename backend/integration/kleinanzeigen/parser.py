@@ -1,6 +1,6 @@
 from typing import List
 from backend.database.factory import get_or_create_agency, DefaultAgencyFactory
-from backend.database.models import UrlQueue, Status, House, Apartment
+from backend.database.models import UrlQueue, Status, House, Apartment, Property
 from backend.parser.base_parser import read_estate_creator, Parser
 from sqlalchemy.orm import Session
 from backend.database.models import engine
@@ -27,12 +27,12 @@ class KleinanzeigenParser(Parser):
             raise RequestError(f"Kleinanzeigen API Fehler: {e}", status_code=response.status_code)
         return response
     
-    def build_estate(self, normal_url: str) -> House|Apartment:
+    def build_estate(self, normal_url: str) -> House|Apartment|Property:
         response = self.fetch_base(normal_url)
         estate = self.parse(response)
         return estate
     
-    def parse(self, response: requests.Response) -> House|Apartment:
+    def parse(self, response: requests.Response) -> House|Apartment|Property:
         try:
             payload = response.json()
             payload = payload.get("{http://www.ebayclassifiedsgroup.com/schema/ad/v1}ad", {}).get("value")
@@ -45,7 +45,7 @@ class KleinanzeigenParser(Parser):
             data["url"]                 = f'https://www.kleinanzeigen.de/s-anzeige/{data["title"]}/{data["id"]}'
             data["listing_type"]        = payload.get("category", {}).get("localized-name", {}).get("value")
             if payload.get("category", {}).get("localized-name", {}).get("value") == "Eigentumswohnungen":
-                data["total_costs"]     = payload.get("price", {}).get("amount", {}).get("value")
+                data["price"]           = payload.get("price", {}).get("amount", {}).get("value")
             data["general_description"] = payload.get("description", {}).get("value")
             data["zip_code"]            = payload.get("ad-address", {}).get("zip-code", {}).get("value")
             data["address"]             = payload.get("ad-address", {}).get("street", {}).get("value")

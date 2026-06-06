@@ -9,6 +9,7 @@ TO-DO:
     - genaueres Fehler Logging im Frontend
     - Admin Seite
 
+- Property bei kleinanzeigen ergänzen
 - Fehler bei Bathrooms mit String "1.5" 
 - ImmoWelt hinzufügen
     - crawl() in base crawler aufnehmen
