@@ -26,7 +26,8 @@ class KleinanzeigenCrawler(BaseCrawler):
                 "house_rent": 205,
                 "apartment_buy": 196,
                 "apartment_rent": 203,
-                "property": 207,
+                "property_buy": 207,
+                "property_rent": 207,
             }
         }
         

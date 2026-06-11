@@ -44,8 +44,8 @@ class KleinanzeigenParser(Parser):
             data["title"]               = payload.get("title", {}).get("value")
             data["url"]                 = f'https://www.kleinanzeigen.de/s-anzeige/{data["title"]}/{data["id"]}'
             data["listing_type"]        = payload.get("category", {}).get("localized-name", {}).get("value")
-            if payload.get("category", {}).get("localized-name", {}).get("value") == "Eigentumswohnungen":
-                data["price"]           = payload.get("price", {}).get("amount", {}).get("value")
+            #if payload.get("category", {}).get("localized-name", {}).get("value") == "Eigentumswohnungen":
+            data["price"]               = payload.get("price", {}).get("amount", {}).get("value")
             data["ad_type"]             = payload.get("ad-type", {}).get("value")
             data["general_description"] = payload.get("description", {}).get("value")
             data["zip_code"]            = payload.get("ad-address", {}).get("zip-code", {}).get("value")
@@ -101,10 +101,17 @@ class KleinanzeigenParser(Parser):
                 
                 elif section["localized-label"] == "Verfügbar ab":
                     data["available_from"] = section.get("value", [])[0].get("value")
+                    
+                elif section["localized-label"] == "Grundstücksfläche":
+                    data["space"] = section.get("value", [])[0].get("value")
+                
+                elif section["localized-label"] == "Angebotsart":
+                    data["listing_type"] = section.get("value", [])[0].get("value")
             
             if not data.get("estate_type"):
                 category = payload.get("category", {}).get("id-name", {}).get("value")
-
+                offer_type = data["listing_type"]
+                
                 if category == "Haus_mieten":
                     data["estate_type"] = "Andere Haustypen"
                 elif category == "Haus_kaufen":
@@ -113,7 +120,11 @@ class KleinanzeigenParser(Parser):
                     data["estate_type"] = "Andere Wohnungstypen"
                 elif category == "Wohnung_kaufen":
                     data["estate_type"] = "Andere Wohnungstypen"
-                                       
+                elif category == "Grundstuecke_Garten" and offer_type == "kaufen":
+                    data["estate_type"] = "grundstueck_wohnen_kauf"
+                elif category == "Grundstuecke_Garten" and offer_type == "mieten":
+                    data["estate_type"] = "grundstueck_wohnen_mieten"             
+                               
         except Exception as e:
             scraper_logger.error(f"Fehler beim Parsing von URL {response.url}: {str(e)}")
             raise ParsingError(f"KleinanzeigenParser: Fehler beim Parsen: {e}")
