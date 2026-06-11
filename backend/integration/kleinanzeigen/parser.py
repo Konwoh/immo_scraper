@@ -46,6 +46,7 @@ class KleinanzeigenParser(Parser):
             data["listing_type"]        = payload.get("category", {}).get("localized-name", {}).get("value")
             if payload.get("category", {}).get("localized-name", {}).get("value") == "Eigentumswohnungen":
                 data["price"]           = payload.get("price", {}).get("amount", {}).get("value")
+            data["ad_type"]             = payload.get("ad-type", {}).get("value")
             data["general_description"] = payload.get("description", {}).get("value")
             data["zip_code"]            = payload.get("ad-address", {}).get("zip-code", {}).get("value")
             data["address"]             = payload.get("ad-address", {}).get("street", {}).get("value")
