@@ -16,6 +16,7 @@ class DataCleaner:
         "sleeping_rooms": lambda s: s.fillna(s.mode().iloc[0] if not s.mode().empty else 1),
         "bathrooms": lambda s: s.fillna(s.mode().iloc[0] if not s.mode().empty else 1),
         "floor": lambda s: s.fillna(s.mode().iloc[0] if not s.mode().empty else 0),
+        "energy_source": lambda s: s.fillna('Keine Angabe'),
     }
     
     MAPPING_DICT = { 
@@ -147,7 +148,7 @@ class DataCleaner:
             return self._detect_date_format(value)
 
         return value
-
+    
     # ----------------
     # Feature Mapping
     # ----------------
@@ -228,7 +229,6 @@ class DataCleaner:
                 df = self._fill_none_values(df, self.fill_none_cols)
 
             df = self._drop_columns(df)
-                
             return df
         
         except Exception as e:

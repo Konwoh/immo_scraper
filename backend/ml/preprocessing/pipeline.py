@@ -13,7 +13,7 @@ data_cleaner = DataCleaner(
     american_cols=["energy_demand"],
     bool_cols=["lift", "barrier_free", "garden", "fitted_kitchen", "basement", "rented"],
     drop_cols=["url", 'general_description', 'object_description', 'place_description', 'other_description', "created_at", "updated_at", "city", "address", "incidental_purchase_costs", "property_acquisition_tax", "brokerage_commission", "notary_fees", "land_registry_entry", "price", "price_m2", "agency_id", "id", "title", "available_from"],
-    fill_none_cols = ["lift", "barrier_free", "garden", "fitted_kitchen", "basement", "rented", "available_from", "garage_parking_slots", "estate_condition", "interior_quality", "heating_type", "energy_performance_certificate_type", "energy_efficiency_class", "energy_demand", "total_costs", "building_year", "living_space", "sleeping_rooms", "house_money", "bathrooms", "floor"],
+    fill_none_cols = ["lift", "barrier_free", "garden", "fitted_kitchen", "basement", "rented", "available_from", "garage_parking_slots", "estate_condition", "interior_quality", "heating_type", "energy_performance_certificate_type", "energy_efficiency_class", "energy_demand", "total_costs", "building_year", "living_space", "sleeping_rooms", "house_money", "bathrooms", "floor", "energy_source"],
 )
 
 df = data_cleaner.preprocessing(df)
