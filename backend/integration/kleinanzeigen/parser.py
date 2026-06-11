@@ -44,8 +44,8 @@ class KleinanzeigenParser(Parser):
             data["title"]               = payload.get("title", {}).get("value")
             data["url"]                 = f'https://www.kleinanzeigen.de/s-anzeige/{data["title"]}/{data["id"]}'
             data["listing_type"]        = payload.get("category", {}).get("localized-name", {}).get("value")
-            #if payload.get("category", {}).get("localized-name", {}).get("value") == "Eigentumswohnungen":
-            data["price"]               = payload.get("price", {}).get("amount", {}).get("value")
+            if payload.get("category", {}).get("localized-name", {}).get("value") != "Mietwohnungen":
+                data["price"]               = payload.get("price", {}).get("amount", {}).get("value")
             data["ad_type"]             = payload.get("ad-type", {}).get("value")
             data["general_description"] = payload.get("description", {}).get("value")
             data["zip_code"]            = payload.get("ad-address", {}).get("zip-code", {}).get("value")

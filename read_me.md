@@ -9,14 +9,13 @@ TO-DO:
     - Admin Seite
 
 - Machine Learning:
+    - bei Kleinanzeigen gibt es auch "Suche nach..."-Anzeigen -> über ad_type rausfiltern 
     - Unterschiedung bei Prediciton für Kauf und Miete
     - Train various Machine Learning Models (e.g. Classification models, recommender systems, regression für preis vorhersage)
     - good deal detector
     - generelle Datenanalyse
 
 - Sonstiges:
-    - bei Kleinanzeigen gibt es auch "Suche nach..."-Anzeigen -> rausfiltern 
-    - Property bei kleinanzeigen ergänzen
     - Fehler bei Bathrooms mit String "1.5" 
     - ImmoWelt hinzufügen
         - crawl() in base crawler aufnehmen
