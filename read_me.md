@@ -8,8 +8,7 @@ TO-DO:
     - genaueres Fehler Logging im Frontend
     - Admin Seite
 
-- Machine Learning:
-    - bei Kleinanzeigen gibt es auch "Suche nach..."-Anzeigen -> über ad_type rausfiltern 
+- Machine Learning:W
     - Unterschiedung bei Prediciton für Kauf und Miete
     - Train various Machine Learning Models (e.g. Classification models, recommender systems, regression für preis vorhersage)
     - good deal detector

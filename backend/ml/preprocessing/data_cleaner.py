@@ -6,17 +6,20 @@ import logging
 
 data_cleaner_logger = logging.getLogger("ML_data_cleaner")
 
+FillStrategy = Callable[[pd.DataFrame, str], pd.Series]
+
 class DataCleaner:
-    DEFAULT_FILL_STRATEGIES: dict[str, Callable[[pd.Series], pd.Series]] = {
-        "available_from": lambda s: s.fillna(datetime.now()),
-        "garage_parking_slots": lambda s: s.fillna(0),
-        "total_costs": lambda s: s.fillna(s.mean()),
-        "building_year": lambda s: s.fillna(s.mean()),
-        "house_money": lambda s: s.fillna(s.mean()),
-        "sleeping_rooms": lambda s: s.fillna(s.mode().iloc[0] if not s.mode().empty else 1),
-        "bathrooms": lambda s: s.fillna(s.mode().iloc[0] if not s.mode().empty else 1),
-        "floor": lambda s: s.fillna(s.mode().iloc[0] if not s.mode().empty else 0),
-        "energy_source": lambda s: s.fillna('Keine Angabe'),
+    DEFAULT_FILL_STRATEGIES: dict[str, FillStrategy] = {
+        "available_from": lambda df, col: df[col].fillna(datetime.now()),
+        "garage_parking_slots": lambda df, col: df[col].fillna(0),
+        "total_costs": lambda df, col: df[col].fillna(df[col].mean()),
+        "building_year": lambda df, col: df[col].fillna(df[col].mean()),
+        "house_money": lambda df, col: df[col].fillna(df[col].mean()),
+        "sleeping_rooms": lambda df, col: df[col].fillna(df[col].mode().iloc[0] if not df[col].mode().empty else 1),
+        "bathrooms": lambda df, col: df[col].fillna(df[col].mode().iloc[0] if not df[col].mode().empty else 1),
+        "floor": lambda df, col: df[col].fillna(df[col].mode().iloc[0] if not df[col].mode().empty else 0),
+        "energy_source": lambda df, col: df[col].fillna("Keine Angabe"),
+        "rent_cold": lambda df, col: df[col].fillna(df["rent_complete"] * 0.75),
     }
     
     MAPPING_DICT = { 
@@ -37,9 +40,10 @@ class DataCleaner:
         numeric_cols: List[str] | None = None,
         date_cols: List[str] | None = None,
         drop_cols: List[str] | None = None,
+        drop_missing: List[str] | None = None,
         bool_cols: List[str] | None = None,
         fill_none_cols: List[str] | None = None,
-        fill_strategies: dict[str, Callable[[pd.Series], pd.Series]] | None = None,
+        fill_strategies: dict[str, FillStrategy] | None = None,
         mapping_dict: dict[str, str] | None = None
     ):
         self.american_cols  = list(american_cols or [])
@@ -48,6 +52,7 @@ class DataCleaner:
         self.drop_cols      = list(drop_cols or [])
         self.bool_cols      = list(bool_cols or [])
         self.fill_none_cols = list(fill_none_cols or [])
+        self.drop_missing   = list(drop_missing or [])
         self.fill_strategies = {
             **self.DEFAULT_FILL_STRATEGIES,
             **(fill_strategies or {}),
@@ -71,10 +76,8 @@ class DataCleaner:
     def _str_to_numeric(self, value):
         if pd.isna(value):
             return None
-        if isinstance(value, str):
-            value = value.replace("\xa0", " ").replace(".", "").replace(",", ".")
-            value = re.sub(r"[^\d.-]", "", value)
-            return float(value) if value else None
+        if isinstance(value, str) and ('€' in value or 'm²' in value or '%' in value or 'MBit/s' in value):
+            return float(value.replace("\xa0", " ").replace(".", "").replace(",", ".").split(" ")[0])
         return float(value)
 
     def _floor_to_numeric(self, value):
@@ -147,8 +150,7 @@ class DataCleaner:
                 return datetime.now()
             return self._detect_date_format(value)
 
-        return value
-    
+        return value  
     # ----------------
     # Feature Mapping
     # ----------------
@@ -166,17 +168,21 @@ class DataCleaner:
         df = df.copy()
 
         for col in fill_none_cols:
+            if col not in df.columns:
+                continue
             if col == "living_space":
                 df = df.dropna(subset=[col])
             elif col in self.fill_strategies:
-                df[col] = self.fill_strategies[col](df[col])
+                df[col] = self.fill_strategies[col](df, col)
             elif df[col].dtype == "boolean":
                 df[col] = df[col].fillna(False)
             elif df[col].nunique(dropna=True) <= 10 and df[col].notna().mean() > 0.25:
                 df[col] = df[col].fillna(df[col].mode().iloc[0])
 
         return df
-
+    
+    def _drop_missing_values(self, df: pd.DataFrame, cols):
+        return df.dropna(subset=cols)
     # ----------------
     # Column Operations
     # ----------------
@@ -193,13 +199,28 @@ class DataCleaner:
         
         return df
     
+    def _remove_outliers(self, df: pd.DataFrame):
+        numeric_cols = df.select_dtypes("float").columns
+        for col in numeric_cols:
+            lower_limit = df[col].quantile(0.01)
+            upper_limit = df[col].quantile(0.99)
+
+            outliers_low = (df[col] < lower_limit)
+            outliers_high = (df[col] > upper_limit)
+            
+            df = df[~outliers_low]
+            df = df[~outliers_high]
+            
+        return df
+    
     # ----------------
     # Main Pipeline
     # ----------------
     def preprocessing(self, df: pd.DataFrame) -> pd.DataFrame|None:
         try:
             df = df.copy()
-
+            df = df[df["ad_type"] == "OFFERED"]
+            
             df = self._to_bool(df, self.bool_cols)
 
             if "floor" in df.columns:
@@ -229,8 +250,11 @@ class DataCleaner:
                 df = self._fill_none_values(df, self.fill_none_cols)
 
             df = self._drop_columns(df)
+            df = self._drop_missing_values(df, self.drop_missing)
+            df = self._remove_outliers(df)
+            
             return df
         
         except Exception as e:
-            data_cleaner_logger.exception("Fehler beim Data Cleaning")
+            data_cleaner_logger.exception(f"Fehler beim Data Cleaning: {str(e)}")
             raise
