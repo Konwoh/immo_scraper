@@ -20,6 +20,8 @@ class DataCleaner:
         "floor": lambda df, col: df[col].fillna(df[col].mode().iloc[0] if not df[col].mode().empty else 0),
         "energy_source": lambda df, col: df[col].fillna("Keine Angabe"),
         "rent_cold": lambda df, col: df[col].fillna(df["rent_complete"] * 0.75),
+        "price": lambda df, col: df[col].fillna(df[col].mean()),
+        "internet_speed_telekom": lambda df, col: df[col].fillna(df[col].mode().iloc[0] if not df[col].mode().empty else 0)
     }
     
     MAPPING_DICT = { 
@@ -75,6 +77,8 @@ class DataCleaner:
 
     def _str_to_numeric(self, value):
         if pd.isna(value):
+            return None
+        if value == "Auf Anfrage":
             return None
         if isinstance(value, str) and ('€' in value or 'm²' in value or '%' in value or 'MBit/s' in value):
             return float(value.replace("\xa0", " ").replace(".", "").replace(",", ".").split(" ")[0])

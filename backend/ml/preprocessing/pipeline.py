@@ -11,20 +11,20 @@ df_buy = df[df["listing_type"].isin(["Eigentumswohnungen", "wohnung_kauf", "haus
 feature_engineer = FeatureEngineering()
 
 data_cleaner_rent = DataCleaner(
-    numeric_cols=["living_space", "rent_income", "brokerage_commission", "notary_fees", "land_registry_entry", "energy_demand", "internet_speed_telekom", "house_money", "rent_complete","rent_cold", "rent_extra_costs", ],
+    numeric_cols=["living_space", "rent_income", "brokerage_commission", "notary_fees", "land_registry_entry", "energy_demand", "internet_speed_telekom", "house_money", "rent_complete","rent_cold"],
     american_cols=["energy_demand"],
     bool_cols=["lift", "barrier_free", "garden", "fitted_kitchen", "basement", "rented"],
-    drop_cols=["url", 'general_description', 'object_description', 'place_description', 'other_description', "created_at", "updated_at", "city", "address", "incidental_purchase_costs", "property_acquisition_tax", "brokerage_commission", "notary_fees", "land_registry_entry", "price", "price_m2", "agency_id", "id", "title", "available_from",  "rent_deposit", "ad_type", "listing_type"],
+    drop_cols=["price_m2", "url", 'general_description', 'object_description', 'place_description', 'other_description', "created_at", "updated_at", "city", "address", "incidental_purchase_costs", "property_acquisition_tax", "brokerage_commission", "notary_fees", "land_registry_entry", "price", "price_m2", "agency_id", "id", "title", "available_from",  "rent_deposit", "ad_type", "listing_type", "rent_extra_costs"],
     drop_missing= ["rent_complete"],
-    fill_none_cols = ["lift", "barrier_free", "garden", "fitted_kitchen", "basement", "rented", "available_from", "garage_parking_slots", "estate_condition", "interior_quality", "heating_type", "energy_performance_certificate_type", "energy_efficiency_class", "energy_demand", "total_costs", "building_year", "living_space", "rent_cold", "sleeping_rooms", "house_money", "bathrooms", "floor", "energy_source"],
+    fill_none_cols = ["lift", "barrier_free", "garden", "fitted_kitchen", "basement", "rented", "available_from", "garage_parking_slots", "estate_condition", "interior_quality", "heating_type", "energy_performance_certificate_type", "energy_efficiency_class", "energy_demand", "total_costs", "building_year", "living_space", "rent_cold", "sleeping_rooms", "house_money", "bathrooms", "floor", "energy_source", "internet_speed_telekom"],
 )
 
 data_cleaner_buy = DataCleaner(
-    numeric_cols=["living_space", "rent_income", "brokerage_commission", "notary_fees", "land_registry_entry", "energy_demand", "internet_speed_telekom", "house_money", "rent_complete","rent_cold", "rent_extra_costs", ],
+    numeric_cols=["price", "living_space", "rent_income", "brokerage_commission", "notary_fees", "land_registry_entry", "energy_demand", "internet_speed_telekom", "house_money", "rent_complete","rent_cold" ],
     american_cols=["energy_demand"],
     bool_cols=["lift", "barrier_free", "garden", "fitted_kitchen", "basement", "rented"],
-    drop_cols=["url", 'general_description', 'object_description', 'place_description', 'other_description', "created_at", "updated_at", "city", "address", "incidental_purchase_costs", "property_acquisition_tax", "brokerage_commission", "notary_fees", "land_registry_entry", "price", "price_m2", "agency_id", "id", "title", "available_from",  "rent_deposit", "ad_type", "listing_type"],
-    fill_none_cols = ["lift", "barrier_free", "garden", "fitted_kitchen", "basement", "rented", "available_from", "garage_parking_slots", "estate_condition", "interior_quality", "heating_type", "energy_performance_certificate_type", "energy_efficiency_class", "energy_demand", "total_costs", "building_year", "living_space", "rent_cold", "sleeping_rooms", "house_money", "bathrooms", "floor", "energy_source"],
+    drop_cols=["price_m2", "url", 'general_description', 'object_description', 'place_description', 'other_description', "created_at", "updated_at", "city", "address", "incidental_purchase_costs", "property_acquisition_tax", "brokerage_commission", "notary_fees", "land_registry_entry", "agency_id", "id", "title", "available_from",  "rent_deposit", "ad_type", "listing_type", "rent_extra_costs"],
+    fill_none_cols = ["price", "lift", "barrier_free", "garden", "fitted_kitchen", "basement", "rented", "available_from", "garage_parking_slots", "estate_condition", "interior_quality", "heating_type", "energy_performance_certificate_type", "energy_efficiency_class", "energy_demand", "total_costs", "building_year", "living_space", "rent_cold", "sleeping_rooms", "house_money", "bathrooms", "floor", "energy_source", "internet_speed_telekom"],
 )
 
 df_rent = data_cleaner_rent.preprocessing(df_rent)
