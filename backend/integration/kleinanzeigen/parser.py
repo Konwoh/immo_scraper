@@ -129,7 +129,7 @@ class KleinanzeigenParser(Parser):
             scraper_logger.error(f"Fehler beim Parsing von URL {response.url}: {str(e)}")
             raise ParsingError(f"KleinanzeigenParser: Fehler beim Parsen: {e}")
         
-        factory = read_estate_creator(estate_type=data.get("estate_type", "Sonstige"))
+        factory = read_estate_creator(estate_type=data.get("estate_type", "Sonstige"), listing_type = data.get("estate_type", "Sonstige"))
         with Session(engine) as session:
             agency_factory = DefaultAgencyFactory()
             agency = get_or_create_agency(session, data, agency_factory)

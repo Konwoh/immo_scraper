@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from abc import ABC, abstractmethod
 from backend.database.factory import EstateFactory, PropertyFactory, ApartmentEstateFactory, HouseEstateFactory, PropertyEstateFactory
 from backend.database.models import UrlQueue, RealEstate, House, Apartment, Property
@@ -7,7 +7,7 @@ import logging
 
 scraper_logger = logging.getLogger("scraper")
 
-def read_estate_creator(estate_type: str) -> EstateFactory|PropertyFactory:
+def read_estate_creator(estate_type: str, listing_type: Optional[str] = None) -> EstateFactory|PropertyFactory:
     normalized = estate_type.strip().lower()
 
     apartment_types = {
@@ -51,6 +51,13 @@ def read_estate_creator(estate_type: str) -> EstateFactory|PropertyFactory:
         return HouseEstateFactory()
     elif normalized in property_types:
         return PropertyEstateFactory()
+    elif normalized == "sonstige":
+        if listing_type == "wohnung_miete" or listing_type == "wohnung_kauf":
+            return ApartmentEstateFactory()
+        elif listing_type == "haus_miete" or listing_type == "haus_kauf":
+            return HouseEstateFactory()
+        else:
+            raise KeyError("Normalized ist 'sonstige' und listing_type ist nicht bekannt")
     else:
         raise KeyError("No estate_type found")
 
