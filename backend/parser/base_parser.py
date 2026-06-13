@@ -30,10 +30,12 @@ def read_estate_creator(estate_type: str, listing_type: Optional[str] = None) ->
         "mehrfamilienhaus",
         "doppelhaushälfte",
         "reihenhaus",
+        "reihenmittelhaus",
         "bungalow",
         "villa",
         "bauernhaus",
         "andere haustypen",
+        "wohnimmobilie (sonstige)",
         "andere",
         "haus_mieten",
         "haus_kaufen",
@@ -65,7 +67,7 @@ def read_estate_creator(estate_type: str, listing_type: Optional[str] = None) ->
         return PropertyEstateFactory()
 
     if normalized != "sonstige":
-        raise KeyError("No estate_type found")
+        raise KeyError(f"No estate_type found. Normalized: {normalized}")
 
     if listing_type is None:
         raise KeyError("Normalized ist 'sonstige' und listing_type ist None")
