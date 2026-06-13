@@ -52,10 +52,12 @@ def read_estate_creator(estate_type: str, listing_type: Optional[str] = None) ->
     elif normalized in property_types:
         return PropertyEstateFactory()
     elif normalized == "sonstige":
-        if listing_type == "wohnung_miete" or listing_type == "wohnung_kauf":
-            return ApartmentEstateFactory()
-        elif listing_type == "haus_miete" or listing_type == "haus_kauf":
-            return HouseEstateFactory()
+        if listing_type is not None:
+            listing_type = listing_type.lower()
+            if listing_type == "wohnung_miete" or listing_type == "wohnung_kauf" or listing_type == "wohnung_kaufen" or listing_type == "wohnung_mieten":
+                return ApartmentEstateFactory()
+            elif listing_type == "haus_miete" or listing_type == "haus_kauf" or listing_type == "haus_kaufen" or listing_type == "haus_mieten":
+                return HouseEstateFactory()
         else:
             raise KeyError("Normalized ist 'sonstige' und listing_type ist nicht bekannt")
     else:

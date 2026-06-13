@@ -43,7 +43,7 @@ class KleinanzeigenParser(Parser):
             data["id"]                  = payload.get("id")
             data["title"]               = payload.get("title", {}).get("value")
             data["url"]                 = f'https://www.kleinanzeigen.de/s-anzeige/{data["title"]}/{data["id"]}'
-            data["listing_type"]        = payload.get("category", {}).get("localized-name", {}).get("value")
+            data["listing_type"]        = payload.get("category", {}).get("id-name", {}).get("value")
             if payload.get("category", {}).get("localized-name", {}).get("value") != "Mietwohnungen":
                 data["price"]               = payload.get("price", {}).get("amount", {}).get("value")
             data["ad_type"]             = payload.get("ad-type", {}).get("value")
@@ -106,11 +106,11 @@ class KleinanzeigenParser(Parser):
                     data["space"] = section.get("value", [])[0].get("value")
                 
                 elif section["localized-label"] == "Angebotsart":
-                    data["listing_type"] = section.get("value", [])[0].get("value")
+                    data["offer_type"] = section.get("value", [])[0].get("value")
             
             if not data.get("estate_type"):
                 category = payload.get("category", {}).get("id-name", {}).get("value")
-                offer_type = data["listing_type"]
+                offer_type = data["offer_type"]
                 
                 if category == "Haus_mieten":
                     data["estate_type"] = "Andere Haustypen"
@@ -129,7 +129,7 @@ class KleinanzeigenParser(Parser):
             scraper_logger.error(f"Fehler beim Parsing von URL {response.url}: {str(e)}")
             raise ParsingError(f"KleinanzeigenParser: Fehler beim Parsen: {e}")
         
-        factory = read_estate_creator(estate_type=data.get("estate_type", "Sonstige"), listing_type = data.get("estate_type", "Sonstige"))
+        factory = read_estate_creator(estate_type=data.get("estate_type", "Sonstige"), listing_type = data.get("listing_type"))
         with Session(engine) as session:
             agency_factory = DefaultAgencyFactory()
             agency = get_or_create_agency(session, data, agency_factory)
