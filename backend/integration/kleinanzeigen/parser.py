@@ -110,7 +110,6 @@ class KleinanzeigenParser(Parser):
             
             if not data.get("estate_type"):
                 category = payload.get("category", {}).get("id-name", {}).get("value")
-                offer_type = data["offer_type"]
                 
                 if category == "Haus_mieten":
                     data["estate_type"] = "Andere Haustypen"
@@ -120,10 +119,12 @@ class KleinanzeigenParser(Parser):
                     data["estate_type"] = "Andere Wohnungstypen"
                 elif category == "Wohnung_kaufen":
                     data["estate_type"] = "Andere Wohnungstypen"
-                elif category == "Grundstuecke_Garten" and offer_type == "kaufen":
-                    data["estate_type"] = "grundstueck_wohnen_kauf"
-                elif category == "Grundstuecke_Garten" and offer_type == "mieten":
-                    data["estate_type"] = "grundstueck_wohnen_mieten"             
+                elif category == "Grundstuecke_Garten":
+                    offer_type = data.get("offer_type")
+                    if offer_type == "kaufen":
+                        data["estate_type"] = "grundstueck_wohnen_kauf"
+                    elif offer_type == "mieten":
+                        data["estate_type"] = "grundstueck_wohnen_mieten"             
                                
         except Exception as e:
             scraper_logger.error(f"Fehler beim Parsing von URL {response.url}: {str(e)}")
