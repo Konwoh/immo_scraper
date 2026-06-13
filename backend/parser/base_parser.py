@@ -7,7 +7,7 @@ import logging
 
 scraper_logger = logging.getLogger("scraper")
 
-def read_estate_creator(estate_type: str, listing_type: Optional[str] = None) -> EstateFactory|PropertyFactory:
+def read_estate_creator(estate_type: str, listing_type: Optional[str] = None) -> EstateFactory | PropertyFactory:
     normalized = estate_type.strip().lower()
 
     apartment_types = {
@@ -21,8 +21,7 @@ def read_estate_creator(estate_type: str, listing_type: Optional[str] = None) ->
         "penthouse",
         "loft",
         "hochparterre",
-        "sonstige",
-        "andere wohnungstypen"
+        "andere wohnungstypen",
     }
 
     house_types = {
@@ -37,31 +36,46 @@ def read_estate_creator(estate_type: str, listing_type: Optional[str] = None) ->
         "andere haustypen",
         "andere",
         "haus_mieten",
-        "haus_kaufen"
+        "haus_kaufen",
     }
-    
+
     property_types = {
         "grundstueck_wohnen_kauf",
-        "grundstueck_wohnen_mieten"
+        "grundstueck_wohnen_mieten",
     }
-    
+
+    listing_type_factories = {
+        "wohnung_miete": ApartmentEstateFactory,
+        "wohnung_kauf": ApartmentEstateFactory,
+        "wohnung_kaufen": ApartmentEstateFactory,
+        "wohnung_mieten": ApartmentEstateFactory,
+        "haus_miete": HouseEstateFactory,
+        "haus_kauf": HouseEstateFactory,
+        "haus_kaufen": HouseEstateFactory,
+        "haus_mieten": HouseEstateFactory,
+    }
+
     if normalized in apartment_types:
         return ApartmentEstateFactory()
-    elif normalized in house_types:
+
+    if normalized in house_types:
         return HouseEstateFactory()
-    elif normalized in property_types:
+
+    if normalized in property_types:
         return PropertyEstateFactory()
-    elif normalized == "sonstige":
-        if listing_type is not None:
-            listing_type = listing_type.lower()
-            if listing_type == "wohnung_miete" or listing_type == "wohnung_kauf" or listing_type == "wohnung_kaufen" or listing_type == "wohnung_mieten":
-                return ApartmentEstateFactory()
-            elif listing_type == "haus_miete" or listing_type == "haus_kauf" or listing_type == "haus_kaufen" or listing_type == "haus_mieten":
-                return HouseEstateFactory()
-        else:
-            raise KeyError("Normalized ist 'sonstige' und listing_type ist nicht bekannt")
-    else:
+
+    if normalized != "sonstige":
         raise KeyError("No estate_type found")
+
+    if listing_type is None:
+        raise KeyError("Normalized ist 'sonstige' und listing_type ist None")
+
+    factory = listing_type_factories.get(listing_type.strip().lower())
+
+    if factory is None:
+        raise KeyError("listing_type ist nicht bekannt")
+
+    return factory()
 
 class Parser(ABC):
     @abstractmethod
