@@ -15,7 +15,7 @@ data_cleaner_rent = DataCleaner(
     american_cols=["energy_demand"],
     bool_cols=["lift", "barrier_free", "garden", "fitted_kitchen", "basement", "rented"],
     drop_cols=["price_m2", "url", 'general_description', 'object_description', 'place_description', 'other_description', "created_at", "updated_at", "city", "address", "incidental_purchase_costs", "property_acquisition_tax", "brokerage_commission", "notary_fees", "land_registry_entry", "price", "price_m2", "agency_id", "id", "title", "available_from",  "rent_deposit", "ad_type", "listing_type", "rent_extra_costs"],
-    drop_missing= ["rent_complete"],
+    drop_missing= ["rent_complete", "estate_type"],
     fill_none_cols = ["lift", "barrier_free", "garden", "fitted_kitchen", "basement", "rented", "available_from", "garage_parking_slots", "estate_condition", "interior_quality", "heating_type", "energy_performance_certificate_type", "energy_efficiency_class", "energy_demand", "total_costs", "building_year", "living_space", "rent_cold", "sleeping_rooms", "house_money", "bathrooms", "floor", "energy_source", "internet_speed_telekom"],
 )
 
@@ -24,22 +24,29 @@ data_cleaner_buy = DataCleaner(
     american_cols=["energy_demand"],
     bool_cols=["lift", "barrier_free", "garden", "fitted_kitchen", "basement", "rented"],
     drop_cols=["price_m2", "url", 'general_description', 'object_description', 'place_description', 'other_description', "created_at", "updated_at", "city", "address", "incidental_purchase_costs", "property_acquisition_tax", "brokerage_commission", "notary_fees", "land_registry_entry", "agency_id", "id", "title", "available_from",  "rent_deposit", "ad_type", "listing_type", "rent_extra_costs"],
+    drop_missing= ["estate_type"],
     fill_none_cols = ["price", "lift", "barrier_free", "garden", "fitted_kitchen", "basement", "rented", "available_from", "garage_parking_slots", "estate_condition", "interior_quality", "heating_type", "energy_performance_certificate_type", "energy_efficiency_class", "energy_demand", "total_costs", "building_year", "living_space", "rent_cold", "sleeping_rooms", "house_money", "bathrooms", "floor", "energy_source", "internet_speed_telekom"],
 )
 
 df_rent = data_cleaner_rent.preprocessing(df_rent)
 df_buy = data_cleaner_buy.preprocessing(df_buy)
 
-if isinstance(df_rent, pd.DataFrame):
-    df_rent = feature_engineer.one_hot_encoding(df_rent)
+print(data_cleaner_buy.store_in_db(df_buy))
 
-    print(df_rent.head())
-    print(df_rent.info(verbose=True))
-    print(df_rent.describe())
+# print(df_rent.head())
+# print(df_rent.info(verbose=True))
+# print(df_rent.describe())
 
-if isinstance(df_buy, pd.DataFrame):
-    df_buy = feature_engineer.one_hot_encoding(df_buy)
+# if isinstance(df_rent, pd.DataFrame):
+#     df_rent = feature_engineer.one_hot_encoding(df_rent)
 
-    print(df_buy.head())
-    print(df_buy.info(verbose=True))
-    print(df_buy.describe())
+#     print(df_rent.head())
+#     print(df_rent.info(verbose=True))
+#     print(df_rent.describe())
+
+# if isinstance(df_buy, pd.DataFrame):
+#     df_buy = feature_engineer.one_hot_encoding(df_buy)
+
+#     print(df_buy.head())
+#     print(df_buy.info(verbose=True))
+#     print(df_buy.describe())

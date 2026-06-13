@@ -3,8 +3,15 @@ import pandas as pd
 import re
 from typing import Callable, List
 import logging
+from sqlalchemy import create_engine
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 data_cleaner_logger = logging.getLogger("ML_data_cleaner")
+engine = create_engine(os.environ["DB_CONNECTION_STRING"], echo=False)
+
 
 FillStrategy = Callable[[pd.DataFrame, str], pd.Series]
 
@@ -209,11 +216,15 @@ class DataCleaner:
             lower_limit = df[col].quantile(0.01)
             upper_limit = df[col].quantile(0.99)
 
-            outliers_low = (df[col] < lower_limit)
-            outliers_high = (df[col] > upper_limit)
+            outliers_low = df[col] < lower_limit
+            outliers_high = df[col] > upper_limit
             
-            df = df[~outliers_low]
-            df = df[~outliers_high]
+            keep_rows = (
+                df[col].between(outliers_low, outliers_high)
+                | df[col].isna()
+            )
+
+            df = df.loc[keep_rows]
             
         return df
     
@@ -262,3 +273,6 @@ class DataCleaner:
         except Exception as e:
             data_cleaner_logger.exception(f"Fehler beim Data Cleaning: {str(e)}")
             raise
+    
+    def store_in_db(self, db: pd.DataFrame) -> int|None:
+        return db.to_sql(name="ml_training", con=engine, if_exists="replace")
