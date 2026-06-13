@@ -31,6 +31,7 @@ def read_estate_creator(estate_type: str, listing_type: Optional[str] = None) ->
         "doppelhaushälfte",
         "reihenhaus",
         "reihenmittelhaus",
+        "reiheneckhaus",
         "bungalow",
         "villa",
         "bauernhaus",
