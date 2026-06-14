@@ -3,31 +3,30 @@ import pandas as pd
 import re
 from typing import Callable, List
 import logging
-from sqlalchemy import create_engine
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
+from sqlalchemy import Engine
 
 data_cleaner_logger = logging.getLogger("ML_data_cleaner")
-engine = create_engine(os.environ["DB_CONNECTION_STRING"], echo=False)
-
-
 FillStrategy = Callable[[pd.DataFrame, str], pd.Series]
+
+
+def _fill_with_numeric_mean(df: pd.DataFrame, col: str) -> pd.Series:
+    numeric_series = pd.to_numeric(df[col], errors="coerce")
+    return numeric_series.fillna(numeric_series.mean())
+
 
 class DataCleaner:
     DEFAULT_FILL_STRATEGIES: dict[str, FillStrategy] = {
         "available_from": lambda df, col: df[col].fillna(datetime.now()),
         "garage_parking_slots": lambda df, col: df[col].fillna(0),
-        "total_costs": lambda df, col: df[col].fillna(df[col].mean()),
-        "building_year": lambda df, col: df[col].fillna(df[col].mean()),
-        "house_money": lambda df, col: df[col].fillna(df[col].mean()),
+        "total_costs": _fill_with_numeric_mean,
+        "building_year": _fill_with_numeric_mean,
+        "house_money": _fill_with_numeric_mean,
         "sleeping_rooms": lambda df, col: df[col].fillna(df[col].mode().iloc[0] if not df[col].mode().empty else 1),
         "bathrooms": lambda df, col: df[col].fillna(df[col].mode().iloc[0] if not df[col].mode().empty else 1),
         "floor": lambda df, col: df[col].fillna(df[col].mode().iloc[0] if not df[col].mode().empty else 0),
         "energy_source": lambda df, col: df[col].fillna("Keine Angabe"),
         "rent_cold": lambda df, col: df[col].fillna(df["rent_complete"] * 0.75),
-        "price": lambda df, col: df[col].fillna(df[col].mean()),
+        "price": _fill_with_numeric_mean,
         "internet_speed_telekom": lambda df, col: df[col].fillna(df[col].mode().iloc[0] if not df[col].mode().empty else 0)
     }
     
@@ -45,6 +44,7 @@ class DataCleaner:
 
     def __init__(
         self,
+        engine: Engine,
         american_cols: List[str] | None = None,
         numeric_cols: List[str] | None = None,
         date_cols: List[str] | None = None,
@@ -55,6 +55,7 @@ class DataCleaner:
         fill_strategies: dict[str, FillStrategy] | None = None,
         mapping_dict: dict[str, str] | None = None
     ):
+        self.engine         = engine
         self.american_cols  = list(american_cols or [])
         self.numeric_cols   = list(numeric_cols or [])
         self.date_cols      = list(date_cols or [])
@@ -102,10 +103,20 @@ class DataCleaner:
         return float(value)
 
     def _building_year_to_numeric(self, value):
+        if pd.isna(value):
+            return None
+
         if isinstance(value, str):
-            if value.lower() == "unbekannt":
+            value = value.strip()
+            if not value or value.lower() == "unbekannt":
                 return None
-            return datetime.strptime(value, "%Y").year
+
+            match = re.search(r"\d{4}", value)
+            if match:
+                return int(match.group())
+
+            return None
+
         return value
 
     # ----------------
@@ -215,12 +226,9 @@ class DataCleaner:
         for col in numeric_cols:
             lower_limit = df[col].quantile(0.01)
             upper_limit = df[col].quantile(0.99)
-
-            outliers_low = df[col] < lower_limit
-            outliers_high = df[col] > upper_limit
             
             keep_rows = (
-                df[col].between(outliers_low, outliers_high)
+                df[col].between(lower_limit, upper_limit)
                 | df[col].isna()
             )
 
@@ -239,10 +247,16 @@ class DataCleaner:
             df = self._to_bool(df, self.bool_cols)
 
             if "floor" in df.columns:
-                df["floor"] = df["floor"].apply(self._floor_to_numeric)
+                df["floor"] = pd.to_numeric(
+                    df["floor"].apply(self._floor_to_numeric),
+                    errors="coerce"
+                )
             
             if "building_year" in df.columns:
-                df["building_year"] = df["building_year"].apply(self._building_year_to_numeric)
+                df["building_year"] = pd.to_numeric(
+                    df["building_year"].apply(self._building_year_to_numeric),
+                    errors="coerce",
+                )
 
             if "energy_efficiency_class" in df.columns:
                 df["energy_efficiency_class"] = df["energy_efficiency_class"].apply(self._transform_efficiency_class)
@@ -275,4 +289,4 @@ class DataCleaner:
             raise
     
     def store_in_db(self, db: pd.DataFrame) -> int|None:
-        return db.to_sql(name="ml_training", con=engine, if_exists="replace")
+        return db.to_sql(name="ml_training", con=self.engine, if_exists="replace")
