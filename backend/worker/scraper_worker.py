@@ -4,6 +4,7 @@ from backend.database.models import UrlQueue, Status, SearchResults, Apartment, 
 from backend.shared.exceptions import RequestError, ParsingError
 from sqlalchemy.orm import Session
 from sqlalchemy import select, update
+from sqlalchemy.dialects.postgresql import insert
 from backend.parser.factory import EstateParserCreator
 from backend.parser.base_parser import Parser
 from backend.shared.loki_handler import get_loki_logger
@@ -11,7 +12,7 @@ import time
 from sqlalchemy.exc import IntegrityError
 import random
 
-scraper_logger = get_loki_logger("scraper", {"app": "scraper", "env": "dev"})
+scraper_logger = get_loki_logger("scraper", {"app": "scraper", "file": "scraper_worker"})
 
 class Worker:
     
@@ -100,35 +101,38 @@ class Worker:
                 estate_id = persisted.id
                         
                 if isinstance(persisted, House):
-                    link = SearchResults(
-                        search_params_id=self.search_params_id,
-                        house_id=persisted.id,
-                        apartment_id=None,
-                        property_id=None
-                    )
+                    link_values = {
+                        "search_params_id": self.search_params_id,
+                        "house_id": persisted.id,
+                        "apartment_id": None,
+                        "property_id": None,
+                    }
+                    conflict_constraint = "uq_search_result_house"
                 elif isinstance(persisted, Apartment):
-                    link = SearchResults(
-                        search_params_id=self.search_params_id,
-                        house_id=None,
-                        apartment_id=persisted.id,
-                        property_id=None
-                    )
+                    link_values = {
+                        "search_params_id": self.search_params_id,
+                        "house_id": None,
+                        "apartment_id": persisted.id,
+                        "property_id": None,
+                    }
+                    conflict_constraint = "uq_search_result_apartment"
                 elif isinstance(persisted, Property):
-                    link = SearchResults(
-                        search_params_id=self.search_params_id,
-                        house_id=None,
-                        apartment_id=None,
-                        property_id=persisted.id
-                    )
+                    link_values = {
+                        "search_params_id": self.search_params_id,
+                        "house_id": None,
+                        "apartment_id": None,
+                        "property_id": persisted.id,
+                    }
+                    conflict_constraint = "uq_search_result_property"
                 else:
                     raise TypeError("Unknown estate type")
-                    
-                try:
-                    with session.begin_nested():
-                        session.add(link)
-                        session.flush()
-                except IntegrityError as e:
-                    scraper_logger.error(f"Inserting in DB failed: {str(e)}")
+
+                stmt = (
+                    insert(SearchResults)
+                    .values(link_values)
+                    .on_conflict_do_nothing(constraint=conflict_constraint)
+                )
+                session.execute(stmt)
                     
                 stmt = (update(self.model).where(self.model.id == job_id).values(status=Status.done if success else Status.failed))
                 session.execute(stmt)
@@ -136,9 +140,9 @@ class Worker:
                 
                 return estate_id
             
-            except Exception:
+            except Exception as e:
                 session.rollback()
-                scraper_logger.error("Finalizing the job failed: Session rollback")
+                scraper_logger.error(f"Finalizing the job failed: Session rollback: {str(e)}")
                 raise
     
     def process(self, amount_rows: int):
