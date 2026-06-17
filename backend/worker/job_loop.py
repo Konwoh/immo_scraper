@@ -6,7 +6,7 @@ from backend.shared.loki_handler import get_loki_logger
 from backend.services.scraper_service import ScraperService
 from backend.services.crawler_service import CrawlerService
 
-job_loop_logger = get_loki_logger("backend", {"app": "job_loop_logger", "env": "dev"})
+job_loop_logger = get_loki_logger("backend", {"app": "job_loop_logger", "file": "job_loop"})
 
 def worker_loop():
     job_service = JobService(CrawlerService(), ScraperService())

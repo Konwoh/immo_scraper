@@ -7,9 +7,6 @@ from backend.database.models import engine
 from backend.shared.exceptions import ParsingError, RequestError
 from backend.shared.helper import Headers
 import requests
-import logging
-
-scraper_logger = logging.getLogger("scraper")
 
 class KleinanzeigenParser(Parser):
     def fetch_base(self, normal_url: str) -> requests.Response:
@@ -127,7 +124,6 @@ class KleinanzeigenParser(Parser):
                         data["estate_type"] = "grundstueck_wohnen_mieten"             
                                
         except Exception as e:
-            scraper_logger.error(f"Fehler beim Parsing von URL {response.url}: {str(e)}")
             raise ParsingError(f"KleinanzeigenParser: Fehler beim Parsen: {e}")
         
         factory = read_estate_creator(estate_type=data.get("estate_type", "Sonstige"), listing_type = data.get("listing_type"))

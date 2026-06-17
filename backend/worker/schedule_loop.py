@@ -7,7 +7,7 @@ from backend.database.models import Job, Status, JobSchedule
 from typing import List
 import time
 
-schedule_loop_logger = get_loki_logger("backend", {"app": "schedule_loop_logger", "env": "dev"})
+schedule_loop_logger = get_loki_logger("backend", {"app": "schedule_loop_logger", "file": "schedule_loop"})
 
 INTERVAL_DELTAS = {
     "weekly": timedelta(weeks=1),

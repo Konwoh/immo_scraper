@@ -3,9 +3,6 @@ from abc import ABC, abstractmethod
 from backend.database.factory import EstateFactory, PropertyFactory, ApartmentEstateFactory, HouseEstateFactory, PropertyEstateFactory
 from backend.database.models import UrlQueue, RealEstate, House, Apartment, Property
 import requests
-import logging
-
-scraper_logger = logging.getLogger("scraper")
 
 def read_estate_creator(estate_type: str, listing_type: Optional[str] = None) -> EstateFactory | PropertyFactory:
     normalized = estate_type.strip().lower()

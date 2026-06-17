@@ -7,9 +7,6 @@ from backend.database.models import engine
 from backend.shared.exceptions import ParsingError, RequestError
 from backend.shared.helper import Headers
 import requests
-import logging
-
-scraper_logger = logging.getLogger("scraper")
 
 class ImmoScoutParser(Parser):
     def fetch_base(self, normal_url: str) -> requests.Response:
@@ -206,7 +203,6 @@ class ImmoScoutParser(Parser):
                 data["internet_speed_telekom"] = internet_speed_telekom
         
         except Exception as e:
-            scraper_logger.error(f"Fehler bei Attribut Extraction von URL {response.url}: {str(e)}")
             raise ParsingError(f"Fehler beim Parsing von URL {response.url}: {str(e)}")
             
         factory = read_estate_creator(estate_type=data.get("estate_type", "Sonstige"), listing_type = data.get("listing_type"))
