@@ -224,11 +224,13 @@ class DataCleaner:
     def _remove_outliers(self, df: pd.DataFrame):
         numeric_cols = df.select_dtypes("float").columns
         for col in numeric_cols:
-            lower_limit = df[col].quantile(0.01)
-            upper_limit = df[col].quantile(0.99)
-            
+            q1 = df[col].quantile(0.25)
+            q3 = df[col].quantile(0.75)
+            iqr = q3 - q1
+            upper_bound = q3 + (1.5 * iqr)
+            lower_bound = q1 - (1.5 * iqr)
             keep_rows = (
-                df[col].between(lower_limit, upper_limit)
+                df[col].between(lower_bound, upper_bound)
                 | df[col].isna()
             )
 
