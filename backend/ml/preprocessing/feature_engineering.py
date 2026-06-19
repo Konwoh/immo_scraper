@@ -1,5 +1,8 @@
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.compose import ColumnTransformer
 import pandas as pd
+from typing import List
+import numpy as np
 
 class FeatureEngineering:
     
@@ -24,3 +27,9 @@ class FeatureEngineering:
         final_df = self._remove_nan(df)
         
         return final_df
+
+    def standardization(self, df: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
+        df_standardized = df.copy()
+        df_standardized[columns] = np.log1p(df_standardized[columns])
+        df_standardized[columns] = StandardScaler().fit_transform(df_standardized[columns])
+        return df_standardized

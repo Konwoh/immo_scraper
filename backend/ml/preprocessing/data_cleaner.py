@@ -3,7 +3,7 @@ import pandas as pd
 import re
 from typing import Callable, List
 import logging
-from sqlalchemy import Engine
+from sqlalchemy.engine import Engine
 
 data_cleaner_logger = logging.getLogger("ML_data_cleaner")
 FillStrategy = Callable[[pd.DataFrame, str], pd.Series]
@@ -221,11 +221,13 @@ class DataCleaner:
         
         return df
     
-    def _remove_outliers(self, df: pd.DataFrame):
-        numeric_cols = df.select_dtypes("float").columns
+    def _remove_outliers(self, df: pd.DataFrame, exclude_items):
+        numeric_cols = list(df.select_dtypes("float").columns)
+        for item in exclude_items:
+            numeric_cols.remove(item)
         for col in numeric_cols:
-            q1 = df[col].quantile(0.25)
-            q3 = df[col].quantile(0.75)
+            q1 = df[col].quantile(0.20)
+            q3 = df[col].quantile(0.80)
             iqr = q3 - q1
             upper_bound = q3 + (1.5 * iqr)
             lower_bound = q1 - (1.5 * iqr)
@@ -282,7 +284,7 @@ class DataCleaner:
 
             df = self._drop_columns(df)
             df = self._drop_missing_values(df, self.drop_missing)
-            df = self._remove_outliers(df)
+            df = self._remove_outliers(df, exclude_items=["internet_speed_telekom"])
             
             return df
         

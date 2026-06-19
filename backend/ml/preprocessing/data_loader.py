@@ -1,5 +1,5 @@
 import pandas as pd
-from sqlalchemy import Engine
+from sqlalchemy.engine import Engine
 
 class DataLoader:
     def __init__(self, engine: Engine) -> None:
