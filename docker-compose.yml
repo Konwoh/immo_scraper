@@ -69,3 +69,74 @@ services:
       depends_on:
         - api
       restart: unless-stopped
+    mysql:
+      image: mysql:8.0
+      volumes:
+        - mysql_data:/var/lib/mysql
+      ports:
+        - 3306:3306
+      environment:
+        - MYSQL_ROOT_PASSWORD=${DB_MYSQL_PASSWORD}
+    zenml:
+      image: zenmldocker/zenml-server
+      ports:
+        - "8080:8080"
+      environment:
+        - ZENML_STORE_URL=mysql://root:${DB_MYSQL_PASSWORD}@mysql/zenml
+      depends_on:
+        - mysql
+      restart: on-failure
+    minio:
+      restart: always
+      image: minio/minio@sha256:85f3e4cd1ca92a2711553ab79f222bcd8b75aa2c77a1a0b0ccf80d38e8ab2fe5
+      container_name: mlflow_s3
+      ports:
+        - "9000:9000"
+        - "9001:9001"
+      command: server /data --console-address ":9001" --address ":9000"
+      environment:
+        - MINIO_ROOT_USER=${AWS_ACCESS_KEY_ID}
+        - MINIO_ROOT_PASSWORD=${AWS_SECRET_ACCESS_KEY}
+      volumes:
+        - minio_data:/data
+
+    mc:
+      image: minio/mc@sha256:68d8c80f43908b02daa285e55547131870a1d36b3ffe272c26d7d8f4d52d1e5c
+      depends_on:
+        - minio
+      container_name: mc
+      env_file:
+        - .env
+      entrypoint: >
+        /bin/sh -c "
+        /tmp/wait-for-it.sh minio:9000 &&
+        /usr/bin/mc alias set minio http://minio:9000 ${AWS_ACCESS_KEY_ID} ${AWS_SECRET_ACCESS_KEY} &&
+        /usr/bin/mc mb --ignore-existing minio/mlflow;
+        exit 0;
+        "
+      volumes:
+        - ./wait-for-it.sh:/tmp/wait-for-it.sh
+
+    mlflow:
+      restart: always
+      image: ghcr.io/mlflow/mlflow:latest
+      container_name: mlflow_server
+      depends_on:
+        - mc
+      ports:
+        - "5000:5000"
+      environment:
+        - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
+        - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+        - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      extra_hosts:
+        - "host.docker.internal:host-gateway"
+      command: >
+        mlflow server
+        --backend-store-uri ${DB_CONNECTION_STRING_MLFLOW}
+        --default-artifact-root s3://mlflow/
+        --host 0.0.0.0
+        --port 5000
+volumes:
+  mysql_data:
+  minio_data:
