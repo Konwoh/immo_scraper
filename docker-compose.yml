@@ -78,7 +78,7 @@ services:
       environment:
         - MYSQL_ROOT_PASSWORD=${DB_MYSQL_PASSWORD}
     zenml:
-      image: zenmldocker/zenml-server
+      image: zenmldocker/zenml-server:0.94.1-arm64
       ports:
         - "8080:8080"
       environment:
@@ -88,7 +88,8 @@ services:
       restart: on-failure
     minio:
       restart: always
-      image: minio/minio@sha256:85f3e4cd1ca92a2711553ab79f222bcd8b75aa2c77a1a0b0ccf80d38e8ab2fe5
+      image: minio/minio@sha256:86b3e1b2892ad7f3a67add9791415e91f22f1affababfc04793bf68143a3c28f
+      platform: linux/arm64
       container_name: mlflow_s3
       ports:
         - "9000:9000"
