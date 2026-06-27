@@ -15,7 +15,10 @@ def _fill_with_numeric_mean(df: pd.DataFrame, col: str) -> pd.Series:
 
 
 class DataCleaner:
-    DEFAULT_FILL_STRATEGIES: dict[str, FillStrategy] = {
+    BUY_LISTING_TYPES = ["Eigentumswohnungen", "wohnung_kauf", "haus_kauf"]
+    RENT_LISTING_TYPES = ["Mietwohnungen", "wohnung_miete", "haus_miete"]
+    
+    DEFAULT_FILL_STRATEGIES = {
         "available_from": lambda df, col: df[col].fillna(datetime.now()),
         "garage_parking_slots": lambda df, col: df[col].fillna(0),
         "total_costs": _fill_with_numeric_mean,
@@ -294,3 +297,17 @@ class DataCleaner:
     
     def store_in_db(self, db: pd.DataFrame) -> int|None:
         return db.to_sql(name="ml_training", con=self.engine, if_exists="replace")
+
+    def filter_listing_types(self, df, listing_types):
+        return df[df["listing_type"].isin(listing_types)].copy()
+
+    def postprocessing(self, df1, df2):
+        df_buy = pd.concat([df1, df2], ignore_index=True)
+
+        numeric_cols = df_buy.select_dtypes(["float", "int"]).columns
+        string_cols = df_buy.select_dtypes(["object", "string"]).columns
+
+        df_buy[numeric_cols] = df_buy[numeric_cols].fillna(0)
+        df_buy[string_cols] = df_buy[string_cols].fillna("Missing")
+        
+        return df_buy
