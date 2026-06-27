@@ -3,11 +3,11 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from zenml import pipeline, step
-
+from sklearn.metrics import mean_squared_error, r2_score
 from backend.ml.preprocessing.data_cleaner import DataCleaner
 from backend.ml.preprocessing.data_loader import DataLoader
 from backend.ml.preprocessing.feature_engineering import FeatureEngineering
-from backend.ml.training.train import DataTraining, MLModelFactory, ModelType
+from backend.ml.training.train import DataTraining, MLModelFactory, ModelType, TrainingOutput
 
 load_dotenv()
 
@@ -89,15 +89,16 @@ def standardization(df_buy):
     return df_buy
 
 @step
-def train_buy_model(df_buy_standardized):
+def train_buy_model(df_buy_standardized) -> TrainingOutput:
     model = MLModelFactory(ModelType.LINEAR_REGRESSION)
     training = DataTraining(model)
     output = training.train(df_buy_standardized, "price")
+    return output
 
-    #metrics = {"mse": float(output.mse), "r2": float(output.r2)}
-
-    return output.model
-
+def evaluate_model(y_pred, y_test):
+    mse = mean_squared_error(y_test, y_pred)
+    r2 = r2_score(y_test, y_pred)
+    return mse, r2
 
 @pipeline
 def ml_pipeline_zenml():
@@ -108,8 +109,8 @@ def ml_pipeline_zenml():
     df_buy = clean_buy_data(data)
     df_buy = one_hot_encoding(df_buy)
     df_buy_standardized = standardization(df_buy)
-    train_buy_model(df_buy_standardized)
-
-
+    output: TrainingOutput = train_buy_model(df_buy_standardized)
+    evaluate_model(output.y_pred, output.y_test)
+    
 if __name__ == "__main__":
     ml_pipeline_zenml()
