@@ -14,6 +14,7 @@ import mlflow
 load_dotenv()
 
 mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
+mlflow.set_experiment("immo_scraper")
 experiment_tracker = Client().active_stack.experiment_tracker
 
 

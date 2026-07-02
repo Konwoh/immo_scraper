@@ -136,6 +136,7 @@ services:
       command: >
         mlflow server
         --backend-store-uri ${DB_CONNECTION_STRING_MLFLOW}
+        --serve-artifacts
         --artifacts-destination s3://mlflow/
         --host 0.0.0.0
         --port 5000
