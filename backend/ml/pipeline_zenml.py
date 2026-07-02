@@ -3,16 +3,21 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from zenml import pipeline, step
+from zenml.client import Client
 from sklearn.metrics import mean_squared_error, r2_score
 from backend.ml.preprocessing.data_cleaner import DataCleaner
 from backend.ml.preprocessing.data_loader import DataLoader
 from backend.ml.preprocessing.feature_engineering import FeatureEngineering
 from backend.ml.training.train import DataTraining, MLModelFactory, ModelType, TrainingOutput
+import mlflow
 
 load_dotenv()
 
+mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
+experiment_tracker = Client().active_stack.experiment_tracker
 
-@step
+
+@step(enable_cache=False)
 def load_data():
     engine = create_engine(os.environ["DB_CONNECTION_STRING"], echo=False)
     data_loader = DataLoader(engine)
@@ -23,7 +28,7 @@ def load_data():
     return df_apartments, df_houses
 
 
-@step
+@step(enable_cache=False)
 def clean_rent_data(data):
     df_apartments, df_houses = data
     engine = create_engine(os.environ["DB_CONNECTION_STRING"], echo=False)
@@ -47,7 +52,7 @@ def clean_rent_data(data):
     return data_cleaner_rent.postprocessing(df_apartments_rent, df_houses_rent)
 
 
-@step
+@step(enable_cache=False)
 def clean_buy_data(data):
     df_apartments, df_houses = data
     engine = create_engine(os.environ["DB_CONNECTION_STRING"], echo=False)
@@ -73,13 +78,13 @@ def clean_buy_data(data):
 
     return df_buy
 
-@step
+@step(enable_cache=False)
 def one_hot_encoding(df_buy):
     feature_engineer = FeatureEngineering()
     df_buy = feature_engineer.one_hot_encoding(df_buy)
     return df_buy
 
-@step
+@step(enable_cache=False)
 def standardization(df_buy):
     feature_engineer = FeatureEngineering()
     df_buy = feature_engineer.standardization(
@@ -88,19 +93,18 @@ def standardization(df_buy):
     )
     return df_buy
 
-@step
+@step(experiment_tracker=experiment_tracker.name, enable_cache=False)
 def train_buy_model(df_buy_standardized) -> TrainingOutput:
+    mlflow.sklearn.autolog()
     model = MLModelFactory(ModelType.LINEAR_REGRESSION)
     training = DataTraining(model)
     output = training.train(df_buy_standardized, "price")
+    mlflow.log_metric("mean_squared_error", output.mse)
+    mlflow.log_metric("r2_score", output.r2)
     return output
 
-def evaluate_model(y_pred, y_test):
-    mse = mean_squared_error(y_test, y_pred)
-    r2 = r2_score(y_test, y_pred)
-    return mse, r2
 
-@pipeline
+@pipeline(enable_cache=False)
 def ml_pipeline_zenml():
     data = load_data()
 
@@ -110,7 +114,6 @@ def ml_pipeline_zenml():
     df_buy = one_hot_encoding(df_buy)
     df_buy_standardized = standardization(df_buy)
     output: TrainingOutput = train_buy_model(df_buy_standardized)
-    evaluate_model(output.y_pred, output.y_test)
     
 if __name__ == "__main__":
     ml_pipeline_zenml()
