@@ -1,7 +1,6 @@
 from backend.ml.preprocessing.data_cleaner import DataCleaner
 from backend.ml.preprocessing.data_loader import DataLoader
 from backend.ml.preprocessing.feature_engineering import FeatureEngineering
-from zenml import pipeline, step
 from backend.ml.training.train import DataTraining, MLModelFactory, ModelType
 from sqlalchemy import create_engine
 import os

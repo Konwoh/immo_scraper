@@ -1,11 +1,17 @@
+from __future__ import annotations
+
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor, AdaBoostRegressor
 from sklearn.linear_model import LinearRegression
-from  xgboost import XGBRegressor
+from sklearn.compose import ColumnTransformer
 from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import FunctionTransformer, OneHotEncoder, StandardScaler
 from enum import StrEnum
 from typing import Any
 from dataclasses import dataclass
+import numpy as np
+from xgboost import XGBRegressor
 
 class ModelType(StrEnum):
     LINEAR_REGRESSION = "LinearRegression"
@@ -25,13 +31,15 @@ class MLModelFactory:
                 return RandomForestRegressor()
             case ModelType.ADA_BOOST:
                 return AdaBoostRegressor()
-            case ModelType.ADA_BOOST:
+            case ModelType.XGB:
+                if XGBRegressor is None:
+                    raise ImportError("xgboost is required to train an XGB model.")
                 return XGBRegressor(objective='reg:squarederror', n_estimators=100, random_state=42)
             case _:
                 raise ValueError("Unknown ML Model")
 @dataclass
 class TrainingOutput:
-    model: LinearRegression | RandomForestRegressor | AdaBoostRegressor | XGBRegressor
+    model: Pipeline
     mse: float
     r2: float
     x_train: Any
@@ -41,14 +49,66 @@ class TrainingOutput:
     y_pred: Any
 
 class DataTraining:
-    def __init__(self, model):
+    def __init__(self, model, standardize_columns: list[str] | None = None):
         self.model = model
+        self.standardize_columns = standardize_columns or []
+
+    def _build_pipeline(self, X) -> Pipeline:
+        categorical_columns = list(X.select_dtypes(include=["object", "string", "category"]).columns)
+        standardize_columns = [
+            column
+            for column in self.standardize_columns
+            if column in X.columns
+        ]
+
+        transformers = []
+
+        if standardize_columns:
+            transformers.append(
+                (
+                    "log_standardized_numeric",
+                    Pipeline(
+                        steps=[
+                            ("log1p", FunctionTransformer(np.log1p, feature_names_out="one-to-one")),
+                            ("scaler", StandardScaler()),
+                        ]
+                    ),
+                    standardize_columns,
+                )
+            )
+
+        if categorical_columns:
+            transformers.append(
+                (
+                    "categorical",
+                    OneHotEncoder(
+                        sparse_output=False,
+                        min_frequency=20,
+                        handle_unknown="infrequent_if_exist",
+                    ),
+                    categorical_columns,
+                )
+            )
+
+        preprocessor = ColumnTransformer(
+            transformers=transformers,
+            remainder="passthrough",
+            verbose_feature_names_out=False,
+        )
+
+        return Pipeline(
+            steps=[
+                ("preprocessor", preprocessor),
+                ("model", self.model.create_model()),
+            ]
+        )
     
     def train(self, df, target_col):
-        ml_model = self.model.create_model()
+        df = df.dropna(subset=[target_col])
         X = df.drop(labels=target_col, axis=1)
         y = df[target_col]
         X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+        ml_model = self._build_pipeline(X_train)
         ml_model.fit(X=X_train, y=y_train)
         y_pred = ml_model.predict(X_test)
         mse = mean_squared_error(y_test, y_pred)
