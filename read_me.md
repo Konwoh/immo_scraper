@@ -11,8 +11,7 @@ TO-DO:
 - Database:
 
 - Machine Learning:
-    - zenml client in docker container einbauen und dann auf pi deployen damit pipeline_zenml.py jede woche neu trainieren kann
-    - zenml model registry von mlflow erstellen
+    - ml_pipeline container zum laufen bringen
     - deployment of ml model über zenml/mlflow: https://www.youtube.com/watch?v=-dJPoLm_gtE&t=1974s
     - Train various Machine Learning Models (e.g. Classification models, recommender systems, regression für preis vorhersage)
     - good deal detector
