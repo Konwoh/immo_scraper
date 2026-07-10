@@ -109,17 +109,23 @@ def train_buy_model(df_buy) -> TrainingRun:
 
     mlflow.log_metric(MSE_METRIC_NAME, output.mse)
     mlflow.log_metric(R2_METRIC_NAME, output.r2)
-    mlflow_sklearn.log_model(
+    model_info = mlflow_sklearn.log_model(
         sk_model=output.model,
         artifact_path=MODEL_ARTIFACT_PATH,
+        registered_model_name=MODEL_NAME,
     )
 
     run_id = active_run.info.run_id
+    registered_model_version = getattr(model_info, "registered_model_version", None)
+    if registered_model_version is None:
+        raise RuntimeError(f"Model was logged but not registered as '{MODEL_NAME}'.")
+
     return TrainingRun(
         mse=output.mse,
         r2=output.r2,
         run_id=run_id,
-        model_uri=f"runs:/{run_id}/{MODEL_ARTIFACT_PATH}",
+        model_uri=model_info.model_uri,
+        registered_model_version=str(registered_model_version),
     )
 
 def wait_until_model_ready(
@@ -150,6 +156,12 @@ def wait_until_model_ready(
 def promote_buy_model(output: TrainingRun) -> PromotionResult:
     tracking_uri = get_mlflow_tracking_uri(experiment_tracker)
     client = MlflowClient(tracking_uri=tracking_uri)
+    wait_until_model_ready(
+        client=client,
+        model_name=MODEL_NAME,
+        version=output.registered_model_version,
+    )
+
     current_mse = float("inf")
     promotion_reason = "No current champion model found. Promoting current model."
 
@@ -187,37 +199,13 @@ def promote_buy_model(output: TrainingRun) -> PromotionResult:
             candidate_mse=output.mse,
             current_champion_mse=current_mse,
             candidate_run_id=output.run_id,
+            registered_model_version=output.registered_model_version,
         )
-
-    registered_model = mlflow.register_model(
-        model_uri=output.model_uri,
-        name=MODEL_NAME,
-    )
-
-    wait_until_model_ready(
-        client=client,
-        model_name=MODEL_NAME,
-        version=registered_model.version,
-    )
 
     client.set_registered_model_alias(
         name=MODEL_NAME,
         alias=PRODUCTION_ALIAS,
-        version=registered_model.version,
-    )
-
-    client.set_model_version_tag(
-        name=MODEL_NAME,
-        version=registered_model.version,
-        key=MSE_METRIC_NAME,
-        value=str(output.mse),
-    )
-
-    client.set_model_version_tag(
-        name=MODEL_NAME,
-        version=registered_model.version,
-        key=R2_METRIC_NAME,
-        value=str(output.r2),
+        version=output.registered_model_version,
     )
 
     client.set_tag(output.run_id, "promotion_status", "promoted")
@@ -229,7 +217,7 @@ def promote_buy_model(output: TrainingRun) -> PromotionResult:
         candidate_mse=output.mse,
         current_champion_mse=current_mse,
         candidate_run_id=output.run_id,
-        registered_model_version=registered_model.version,
+        registered_model_version=output.registered_model_version,
     )
 
 

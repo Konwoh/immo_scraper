@@ -145,9 +145,6 @@ services:
         - .env
       environment:
         DB_CONNECTION_STRING: ${DB_CONNECTION_STRING}
-        ZENML_STORE_URL: http://192.168.178.28:8080
-        ZENML_USERNAME: ${ZENML_USERNAME:-default}
-        ZENML_PASSWORD: ${ZENML_PASSWORD:-}
         MLFLOW_TRACKING_URI: http://192.168.178.28:5000
         MLFLOW_S3_ENDPOINT_URL: http://192.168.178.28:9000
         AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
@@ -155,7 +152,7 @@ services:
       command:
         - /bin/sh
         - -c
-        - zenml login "$${ZENML_STORE_URL}" --username "$${ZENML_USERNAME}" --password "$${ZENML_PASSWORD}" && python -m backend.ml.pipeline_zenml
+        - zenml login http://192.168.178.28:8080 && zenml stack set immo_mlflow_stack && python -m backend.ml.pipeline_zenml
       volumes:
         - .:/app
       depends_on:

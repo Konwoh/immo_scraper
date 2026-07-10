@@ -19,6 +19,7 @@ class TrainingRun:
     r2: float
     run_id: str
     model_uri: str
+    registered_model_version: str
 
 
 @dataclass
