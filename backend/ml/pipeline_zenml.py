@@ -161,6 +161,18 @@ def promote_buy_model(output: TrainingRun) -> PromotionResult:
         model_name=MODEL_NAME,
         version=output.registered_model_version,
     )
+    client.set_model_version_tag(
+        name=MODEL_NAME,
+        version=output.registered_model_version,
+        key=MSE_METRIC_NAME,
+        value=str(output.mse),
+    )
+    client.set_model_version_tag(
+        name=MODEL_NAME,
+        version=output.registered_model_version,
+        key=R2_METRIC_NAME,
+        value=str(output.r2),
+    )
 
     current_mse = float("inf")
     promotion_reason = "No current champion model found. Promoting current model."
