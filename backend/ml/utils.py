@@ -17,6 +17,11 @@ def get_mlflow_tracking_uri(experiment_tracker) -> str:
 class TrainingRun:
     mse: float
     r2: float
+    training_score: float
+    training_mean_absolute_error: float
+    training_mean_squared_error: float
+    training_root_mean_squared_error: float
+    training_r2_score: float
     run_id: str
     model_uri: str
     registered_model_version: str

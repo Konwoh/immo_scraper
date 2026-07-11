@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor, AdaBoostRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.compose import ColumnTransformer
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer, OneHotEncoder, StandardScaler
 from enum import StrEnum
@@ -42,6 +42,11 @@ class TrainingOutput:
     model: Pipeline
     mse: float
     r2: float
+    training_score: float
+    training_mean_absolute_error: float
+    training_mean_squared_error: float
+    training_root_mean_squared_error: float
+    training_r2_score: float
     x_train: Any
     x_test: Any
     y_train: Any
@@ -110,7 +115,23 @@ class DataTraining:
         X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
         ml_model = self._build_pipeline(X_train)
         ml_model.fit(X=X_train, y=y_train)
+        y_train_pred = ml_model.predict(X_train)
         y_pred = ml_model.predict(X_test)
-        mse = mean_squared_error(y_test, y_pred)
-        r2 = r2_score(y_test, y_pred)
-        return TrainingOutput(ml_model, mse, r2, X_train, X_test, y_train, y_test, y_pred)
+        training_mean_squared_error = float(mean_squared_error(y_train, y_train_pred))
+        mse = float(mean_squared_error(y_test, y_pred))
+        r2 = float(r2_score(y_test, y_pred))
+        return TrainingOutput(
+            model=ml_model,
+            mse=mse,
+            r2=r2,
+            training_score=float(ml_model.score(X_train, y_train)),
+            training_mean_absolute_error=float(mean_absolute_error(y_train, y_train_pred)),
+            training_mean_squared_error=training_mean_squared_error,
+            training_root_mean_squared_error=float(np.sqrt(training_mean_squared_error)),
+            training_r2_score=float(r2_score(y_train, y_train_pred)),
+            x_train=X_train,
+            x_test=X_test,
+            y_train=y_train,
+            y_test=y_test,
+            y_pred=y_pred,
+        )

@@ -26,6 +26,11 @@ PRODUCTION_ALIAS = "champion"
 MODEL_ARTIFACT_PATH = "model"
 MSE_METRIC_NAME = "mean_squared_error"
 R2_METRIC_NAME = "r2_score"
+TRAINING_SCORE_METRIC_NAME = "training_score"
+TRAINING_MAE_METRIC_NAME = "training_mean_absolute_error"
+TRAINING_MSE_METRIC_NAME = "training_mean_squared_error"
+TRAINING_RMSE_METRIC_NAME = "training_root_mean_squared_error"
+TRAINING_R2_METRIC_NAME = "training_r2_score"
 STANDARDIZE_COLUMNS = [
     "house_money",
     "living_space",
@@ -33,6 +38,19 @@ STANDARDIZE_COLUMNS = [
     "building_year",
     "property_space",
 ]
+TARGET_COLUMN = "price"
+
+
+def get_training_metrics(output) -> dict[str, float]:
+    return {
+        MSE_METRIC_NAME: output.mse,
+        R2_METRIC_NAME: output.r2,
+        TRAINING_SCORE_METRIC_NAME: output.training_score,
+        TRAINING_MAE_METRIC_NAME: output.training_mean_absolute_error,
+        TRAINING_MSE_METRIC_NAME: output.training_mean_squared_error,
+        TRAINING_RMSE_METRIC_NAME: output.training_root_mean_squared_error,
+        TRAINING_R2_METRIC_NAME: output.training_r2_score,
+    }
 
 @step(enable_cache=False)
 def load_data():
@@ -101,22 +119,26 @@ def train_buy_model(df_buy) -> TrainingRun:
     model = MLModelFactory(ModelType.LINEAR_REGRESSION)
     training = DataTraining(model, standardize_columns=STANDARDIZE_COLUMNS)
 
-    output = training.train(df_buy, "price")
+    output = training.train(df_buy, TARGET_COLUMN)
 
     active_run = mlflow.active_run()
     if active_run is None:
         raise RuntimeError("No active MLflow run found for the ZenML training step.")
 
-    mlflow.log_metric(MSE_METRIC_NAME, output.mse)
-    mlflow.log_metric(R2_METRIC_NAME, output.r2)
+    metrics = get_training_metrics(output)
     model_info = mlflow_sklearn.log_model(
         sk_model=output.model,
         name=MODEL_ARTIFACT_PATH,
         registered_model_name=MODEL_NAME,
         skops_trusted_types=[
-        "sklearn.compose._column_transformer._RemainderColsList",
+            "sklearn.compose._column_transformer._RemainderColsList",
         ],
     )
+    model_id = getattr(model_info, "model_id", None)
+    if model_id is None:
+        mlflow.log_metrics(metrics)
+    else:
+        mlflow.log_metrics(metrics, model_id=model_id)
 
     run_id = active_run.info.run_id
     registered_model_version = getattr(model_info, "registered_model_version", None)
@@ -126,6 +148,11 @@ def train_buy_model(df_buy) -> TrainingRun:
     return TrainingRun(
         mse=output.mse,
         r2=output.r2,
+        training_score=output.training_score,
+        training_mean_absolute_error=output.training_mean_absolute_error,
+        training_mean_squared_error=output.training_mean_squared_error,
+        training_root_mean_squared_error=output.training_root_mean_squared_error,
+        training_r2_score=output.training_r2_score,
         run_id=run_id,
         model_uri=model_info.model_uri,
         registered_model_version=str(registered_model_version),
@@ -169,6 +196,36 @@ def promote_buy_model(output: TrainingRun) -> PromotionResult:
         version=output.registered_model_version,
         key=MSE_METRIC_NAME,
         value=str(output.mse),
+    )
+    client.set_model_version_tag(
+        name=MODEL_NAME,
+        version=output.registered_model_version,
+        key=TRAINING_MSE_METRIC_NAME,
+        value=str(output.training_mean_squared_error),
+    )
+    client.set_model_version_tag(
+        name=MODEL_NAME,
+        version=output.registered_model_version,
+        key=TRAINING_MAE_METRIC_NAME,
+        value=str(output.training_mean_absolute_error),
+    )
+    client.set_model_version_tag(
+        name=MODEL_NAME,
+        version=output.registered_model_version,
+        key=TRAINING_RMSE_METRIC_NAME,
+        value=str(output.training_root_mean_squared_error),
+    )
+    client.set_model_version_tag(
+        name=MODEL_NAME,
+        version=output.registered_model_version,
+        key=TRAINING_R2_METRIC_NAME,
+        value=str(output.training_r2_score),
+    )
+    client.set_model_version_tag(
+        name=MODEL_NAME,
+        version=output.registered_model_version,
+        key=TRAINING_SCORE_METRIC_NAME,
+        value=str(output.training_score),
     )
     client.set_model_version_tag(
         name=MODEL_NAME,
