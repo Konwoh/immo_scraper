@@ -111,8 +111,11 @@ def train_buy_model(df_buy) -> TrainingRun:
     mlflow.log_metric(R2_METRIC_NAME, output.r2)
     model_info = mlflow_sklearn.log_model(
         sk_model=output.model,
-        artifact_path=MODEL_ARTIFACT_PATH,
+        name=MODEL_ARTIFACT_PATH,
         registered_model_name=MODEL_NAME,
+        skops_trusted_types=[
+        "sklearn.compose._column_transformer._RemainderColsList",
+        ],
     )
 
     run_id = active_run.info.run_id
