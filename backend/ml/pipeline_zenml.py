@@ -26,6 +26,11 @@ model = MLModelFactory(ModelType.RANDOM_FOREST)
 MODEL_NAME = model.model.value
 PRODUCTION_ALIAS = "champion"
 MODEL_ARTIFACT_PATH = "model"
+SKOPS_TRUSTED_TYPES = [
+    "sklearn.compose._column_transformer._RemainderColsList",
+    "xgboost.core.Booster",
+    "xgboost.sklearn.XGBRegressor",
+]
 MSE_METRIC_NAME = "mean_squared_error"
 R2_METRIC_NAME = "r2_score"
 TRAINING_MAE_METRIC_NAME = "training_mean_absolute_error"
@@ -135,9 +140,7 @@ def train_buy_model(df_buy) -> TrainingRun:
         sk_model=output.model,
         name=MODEL_ARTIFACT_PATH,
         registered_model_name=MODEL_NAME,
-        skops_trusted_types=[
-            "sklearn.compose._column_transformer._RemainderColsList",
-        ],
+        skops_trusted_types=SKOPS_TRUSTED_TYPES,
     )
     model_id = getattr(model_info, "model_id", None)
     if model_id is None:
