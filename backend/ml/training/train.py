@@ -119,7 +119,7 @@ class DataTraining:
             search = RandomizedSearchCV(
                 estimator=pipeline,
                 param_distributions=param_distributions,
-                n_iter=20,
+                n_iter=30,
                 scoring="neg_mean_squared_error",
                 cv=5,
                 random_state=42,
