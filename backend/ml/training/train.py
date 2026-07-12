@@ -7,17 +7,9 @@ from sklearn.compose import ColumnTransformer
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer, OneHotEncoder, StandardScaler
-from enum import StrEnum
-from typing import Any
-from dataclasses import dataclass
 import numpy as np
 from xgboost import XGBRegressor
-
-class ModelType(StrEnum):
-    LINEAR_REGRESSION = "LinearRegression"
-    RANDOM_FOREST = "RandomForest"
-    ADA_BOOST = "AdaBoost"
-    XGB = "XGB"
+from backend.ml.utils import ModelType, TrainingOutput
     
 class MLModelFactory:
     def __init__(self, model: ModelType):
@@ -37,21 +29,6 @@ class MLModelFactory:
                 return XGBRegressor(objective='reg:squarederror', n_estimators=100, random_state=42)
             case _:
                 raise ValueError("Unknown ML Model")
-@dataclass
-class TrainingOutput:
-    model: Pipeline
-    mse: float
-    r2: float
-    training_score: float
-    training_mean_absolute_error: float
-    training_mean_squared_error: float
-    training_root_mean_squared_error: float
-    training_r2_score: float
-    x_train: Any
-    x_test: Any
-    y_train: Any
-    y_test: Any
-    y_pred: Any
 
 class DataTraining:
     def __init__(self, model, standardize_columns: list[str] | None = None):
@@ -124,7 +101,6 @@ class DataTraining:
             model=ml_model,
             mse=mse,
             r2=r2,
-            training_score=float(ml_model.score(X_train, y_train)),
             training_mean_absolute_error=float(mean_absolute_error(y_train, y_train_pred)),
             training_mean_squared_error=training_mean_squared_error,
             training_root_mean_squared_error=float(np.sqrt(training_mean_squared_error)),

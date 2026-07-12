@@ -148,7 +148,6 @@ def train_buy_model(df_buy) -> TrainingRun:
     return TrainingRun(
         mse=output.mse,
         r2=output.r2,
-        training_score=output.training_score,
         training_mean_absolute_error=output.training_mean_absolute_error,
         training_mean_squared_error=output.training_mean_squared_error,
         training_root_mean_squared_error=output.training_root_mean_squared_error,
