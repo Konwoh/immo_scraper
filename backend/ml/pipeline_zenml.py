@@ -21,7 +21,9 @@ experiment_tracker = Client().active_stack.experiment_tracker
 if experiment_tracker is None:
     raise RuntimeError("The active ZenML stack has no experiment tracker configured.")
 
-MODEL_NAME = "immo_scraper"
+model = MLModelFactory(ModelType.LINEAR_REGRESSION)
+
+MODEL_NAME = model.model.value
 PRODUCTION_ALIAS = "champion"
 MODEL_ARTIFACT_PATH = "model"
 MSE_METRIC_NAME = "mean_squared_error"
@@ -45,7 +47,6 @@ def get_training_metrics(output) -> dict[str, float]:
     return {
         MSE_METRIC_NAME: output.mse,
         R2_METRIC_NAME: output.r2,
-        TRAINING_SCORE_METRIC_NAME: output.training_score,
         TRAINING_MAE_METRIC_NAME: output.training_mean_absolute_error,
         TRAINING_MSE_METRIC_NAME: output.training_mean_squared_error,
         TRAINING_RMSE_METRIC_NAME: output.training_root_mean_squared_error,
@@ -116,7 +117,6 @@ def clean_buy_data(data):
 
 @step(experiment_tracker=experiment_tracker.name, enable_cache=False)
 def train_buy_model(df_buy) -> TrainingRun:
-    model = MLModelFactory(ModelType.LINEAR_REGRESSION)
     training = DataTraining(model, standardize_columns=STANDARDIZE_COLUMNS)
 
     output = training.train(df_buy, TARGET_COLUMN)

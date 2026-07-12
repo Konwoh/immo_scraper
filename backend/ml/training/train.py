@@ -29,9 +29,9 @@ class MLModelFactory:
                 return XGBRegressor(objective='reg:squarederror', n_estimators=100, random_state=42)
             case _:
                 raise ValueError("Unknown ML Model")
-
+    
 class DataTraining:
-    def __init__(self, model, standardize_columns: list[str] | None = None):
+    def __init__(self, model: MLModelFactory, standardize_columns: list[str] | None = None):
         self.model = model
         self.standardize_columns = standardize_columns or []
 
