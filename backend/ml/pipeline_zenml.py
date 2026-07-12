@@ -10,7 +10,7 @@ from mlflow.exceptions import MlflowException
 from backend.ml.preprocessing.data_cleaner import DataCleaner
 from backend.ml.preprocessing.data_loader import DataLoader
 from backend.ml.training.train import DataTraining, MLModelFactory, ModelType
-from backend.ml.utils import TrainingRun, PromotionResult, get_mlflow_tracking_uri
+from backend.ml.utils import TrainingRun, PromotionResult, wait_until_model_ready
 import mlflow
 import mlflow.sklearn as mlflow_sklearn
 load_dotenv()
@@ -21,14 +21,13 @@ experiment_tracker = Client().active_stack.experiment_tracker
 if experiment_tracker is None:
     raise RuntimeError("The active ZenML stack has no experiment tracker configured.")
 
-model = MLModelFactory(ModelType.LINEAR_REGRESSION)
+model = MLModelFactory(ModelType.RANDOM_FOREST)
 
 MODEL_NAME = model.model.value
 PRODUCTION_ALIAS = "champion"
 MODEL_ARTIFACT_PATH = "model"
 MSE_METRIC_NAME = "mean_squared_error"
 R2_METRIC_NAME = "r2_score"
-TRAINING_SCORE_METRIC_NAME = "training_score"
 TRAINING_MAE_METRIC_NAME = "training_mean_absolute_error"
 TRAINING_MSE_METRIC_NAME = "training_mean_squared_error"
 TRAINING_RMSE_METRIC_NAME = "training_root_mean_squared_error"
@@ -126,6 +125,12 @@ def train_buy_model(df_buy) -> TrainingRun:
         raise RuntimeError("No active MLflow run found for the ZenML training step.")
 
     metrics = get_training_metrics(output)
+    if output.best_params:
+        mlflow.log_params(output.best_params)
+
+    if output.best_cv_score is not None:
+        mlflow.log_metric("cv_mean_squared_error", output.best_cv_score)
+
     model_info = mlflow_sklearn.log_model(
         sk_model=output.model,
         name=MODEL_ARTIFACT_PATH,
@@ -157,34 +162,10 @@ def train_buy_model(df_buy) -> TrainingRun:
         registered_model_version=str(registered_model_version),
     )
 
-def wait_until_model_ready(
-    client: MlflowClient,
-    model_name: str,
-    version: str,
-    timeout_seconds: int = 60,
-) -> None:
-    start = time.time()
-
-    while time.time() - start < timeout_seconds:
-        model_version = client.get_model_version(model_name, version)
-
-        if model_version.status == "READY":
-            return
-
-        if "FAILED" in model_version.status:
-            raise RuntimeError(
-                f"Model registration failed: {model_version.status_message}"
-            )
-
-        time.sleep(2)
-
-    raise TimeoutError(f"Model version {version} was not ready in time.")
-
-
 @step(experiment_tracker=experiment_tracker.name, enable_cache=False)
 def promote_buy_model(output: TrainingRun) -> PromotionResult:
-    tracking_uri = get_mlflow_tracking_uri(experiment_tracker)
-    client = MlflowClient(tracking_uri=tracking_uri)
+    mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
+    client = MlflowClient()
     wait_until_model_ready(
         client=client,
         model_name=MODEL_NAME,

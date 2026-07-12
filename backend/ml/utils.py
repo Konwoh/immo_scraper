@@ -1,20 +1,38 @@
 from dataclasses import dataclass
-import mlflow
 from typing import Any
-from dataclasses import dataclass
 from sklearn.pipeline import Pipeline
 from enum import StrEnum
+from mlflow import MlflowClient
+import time
 
-def get_mlflow_tracking_uri(experiment_tracker) -> str:
-    get_tracking_uri = getattr(experiment_tracker, "get_tracking_uri", None)
-    if get_tracking_uri is None:
-        raise RuntimeError(
-            "The active ZenML experiment tracker is not an MLflow experiment tracker."
-        )
+def prefix_model_params(param_grid: dict) -> dict:
+    return {
+        f"model__{key}": value
+        for key, value in param_grid.items()
+    }
 
-    tracking_uri = get_tracking_uri()
-    mlflow.set_tracking_uri(tracking_uri)
-    return tracking_uri
+def wait_until_model_ready(
+    client: MlflowClient,
+    model_name: str,
+    version: str,
+    timeout_seconds: int = 60,
+) -> None:
+    start = time.time()
+
+    while time.time() - start < timeout_seconds:
+        model_version = client.get_model_version(model_name, version)
+
+        if model_version.status == "READY":
+            return
+
+        if "FAILED" in model_version.status:
+            raise RuntimeError(
+                f"Model registration failed: {model_version.status_message}"
+            )
+
+        time.sleep(2)
+
+    raise TimeoutError(f"Model version {version} was not ready in time.")
 
 class ModelType(StrEnum):
     LINEAR_REGRESSION = "LinearRegression"
@@ -36,6 +54,8 @@ class TrainingOutput:
     y_train: Any
     y_test: Any
     y_pred: Any
+    best_params: dict[str, Any] | None = None
+    best_cv_score: float | None = None
 
 @dataclass
 class TrainingRun:
