@@ -220,12 +220,7 @@ def promote_buy_model(output: TrainingRun) -> PromotionResult:
         key=TRAINING_R2_METRIC_NAME,
         value=str(output.training_r2_score),
     )
-    client.set_model_version_tag(
-        name=MODEL_NAME,
-        version=output.registered_model_version,
-        key=TRAINING_SCORE_METRIC_NAME,
-        value=str(output.training_score),
-    )
+
     client.set_model_version_tag(
         name=MODEL_NAME,
         version=output.registered_model_version,
