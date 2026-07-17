@@ -7,8 +7,8 @@ from mlflow import MlflowClient
 from mlflow.exceptions import MlflowException
 from backend.ml.preprocessing.data_cleaner import DataCleaner
 from backend.ml.preprocessing.data_loader import DataLoader
-from backend.ml.training.train import DataTraining, MLModelFactory, ModelType
-from backend.ml.utils import TrainingRun, PromotionResult, wait_until_model_ready
+from backend.ml.training.train import DataTraining, MLModelFactory
+from backend.ml.utils import TrainingRun, PromotionResult, wait_until_model_ready, get_random_model
 import mlflow
 from mlflow.data.pandas_dataset import from_pandas
 import mlflow.sklearn as mlflow_sklearn
@@ -21,7 +21,8 @@ experiment_tracker = Client().active_stack.experiment_tracker
 if experiment_tracker is None:
     raise RuntimeError("The active ZenML stack has no experiment tracker configured.")
 
-model = MLModelFactory(ModelType.RANDOM_FOREST)
+random_model = get_random_model()
+model = MLModelFactory(random_model)
 
 MODEL_NAME = model.model.value
 PRODUCTION_ALIAS = "champion"

@@ -4,6 +4,7 @@ from sklearn.pipeline import Pipeline
 from enum import StrEnum
 from mlflow import MlflowClient
 import time
+import random
 
 def prefix_model_params(param_grid: dict) -> dict:
     return {
@@ -39,6 +40,10 @@ class ModelType(StrEnum):
     RANDOM_FOREST = "RandomForest"
     ADA_BOOST = "AdaBoost"
     XGB = "XGB"
+
+
+def get_random_model() -> ModelType:
+    return random.choice(tuple(ModelType))
 
 @dataclass
 class TrainingOutput:
