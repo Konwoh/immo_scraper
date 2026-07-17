@@ -218,7 +218,7 @@ def promote_buy_model(output: TrainingRun) -> PromotionResult:
         value=str(output.r2),
     )
 
-    current_mse = float("inf")
+    current_r2 = float("-inf")
     promotion_reason = "No current champion model found. Promoting current model."
 
     try:
@@ -231,10 +231,10 @@ def promote_buy_model(output: TrainingRun) -> PromotionResult:
             raise ValueError("Current champion model has no run_id.")
 
         current_run = client.get_run(run_id)
-        current_mse = current_run.data.metrics[MSE_METRIC_NAME]
+        current_r2 = current_run.data.metrics[R2_METRIC_NAME]
         promotion_reason = (
-            f"Candidate {MSE_METRIC_NAME} {output.mse} is lower than "
-            f"champion {MSE_METRIC_NAME} {current_mse}."
+            f"Candidate {R2_METRIC_NAME} {output.r2} is higher than "
+            f"champion {R2_METRIC_NAME} {current_r2}."
         )
     except (MlflowException, KeyError, TypeError, ValueError):
         ml_pipeline_logger.exception(
@@ -243,17 +243,17 @@ def promote_buy_model(output: TrainingRun) -> PromotionResult:
         )
         client.set_tag(output.run_id, "champion_lookup_status", "not_found_or_unavailable")
 
-    if output.mse >= current_mse:
+    if output.r2 <= current_r2:
         client.set_tag(output.run_id, "promotion_status", "not_promoted")
         client.set_tag(
             output.run_id,
             "promotion_reason",
-            f"{MSE_METRIC_NAME} {output.mse} >= champion {MSE_METRIC_NAME} {current_mse}",
+            f"{R2_METRIC_NAME} {output.r2} <= champion {R2_METRIC_NAME} {current_r2}",
         )
         return PromotionResult(
             promoted=False,
-            candidate_mse=output.mse,
-            current_champion_mse=current_mse,
+            candidate_r2=output.r2,
+            current_champion_r2=current_r2,
             candidate_run_id=output.run_id,
             registered_model_version=output.registered_model_version,
         )
@@ -270,8 +270,8 @@ def promote_buy_model(output: TrainingRun) -> PromotionResult:
 
     return PromotionResult(
         promoted=True,
-        candidate_mse=output.mse,
-        current_champion_mse=current_mse,
+        candidate_r2=output.r2,
+        current_champion_r2=current_r2,
         candidate_run_id=output.run_id,
         registered_model_version=output.registered_model_version,
     )

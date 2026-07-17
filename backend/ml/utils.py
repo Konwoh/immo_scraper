@@ -73,7 +73,7 @@ class TrainingRun:
 @dataclass
 class PromotionResult:
     promoted: bool
-    candidate_mse: float
-    current_champion_mse: float
+    candidate_r2: float
+    current_champion_r2: float
     candidate_run_id: str
     registered_model_version: str | None = None
