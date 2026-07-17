@@ -1,5 +1,6 @@
 TO-DO:
 - FastAPI:
+    - Endpoint for ML-Predciciton
     - User Berechtigungssystem bauen
     - DELETE Endpoints für user
     - Überprüfen, ob das mit den check_online_availability klappt -> warten bis haus auf offline gesetzt ist
@@ -11,8 +12,8 @@ TO-DO:
 - Database:
 
 - Machine Learning:
-    - ml_pipeline container zum laufen bringen
-    - deployment of ml model über zenml/mlflow: https://www.youtube.com/watch?v=-dJPoLm_gtE&t=1974s
+    - datasets mitlogegn
+    - bei mlflow alle modelle nacheinander trainieren lassen und dann gucken welches den besten score hat und dann das beste als champion deklarieren
     - Train various Machine Learning Models (e.g. Classification models, recommender systems, regression für preis vorhersage)
     - good deal detector
     - generelle Datenanalyse

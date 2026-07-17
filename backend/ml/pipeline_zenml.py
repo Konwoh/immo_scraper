@@ -129,6 +129,11 @@ def train_buy_model(df_buy) -> TrainingRun:
     if active_run is None:
         raise RuntimeError("No active MLflow run found for the ZenML training step.")
 
+    dataset = from_pandas( df_buy, name="clean_buy_training_dataset", targets=TARGET_COLUMN)
+    mlflow.log_input(dataset, context="training")
+    mlflow.log_param("training_rows", len(df_buy))
+    mlflow.log_param("training_columns", len(df_buy.columns))
+
     metrics = get_training_metrics(output)
     if output.best_params:
         mlflow.log_params(output.best_params)
