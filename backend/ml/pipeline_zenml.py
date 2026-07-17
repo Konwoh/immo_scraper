@@ -27,6 +27,7 @@ MODEL_NAME = model.model.value
 PRODUCTION_ALIAS = "champion"
 MODEL_ARTIFACT_PATH = "model"
 SKOPS_TRUSTED_TYPES = [
+    "numpy.core._multiarray_umath.log1p",
     "sklearn.compose._column_transformer._RemainderColsList",
     "xgboost.core.Booster",
     "xgboost.sklearn.XGBRegressor",
