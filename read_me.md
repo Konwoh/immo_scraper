@@ -12,7 +12,7 @@ TO-DO:
 - Database:
 
 - Machine Learning:
-    - datasets mitlogegn
+    - alle ml modelle sollten auf dem gleichen test_datensatz trainiert werden -> test datensatz in db laden und daraus ziehen
     - bei mlflow alle modelle nacheinander trainieren lassen und dann gucken welches den besten score hat und dann das beste als champion deklarieren
     - Train various Machine Learning Models (e.g. Classification models, recommender systems, regression für preis vorhersage)
     - good deal detector

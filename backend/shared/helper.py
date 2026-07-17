@@ -1,4 +1,4 @@
-from typing import Dict, Callable, Optional
+from typing import Dict, Callable, Optional, Any
 import time
 from backend.shared.loki_handler import get_loki_logger
 from backend.shared.exceptions import RequestError
@@ -60,3 +60,15 @@ def retry(function: Callable, retries: int = 3, delay: float = 1.5):
         except Exception as e:
             helper_logger.error(f"Non-retryable error: {e}")
             raise
+    
+def get_model_feature_columns(model: Any) -> tuple[str, ...]:
+    feature_names = getattr(model, "feature_names_in_", None)
+
+    if feature_names is None and hasattr(model, "named_steps"):
+        preprocessor = model.named_steps.get("preprocessor")
+        feature_names = getattr(preprocessor, "feature_names_in_", None)
+
+    if feature_names is None:
+        raise RuntimeError("Model does not expose expected feature names.")
+
+    return tuple(str(feature) for feature in feature_names)

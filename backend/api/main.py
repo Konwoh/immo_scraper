@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.api.routers import users, houses, apartments, search_params, jobs, url_queue, auth, job_schedule, property
+from backend.api.routers import users, houses, apartments, search_params, jobs, url_queue, auth, job_schedule, property, predict
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -17,6 +17,7 @@ app.include_router(url_queue.router)
 app.include_router(auth.router)
 app.include_router(job_schedule.router)
 app.include_router(property.router)
+app.include_router(predict.router)
 
 
 origins = [
