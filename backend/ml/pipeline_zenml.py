@@ -1,6 +1,4 @@
 import os
-import time
-import logging
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from zenml import pipeline, step
@@ -12,10 +10,12 @@ from backend.ml.preprocessing.data_loader import DataLoader
 from backend.ml.training.train import DataTraining, MLModelFactory, ModelType
 from backend.ml.utils import TrainingRun, PromotionResult, wait_until_model_ready
 import mlflow
+from mlflow.data.pandas_dataset import from_pandas
 import mlflow.sklearn as mlflow_sklearn
+from backend.shared.loki_handler import get_loki_logger
 load_dotenv()
 
-ml_pipeline_logger = logging.getLogger("ML_pipeline")
+ml_pipeline_logger = get_loki_logger("ml_pipeline", {"app": "ml_pipeline", "env": "prod"})
 experiment_tracker = Client().active_stack.experiment_tracker
 
 if experiment_tracker is None:
@@ -273,13 +273,17 @@ def promote_buy_model(output: TrainingRun) -> PromotionResult:
 
 @pipeline(enable_cache=False)
 def ml_pipeline_zenml():
-    data = load_data()
+    try:
+        data = load_data()
 
-    #clean_rent_data(data)
+        #clean_rent_data(data)
 
-    df_buy = clean_buy_data(data)
-    output = train_buy_model(df_buy)
-    promote_buy_model(output)
+        df_buy = clean_buy_data(data)
+        output = train_buy_model(df_buy)
+        promote_buy_model(output)
+    except Exception as e:
+        ml_pipeline_logger.error(f"Error: {str(e)}")
+        raise
 
 
 if __name__ == "__main__":
