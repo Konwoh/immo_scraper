@@ -1,8 +1,5 @@
-from __future__ import annotations
-
 from collections.abc import Iterable, Mapping, Sequence
 from typing import Any, cast
-
 import pandas as pd
 from sqlalchemy.engine import Engine
 from backend.ml.preprocessing.data_cleaner import DataCleaner
