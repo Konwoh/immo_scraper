@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Protocol, cast
 
 from fastapi import APIRouter, Body, HTTPException, status
 from backend.ml.preprocessing.prediction_cleaner import prepare_prediction_dataset
@@ -11,9 +11,22 @@ router = APIRouter(
     tags=["Price Prediction"]
 )
 
+
+class PricePredictionModel(Protocol):
+    def predict(self, data: Any) -> Any:
+        ...
+
+
 @router.post("/", status_code=status.HTTP_200_OK, response_model=PredictionResponse)
 def predict_price(payload: dict[str, Any] = Body(...)) -> PredictionResponse:
-    model = mlflow_sklearn.load_model("models:/RandomForest@champion")
+    loaded_model = mlflow_sklearn.load_model("models:/RandomForest@champion")
+    if loaded_model is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Prediction model could not be loaded.",
+        )
+
+    model = cast(PricePredictionModel, loaded_model)
     feature_columns = get_model_feature_columns(model)
 
     try:
