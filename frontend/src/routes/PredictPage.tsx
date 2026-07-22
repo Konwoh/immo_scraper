@@ -147,13 +147,18 @@ function createPredictionPayload(formData: PredictionFormValues): PredictionPayl
   const payload = Object.entries(formData).reduce<Record<string, string | number | boolean>>(
     (data, [key, value]) => {
       const payloadKey = key as keyof PredictionPayload;
+      const trimmedValue = value.trim();
+
+      if (trimmedValue === "") {
+        return data;
+      }
 
       if (isNumericField(payloadKey)) {
-        data[key] = Number(value);
+        data[key] = Number(trimmedValue);
       } else if (isBooleanField(payloadKey)) {
-        data[key] = value === "true";
+        data[key] = trimmedValue === "true";
       } else {
-        data[key] = value.trim();
+        data[key] = trimmedValue;
       }
 
       return data;
@@ -174,11 +179,6 @@ export function PredictPage() {
     event.preventDefault();
     setError("");
     setPrice(null);
-
-    if (Object.values(formData).some((value) => value.trim() === "")) {
-      setError("Bitte alle Felder ausfüllen.");
-      return;
-    }
 
     setIsSubmitting(true);
 
@@ -210,7 +210,6 @@ export function PredictPage() {
     if (field.type === "select") {
       return (
         <select
-          required
           value={value}
           onChange={(event) => handleChange(field.key, event.target.value)}
         >
@@ -226,7 +225,6 @@ export function PredictPage() {
 
     return (
       <input
-        required
         type={field.type}
         min={field.min}
         step={field.step ?? (field.type === "number" ? "any" : undefined)}
@@ -250,7 +248,7 @@ export function PredictPage() {
         <div className="crud-form-header">
           <div>
             <h2>Immobiliendaten</h2>
-            <p>Alle Felder sind erforderlich.</p>
+            <p>Leere Felder werden vom Backend mit Standardwerten ergänzt.</p>
           </div>
         </div>
 
