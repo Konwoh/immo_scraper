@@ -46,22 +46,199 @@ const booleanOptions = [
   { label: "Nein", value: "false" },
 ];
 
+function toOptions(values: string[]) {
+  return values.map((value) => ({
+    label: value,
+    value,
+  }));
+}
+
+const estateTypeOptions = toOptions([
+  "Andere Haustypen",
+  "Andere Wohnungstypen",
+  "Bauernhaus",
+  "Bungalow",
+  "Dachgeschoss",
+  "Dachgeschosswohnung",
+  "Doppelhaushälfte",
+  "Einfamilienhaus (freistehend)",
+  "Einfamilienhaus freistehend",
+  "Erdgeschosswohnung",
+  "Etagenwohnung",
+  "Hochparterre",
+  "Loft",
+  "Maisonette",
+  "Mehrfamilienhaus",
+  "Penthouse",
+  "Reihenhaus",
+  "Sonstige",
+  "Souterrain",
+  "Terrassenwohnung",
+  "Villa",
+]);
+
+const zipCodeOptions = toOptions([
+  "01429",
+  "04000",
+  "04103",
+  "04105",
+  "04107",
+  "04109",
+  "04129",
+  "04135",
+  "04155",
+  "04157",
+  "04158",
+  "04159",
+  "04175",
+  "04177",
+  "04178",
+  "04179",
+  "04205",
+  "04207",
+  "04209",
+  "04229",
+  "04249",
+  "04255",
+  "04275",
+  "04277",
+  "04279",
+  "04288",
+  "04289",
+  "04299",
+  "04315",
+  "04316",
+  "04317",
+  "04318",
+  "04319",
+  "04328",
+  "04329",
+  "04347",
+  "04349",
+  "04356",
+  "04357",
+  "04374",
+  "04416",
+  "04420",
+  "04425",
+  "04435",
+  "04442",
+  "04451",
+  "04463",
+  "04509",
+  "04519",
+  "04564",
+  "04571",
+  "04683",
+  "04736",
+  "04755",
+  "04824",
+  "04838",
+  "06237",
+  "06258",
+  "06686",
+  "4129",
+]);
+
+const estateConditionOptions = toOptions([
+  "Erstbezug",
+  "Erstbezug nach Sanierung",
+  "Gepflegt",
+  "Modernisiert",
+  "Nach Vereinbarung",
+  "Neuwertig",
+  "Renovierungsbedürftig",
+  "Saniert",
+  "Vollständig renoviert",
+]);
+
+const interiorQualityOptions = toOptions([
+  "Einfach",
+  "Gehoben",
+  "Luxus",
+  "Normal",
+]);
+
+const heatingTypeOptions = toOptions([
+  "Blockheizkraftwerk",
+  "Elektro-Heizung",
+  "Etagenheizung",
+  "Fernwärme",
+  "Fußbodenheizung",
+  "Gas-Heizung",
+  "Holz-Pelletheizung",
+  "Nachtspeicherofen",
+  "Ofenheizung",
+  "Ölheizung",
+  "Wärmepumpe",
+  "Zentralheizung",
+]);
+
+const energyPerformanceCertificateTypeOptions = toOptions([
+  "Bedarfsausweis",
+  "Verbrauchsausweis",
+]);
+
+const energySourceOptions = toOptions([
+  "Erdgas leicht",
+  "Erdgas schwer",
+  "Erdwärme",
+  "Erdwärme, Gas",
+  "Erdwärme, Solar",
+  "Fernwärme",
+  "Fernwärme-Dampf",
+  "Fernwärme, Flüssiggas",
+  "Fernwärme, Nahwärme",
+  "Fernwärme, Nahwärme, KWK fossil",
+  "Flüssiggas",
+  "Gas",
+  "Gas, Erdgas leicht",
+  "Gas, Fernwärme",
+  "Gas, Kohle",
+  "Gas, Strom",
+  "Holz",
+  "Holzpellets",
+  "Holzpellets, Holz",
+  "Keine Angabe",
+  "Kohle",
+  "KWK erneuerbar",
+  "KWK fossil",
+  "Nahwärme",
+  "Öl",
+  "Öl, Fernwärme",
+  "Solar",
+  "Solar, Erdgas leicht",
+  "Solar, Gas",
+  "Strom",
+  "Strom, Umweltwärme",
+  "Umweltwärme",
+  "Wärmelieferung",
+]);
+
+const energyEfficiencyClassOptions = toOptions([
+  "A+",
+  "A",
+  "B",
+  "C",
+  "D",
+  "E",
+  "F",
+  "G",
+  "H",
+]);
+
 const predictionFields = [
   {
     key: "estate_type",
     label: "Immobilientyp",
     type: "select",
-    options: [
-      { label: "Wohnung", value: "apartment" },
-      { label: "Haus", value: "house" },
-      { label: "Grundstück", value: "property" },
-    ],
+    options: estateTypeOptions,
   },
   { key: "rent_cold", label: "Kaltmiete", type: "number", min: 0 },
   { key: "rent_complete", label: "Warmmiete", type: "number", min: 0 },
   { key: "house_money", label: "Hausgeld", type: "number", min: 0 },
   { key: "rent_heating_costs", label: "Heizkosten", type: "number", min: 0 },
-  { key: "zip_code", label: "PLZ", type: "text" },
+  { key: "zip_code", label: "PLZ", type: "text", options: zipCodeOptions },
   { key: "rooms", label: "Zimmer", type: "number", min: 0, step: "0.5" },
   { key: "sleeping_rooms", label: "Schlafzimmer", type: "number", min: 0 },
   { key: "bathrooms", label: "Badezimmer", type: "number", min: 0 },
@@ -75,27 +252,30 @@ const predictionFields = [
   { key: "fitted_kitchen", label: "Einbauküche", type: "select", options: booleanOptions },
   { key: "basement", label: "Keller", type: "select", options: booleanOptions },
   { key: "rented", label: "Vermietet", type: "select", options: booleanOptions },
-  { key: "provision", label: "Provision", type: "text" },
+  { key: "provision", label: "Provision", type: "select", options: [] },
   { key: "rent_income", label: "Mieteinnahmen", type: "number", min: 0 },
   { key: "building_year", label: "Baujahr", type: "number", min: 0 },
-  { key: "estate_condition", label: "Zustand", type: "text" },
-  { key: "interior_quality", label: "Ausstattungsqualität", type: "text" },
-  { key: "heating_type", label: "Heizungsart", type: "text" },
+  { key: "estate_condition", label: "Zustand", type: "select", options: estateConditionOptions },
+  {
+    key: "interior_quality",
+    label: "Ausstattungsqualität",
+    type: "select",
+    options: interiorQualityOptions,
+  },
+  { key: "heating_type", label: "Heizungsart", type: "select", options: heatingTypeOptions },
   {
     key: "energy_performance_certificate_type",
     label: "Energieausweistyp",
-    type: "text",
+    type: "select",
+    options: energyPerformanceCertificateTypeOptions,
   },
-  { key: "energy_source", label: "Energieträger", type: "text" },
+  { key: "energy_source", label: "Energieträger", type: "select", options: energySourceOptions },
   { key: "energy_demand", label: "Energiebedarf", type: "number", min: 0 },
   {
     key: "energy_efficiency_class",
     label: "Energieeffizienzklasse",
     type: "select",
-    options: ["A+", "A", "B", "C", "D", "E", "F", "G", "H"].map((value) => ({
-      label: value,
-      value,
-    })),
+    options: energyEfficiencyClassOptions,
   },
   { key: "is_online", label: "Online", type: "select", options: booleanOptions },
   { key: "property_space", label: "Grundstücksfläche", type: "number", min: 0 },
@@ -223,14 +403,28 @@ export function PredictPage() {
       );
     }
 
+    const listId = field.options ? `prediction-options-${field.key}` : undefined;
+
     return (
+      <>
       <input
         type={field.type}
+        list={listId}
         min={field.min}
         step={field.step ?? (field.type === "number" ? "any" : undefined)}
         value={value}
         onChange={(event) => handleChange(field.key, event.target.value)}
       />
+        {field.options && (
+          <datalist id={listId}>
+            {field.options.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </datalist>
+        )}
+      </>
     );
   }
 

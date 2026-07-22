@@ -1,5 +1,5 @@
 export type PredictionPayload = {
-  estate_type?: "house" | "apartment" | "property";
+  estate_type?: string;
   rent_cold?: number;
   rent_complete?: number;
   house_money?: number;
