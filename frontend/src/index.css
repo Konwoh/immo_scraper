@@ -668,6 +668,30 @@ button:disabled {
   text-align: left;
 }
 
+.prediction-result {
+  display: grid;
+  gap: 6px;
+  margin-top: 18px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px 22px;
+  background: var(--surface);
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
+  text-align: left;
+}
+
+.prediction-result span {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.prediction-result strong {
+  color: var(--text-h);
+  font-size: 28px;
+  line-height: 1.15;
+}
+
 h1,
 h2 {
   font-family: var(--heading);

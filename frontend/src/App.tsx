@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { RegisterPage } from "@/routes/RegisterPage";
 import { LoginPage } from "@/routes/LoginPage";
+import { PredictPage } from "@/routes/PredictPage";
 
 function App() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
@@ -80,6 +81,7 @@ function App() {
           <Route path="/tables/search-parameters" element={<SearchParamsPage/>}/>
           <Route path="/tables/job-schedule" element={<JobSchedulePage/>}/>
           <Route path="/jobs-schedule" element={<JobSchedulePageSingle />} />
+          <Route path="/predict" element={<PredictPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

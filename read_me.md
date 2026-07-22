@@ -1,6 +1,6 @@
 TO-DO:
 - FastAPI:
-    - Endpoint for ML-Predciciton
+    - fast api endpoint in Service und Repository Pattern überführen
     - User Berechtigungssystem bauen
     - DELETE Endpoints für user
     - Überprüfen, ob das mit den check_online_availability klappt -> warten bis haus auf offline gesetzt ist
@@ -12,6 +12,7 @@ TO-DO:
 - Database:
 
 - Machine Learning:
+    - Warning in ml_pipeline lösen
     - beim prediciton endpoint soll ein wert von allen modellen angefordert werden und dann ein durchschnitt davon gebildet werden
     - alle ml modelle sollten auf dem gleichen test_datensatz trainiert werden -> test datensatz in db laden und daraus ziehen
     - bei mlflow alle modelle nacheinander trainieren lassen und dann gucken welches den besten score hat und dann das beste als champion deklarieren

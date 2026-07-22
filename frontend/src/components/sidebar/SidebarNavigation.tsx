@@ -8,6 +8,7 @@ type NavigationItem = {
 
 const navigationItems: NavigationItem[] = [
   { label: "Startseite", path: "/" },
+  { label: "Preisvorhersage", path: "/predict" },
   { label: "Job Schedule", path: "/jobs-schedule" },
 ];
 
