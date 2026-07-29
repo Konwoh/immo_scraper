@@ -18,3 +18,20 @@ export async function predictPrice(
 
   return response.json();
 }
+
+export async function getPredictionPayloadFromUrl(
+  url: string,
+): Promise<PredictionPayload> {
+  const response = await apiFetch(
+    `${API_BASE}/predict/get_prediction_payload?url=${encodeURIComponent(url)}`,
+    {
+      method: "POST",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Inseratsdaten konnten nicht geladen werden");
+  }
+
+  return response.json();
+}

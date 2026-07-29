@@ -441,6 +441,42 @@ button:disabled {
   border-top: 1px solid var(--border);
 }
 
+.prediction-url-form {
+  margin-bottom: 18px;
+}
+
+.prediction-url-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 16px;
+  padding: 22px;
+}
+
+.prediction-url-row label {
+  display: grid;
+  gap: 8px;
+  color: var(--text-h);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.prediction-url-row input {
+  width: 100%;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  color: var(--text-h);
+  background: var(--surface);
+  font: inherit;
+}
+
+.prediction-url-row input:focus {
+  border-color: var(--accent);
+  outline: 3px solid var(--accent-bg);
+}
+
 .crud-form-action-group {
   display: flex;
   flex-wrap: wrap;
@@ -807,5 +843,13 @@ code {
 
   .crud-form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .prediction-url-row {
+    grid-template-columns: 1fr;
+  }
+
+  .prediction-url-row .crud-primary-button {
+    width: 100%;
   }
 }

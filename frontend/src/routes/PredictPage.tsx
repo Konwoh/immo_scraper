@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { predictPrice } from "@/entities/predict/predict.api";
+import { getPredictionPayloadFromUrl, predictPrice } from "@/entities/predict/predict.api";
 import type { PredictionPayload } from "@/entities/predict/predict.types";
 
 type PredictionFormValues = Record<keyof PredictionPayload, string>;
@@ -349,11 +349,52 @@ function createPredictionPayload(formData: PredictionFormValues): PredictionPayl
   return payload as PredictionPayload;
 }
 
+function payloadToFormValues(payload: PredictionPayload): Partial<PredictionFormValues> {
+  return Object.entries(payload).reduce<Partial<PredictionFormValues>>(
+    (values, [key, value]) => {
+      if (value === null || value === undefined) {
+        return values;
+      }
+
+      values[key as keyof PredictionPayload] = String(value);
+      return values;
+    },
+    {},
+  );
+}
+
 export function PredictPage() {
   const [formData, setFormData] = useState<PredictionFormValues>(initialFormData);
+  const [listingUrl, setListingUrl] = useState("");
   const [price, setPrice] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingListing, setIsLoadingListing] = useState(false);
+
+  async function handleLoadListing(event: FormEvent) {
+    event.preventDefault();
+    setError("");
+    setPrice(null);
+    setIsLoadingListing(true);
+
+    try {
+      const payload = await getPredictionPayloadFromUrl(listingUrl.trim());
+
+      setFormData((currentFormData) => ({
+        ...currentFormData,
+        ...payloadToFormValues(payload),
+      }));
+    } catch (loadError) {
+      const message =
+        loadError instanceof Error
+          ? loadError.message
+          : "Inseratsdaten konnten nicht geladen werden.";
+
+      setError(message);
+    } finally {
+      setIsLoadingListing(false);
+    }
+  }
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -437,6 +478,35 @@ export function PredictPage() {
       </div>
 
       {error && <p className="crud-error">{error}</p>}
+
+      <form className="crud-form prediction-url-form" onSubmit={handleLoadListing}>
+        <div className="crud-form-header">
+          <div>
+            <h2>Inseratslink</h2>
+            <p>Unterstützt werden ImmoScout- und Kleinanzeigen-Links.</p>
+          </div>
+        </div>
+
+        <div className="prediction-url-row">
+          <label>
+            URL
+            <input
+              type="url"
+              value={listingUrl}
+              onChange={(event) => setListingUrl(event.target.value)}
+              placeholder="https://www.immobilienscout24.de/expose/..."
+            />
+          </label>
+
+          <button
+            className="crud-primary-button"
+            type="submit"
+            disabled={isLoadingListing || listingUrl.trim() === ""}
+          >
+            {isLoadingListing ? "Daten werden geladen..." : "Daten übernehmen"}
+          </button>
+        </div>
+      </form>
 
       <form className="crud-form" onSubmit={handleSubmit}>
         <div className="crud-form-header">
