@@ -2,6 +2,14 @@ import { logout, restoreSession, setAuthExpiredHandler } from "@/api/client";
 import { SidebarNavigation } from "@/components/sidebar/SidebarNavigation";
 import { HousesPage } from "@/routes/HousePage";
 import { ApartmentPage } from "@/routes/ApartmentPage";
+import {
+  HouseTileDetailPage,
+  HouseTilesPage,
+} from "@/routes/HouseTilesPage";
+import {
+  ApartmentTileDetailPage,
+  ApartmentTilesPage,
+} from "@/routes/ApartmentTilesPage";
 import { PropertyPage } from "@/routes/PropertyPage";
 import { JobPage } from "@/routes/JobPage";
 import { JobSchedulePage } from "@/routes/JobSchedulePage";
@@ -73,6 +81,8 @@ function App() {
       <main className="app-content">
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/houses" element={<Navigate to="/tiles/houses" replace />} />
+          <Route path="/apartments" element={<Navigate to="/tiles/apartments" replace />}/>
           <Route path="/tables" element={<Navigate to="/tables/houses" replace />} />
           <Route path="/tables/houses" element={<HousesPage />} />
           <Route path="/tables/apartments" element={<ApartmentPage/>} />
@@ -80,6 +90,10 @@ function App() {
           <Route path="/tables/jobs" element={<JobPage />} />
           <Route path="/tables/search-parameters" element={<SearchParamsPage/>}/>
           <Route path="/tables/job-schedule" element={<JobSchedulePage/>}/>
+          <Route path="/tiles/houses" element={<HouseTilesPage />} />
+          <Route path="/tiles/houses/:id" element={<HouseTileDetailPage />} />
+          <Route path="/tiles/apartments" element={<ApartmentTilesPage />} />
+          <Route path="/tiles/apartments/:id" element={<ApartmentTileDetailPage />}/>
           <Route path="/jobs-schedule" element={<JobSchedulePageSingle />} />
           <Route path="/predict" element={<PredictPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

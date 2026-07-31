@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 
 type NavigationItem = {
@@ -21,6 +21,11 @@ const tableNavigationItems: NavigationItem[] = [
   { label: "Job-Planung", path: "/tables/job-schedule" },
 ];
 
+const tileNavigationItems: NavigationItem[] = [
+  { label: "Häuser", path: "/tiles/houses" },
+  { label: "Wohnungen", path: "/tiles/apartments" },
+];
+
 type SidebarNavigationProps = {
   onLogout: () => void;
 };
@@ -28,13 +33,11 @@ type SidebarNavigationProps = {
 export function SidebarNavigation({ onLogout }: SidebarNavigationProps) {
   const location = useLocation();
   const isTablesRoute = location.pathname.startsWith("/tables");
+  const isTilesRoute = location.pathname.startsWith("/tiles");
   const [isTablesMenuOpen, setIsTablesMenuOpen] = useState(isTablesRoute);
-
-  useEffect(() => {
-    if (isTablesRoute) {
-      setIsTablesMenuOpen(true);
-    }
-  }, [isTablesRoute]);
+  const [isTilesMenuOpen, setIsTilesMenuOpen] = useState(isTilesRoute);
+  const showTablesMenu = isTablesMenuOpen || isTablesRoute;
+  const showTilesMenu = isTilesMenuOpen || isTilesRoute;
 
   return (
     <aside className="sidebar-navigation" aria-label="Hauptnavigation">
@@ -69,18 +72,54 @@ export function SidebarNavigation({ onLogout }: SidebarNavigationProps) {
                 ? "sidebar-menu-item sidebar-menu-item-active"
                 : "sidebar-menu-item"
             }
-            aria-expanded={isTablesMenuOpen}
+            aria-expanded={showTablesMenu}
             onClick={() => setIsTablesMenuOpen((isOpen) => !isOpen)}
           >
             <span>Tabellenübersicht</span>
             <span className="sidebar-menu-chevron" aria-hidden="true">
-              {isTablesMenuOpen ? "⌃" : "⌄"}
+              {showTablesMenu ? "⌃" : "⌄"}
             </span>
           </button>
 
-          {isTablesMenuOpen && (
+          {showTablesMenu && (
             <div className="sidebar-submenu">
               {tableNavigationItems.map((item) => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  className={({ isActive }) =>
+                    isActive
+                      ? "sidebar-submenu-item sidebar-submenu-item-active"
+                      : "sidebar-submenu-item"
+                  }
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="sidebar-menu-group">
+          <button
+            type="button"
+            className={
+              isTilesRoute
+                ? "sidebar-menu-item sidebar-menu-item-active"
+                : "sidebar-menu-item"
+            }
+            aria-expanded={showTilesMenu}
+            onClick={() => setIsTilesMenuOpen((isOpen) => !isOpen)}
+          >
+            <span>Kachelansicht</span>
+            <span className="sidebar-menu-chevron" aria-hidden="true">
+              {showTilesMenu ? "⌃" : "⌄"}
+            </span>
+          </button>
+
+          {showTilesMenu && (
+            <div className="sidebar-submenu">
+              {tileNavigationItems.map((item) => (
                 <NavLink
                   key={item.path}
                   to={item.path}

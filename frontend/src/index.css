@@ -704,6 +704,326 @@ button:disabled {
   text-align: left;
 }
 
+.listing-page,
+.listing-detail-page {
+  width: 100%;
+  padding: 0 0 40px;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.listing-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.listing-page-header h1,
+.listing-detail-header h1 {
+  margin-bottom: 6px;
+  overflow-wrap: anywhere;
+  line-height: 1.08;
+}
+
+.listing-page-header p,
+.listing-detail-header p,
+.listing-pagination p {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.listing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.listing-card {
+  display: grid;
+  min-height: 210px;
+  gap: 18px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px;
+  color: inherit;
+  background: var(--surface);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.07);
+  text-decoration: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.listing-card:hover {
+  border-color: var(--accent-border);
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.11);
+  transform: translateY(-2px);
+}
+
+.listing-card:focus-visible,
+.listing-card-link:focus-visible,
+.listing-back-link:focus-visible {
+  outline: 3px solid var(--accent-bg);
+  outline-offset: 3px;
+}
+
+.listing-card-link {
+  display: grid;
+  align-content: space-between;
+  gap: 18px;
+  min-height: 150px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.listing-card-header {
+  display: grid;
+  gap: 8px;
+}
+
+.listing-card-header h2 {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  color: var(--text-h);
+  font-size: 19px;
+  line-height: 1.25;
+  letter-spacing: 0;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.listing-card-header span {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.listing-card-meta,
+.listing-detail-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.listing-card-meta div,
+.listing-detail-meta div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--surface-soft);
+}
+
+.listing-card-meta dt,
+.listing-detail-meta dt {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.listing-card-meta dd,
+.listing-detail-meta dd {
+  overflow-wrap: anywhere;
+  margin: 0;
+  color: var(--text-h);
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.listing-card-address {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 14px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.listing-card-prediction {
+  display: grid;
+  gap: 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+
+.listing-detail-prediction {
+  display: grid;
+  gap: 12px;
+  max-width: 340px;
+}
+
+.listing-prediction-button {
+  width: 100%;
+}
+
+.listing-prediction-result {
+  display: grid;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--surface-soft);
+}
+
+.listing-prediction-result strong {
+  color: var(--text-h);
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.listing-prediction-result span,
+.listing-prediction-error {
+  font-size: 13px;
+}
+
+.listing-prediction-result-high {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.listing-prediction-result-high strong,
+.listing-prediction-result-high span {
+  color: #b91c1c;
+}
+
+.listing-prediction-result-low {
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.listing-prediction-result-low strong,
+.listing-prediction-result-low span {
+  color: #166534;
+}
+
+.listing-prediction-error {
+  color: #b91c1c;
+}
+
+.listing-card-loading {
+  pointer-events: none;
+}
+
+.listing-card-title-skeleton {
+  width: 82%;
+  height: 22px;
+}
+
+.listing-empty {
+  margin-top: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 28px;
+  color: var(--text);
+  background: var(--surface);
+  text-align: center;
+}
+
+.listing-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 18px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 18px;
+  background: var(--surface);
+}
+
+.listing-back-link {
+  display: inline-flex;
+  margin-bottom: 18px;
+  color: var(--text-h);
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.listing-back-link:hover {
+  color: var(--accent);
+}
+
+.listing-detail-panel {
+  display: grid;
+  gap: 22px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  background: var(--surface);
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
+}
+
+.listing-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.listing-detail-meta {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.listing-detail-description {
+  display: grid;
+  gap: 8px;
+  max-width: 840px;
+}
+
+.listing-detail-description h2 {
+  margin: 0;
+  letter-spacing: 0;
+}
+
+.listing-detail-description p {
+  white-space: pre-wrap;
+}
+
+.listing-detail-source {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 18px;
+}
+
+.listing-detail-source span {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.listing-detail-source a {
+  color: var(--text-h);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.listing-detail-url {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.listing-detail-url a {
+  overflow-wrap: anywhere;
+}
+
+.listing-detail-title-skeleton {
+  width: min(620px, 80%);
+  height: 34px;
+}
+
 .prediction-result {
   display: grid;
   gap: 6px;
@@ -836,9 +1156,25 @@ code {
   .crud-table-footer,
   .crud-form-header,
   .crud-form-actions,
-  .crud-page-header {
+  .crud-page-header,
+  .listing-page-header,
+  .listing-pagination,
+  .listing-detail-header {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .listing-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .listing-card-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .listing-pagination .crud-pagination {
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .crud-form-grid {
