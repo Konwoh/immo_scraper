@@ -178,15 +178,15 @@ export function ListingDetailPage<T extends ListingDetailItem>({
       const comparison =
         actualPrice === null
           ? "unknown"
-          : result.predicted_price > actualPrice
+          : result.predicted_price_all > actualPrice
             ? "higher"
-            : result.predicted_price < actualPrice
+            : result.predicted_price_all < actualPrice
               ? "lower"
               : "equal";
 
       setPrediction({
         loading: false,
-        predictedPrice: result.predicted_price,
+        predictedPrice: result.predicted_price_all,
         comparison,
       });
     } catch (predictionError) {

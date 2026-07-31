@@ -1,7 +1,11 @@
 from pydantic import BaseModel
 
 class PredictionResponse(BaseModel):
-    predicted_price: float
+    predicted_price_all: float
+    predicted_price_rf: float
+    predicted_price_ada: float
+    predicted_price_xgb: float
+    
 
 class PredictionPayload(BaseModel):
     estate_type: str | None = None

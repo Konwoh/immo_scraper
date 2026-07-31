@@ -33,5 +33,8 @@ export type PredictionPayload = {
 };
 
 export type PredictionResponse = {
-  predicted_price: number;
+  predicted_price_all: number;
+  predicted_price_rf: number;
+  predicted_price_ada: number;
+  predicted_price_xgb: number;
 };

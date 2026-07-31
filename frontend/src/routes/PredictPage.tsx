@@ -405,7 +405,7 @@ export function PredictPage() {
 
     try {
       const result = await predictPrice(createPredictionPayload(formData));
-      setPrice(result.predicted_price);
+      setPrice(result.predicted_price_all);
     } catch (submitError) {
       const message =
         submitError instanceof Error

@@ -53,6 +53,7 @@ NUMERIC_COLUMNS: tuple[str, ...] = (
     "building_year",
     "energy_demand",
     "property_space",
+    "rent_heating_costs"
 )
 
 BOOLEAN_COLUMNS: tuple[str, ...] = (

@@ -8,6 +8,7 @@ from backend.ml.preprocessing.prediction_cleaner import PredictionCleaner, prepa
 from backend.shared.helper import get_model_feature_columns
 from backend.schemas.predict import PredictionPayload, PredictionResponse
 import mlflow.sklearn as mlflow_sklearn
+import numpy as np
 
 router = APIRouter(
     prefix="/predict",
@@ -70,34 +71,59 @@ def predict_price(payload: dict[str, Any] = Body(...)) -> PredictionResponse:
     mlflow.set_tracking_uri(tracking_uri)
 
     try:
-        loaded_model = mlflow_sklearn.load_model("models:/RandomForest@champion")
+        loaded_model_rf = mlflow_sklearn.load_model("models:/RandomForest@champion")
+        loaded_model_ada = mlflow_sklearn.load_model("models:/AdaBoost@champion")
+        loaded_model_xgb = mlflow_sklearn.load_model("models:/XGB@champion")
+        
     except MlflowException as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=f"Could not load prediction model: {exc}",
         ) from exc
 
-    if loaded_model is None:
+    if loaded_model_rf is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Prediction model could not be loaded.",
+        )
+    elif loaded_model_ada is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Prediction model could not be loaded.",
+        )
+    elif loaded_model_xgb is None:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Prediction model could not be loaded.",
         )
 
-    feature_columns = get_model_feature_columns(loaded_model)
+    feature_columns_rf = get_model_feature_columns(loaded_model_rf)
+    feature_columns_ada = get_model_feature_columns(loaded_model_ada)
+    feature_columns_xgb = get_model_feature_columns(loaded_model_xgb)
+    
 
     try:
-        df_features = prepare_prediction_dataset(
-            payload,
-            feature_columns=feature_columns,
-        )
+        df_features_rf = prepare_prediction_dataset(payload, feature_columns=feature_columns_rf,)
+        df_features_ada = prepare_prediction_dataset(payload, feature_columns=feature_columns_ada,)
+        df_features_xbg = prepare_prediction_dataset(payload, feature_columns=feature_columns_xgb,)
     except (KeyError, TypeError, ValueError) as exc:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Could not prepare prediction features: {exc}",
         ) from exc
 
-    predictions = loaded_model.predict(df_features)
-    return PredictionResponse(predicted_price=float(predictions[0]))
+    prediction_list = []
+    prediction_rf = loaded_model_rf.predict(df_features_rf)[0]
+    prediction_ada = loaded_model_ada.predict(df_features_ada)[0]
+    prediction_xgb = loaded_model_xgb.predict(df_features_xbg)[0]
+    prediction_list.extend([prediction_rf, prediction_ada, prediction_xgb])
+    
+    return PredictionResponse(
+            predicted_price_all=float(np.mean(prediction_list)), 
+            predicted_price_rf=prediction_rf,
+            predicted_price_xgb=prediction_xgb,
+            predicted_price_ada=prediction_ada
+           )
 
 @router.post("/get_prediction_payload", status_code=status.HTTP_200_OK, response_model=PredictionPayload)
 def get_prediction_payload(url: str) -> PredictionPayload:
