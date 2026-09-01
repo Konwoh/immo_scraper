@@ -72,26 +72,32 @@ class Worker:
                                 session.flush()
                                 persisted = estate_obj
                                 
-                except IntegrityError: # Fehler, wenn estate_obj schon in house oder apartments tabelle existiert
+                except IntegrityError: # Fehler, wenn estate_obj schon in house, apartments oder property tabelle existiert
                     if isinstance(estate_obj, House):
                         persisted = session.execute(
                             select(House).where(
-                                House.url == estate_obj.url,
                                 House.title == estate_obj.title,
+                                House.price == estate_obj.price,
+                                House.city == estate_obj.city,
+                                House.living_space == estate_obj.living_space,
                             ) # Referenz des original eintrag bekommen um das dann in search_results tabelle referenzieren zu können
                         ).scalar_one()
                     elif isinstance(estate_obj, Apartment):
                         persisted = session.execute(
                             select(Apartment).where(
-                                Apartment.url == estate_obj.url,
                                 Apartment.title == estate_obj.title,
+                                Apartment.price == estate_obj.price,
+                                Apartment.city == estate_obj.city,
+                                Apartment.living_space == estate_obj.living_space,
                             )
                         ).scalar_one()
                     elif isinstance(estate_obj, Property):
                         persisted = session.execute(
                             select(Property).where(
-                                Property.url == estate_obj.url,
                                 Property.title == estate_obj.title,
+                                Property.price == estate_obj.price,
+                                Property.city == estate_obj.city,
+                                Property.space == estate_obj.space,
                             )
                         ).scalar_one()
                     else:

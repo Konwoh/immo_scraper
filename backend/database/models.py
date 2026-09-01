@@ -233,20 +233,20 @@ class RealEstate:
 
 class House(RealEstate, Base):
     __tablename__ = "houses"
-    __table_args__ = (UniqueConstraint("url", "title", name="uq_houses_url_title"),)
+    __table_args__ = (UniqueConstraint("title", "price", "city", "living_space", name="uq_houses_title_price_city_living_space"),)
     id: Mapped[int] = mapped_column(primary_key=True)
     property_space: Mapped[str] = mapped_column(nullable=True)
     agency: Mapped[Agency | None] = relationship(back_populates="houses")
         
 class Apartment(RealEstate, Base):
     __tablename__ = "apartments"
-    __table_args__ = (UniqueConstraint("url", "title", name="uq_apartments_url_title"),)
+    __table_args__ = (UniqueConstraint("title", "price", "city", "living_space", name="uq_apartments_title_price_city_living_space"),)
     id: Mapped[int] = mapped_column(primary_key=True)
     agency: Mapped[Agency | None] = relationship(back_populates="apartments")
 
 class Property(Base):
     __tablename__ = "property"
-    __table_args__ = (UniqueConstraint("url", "title", name="uq_property_url_title"),)
+    __table_args__ = (UniqueConstraint("title", "price", "city", "space", name="uq_property_title_price_city_space"),)
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(nullable=False)
     url: Mapped[str] = mapped_column(nullable=False)

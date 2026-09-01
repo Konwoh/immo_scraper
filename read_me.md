@@ -3,7 +3,6 @@ TO-DO:
     - fast api endpoint in Service und Repository Pattern überführen
     - User Berechtigungssystem bauen
     - DELETE Endpoints für user
-    - Überprüfen, ob das mit den check_online_availability klappt -> warten bis haus auf offline gesetzt ist
 
 - Web-App
     - genaueres Fehler Logging im Frontend
@@ -13,15 +12,13 @@ TO-DO:
 
 - Machine Learning:
     - Warning in ml_pipeline lösen
-    - beim prediciton endpoint soll ein wert von allen modellen angefordert werden und dann ein durchschnitt davon gebildet werden
     - alle ml modelle sollten auf dem gleichen test_datensatz trainiert werden -> test datensatz in db laden und daraus ziehen
-    - Train various Machine Learning Models (e.g. Classification models, recommender systems, regression für preis vorhersage)
+    - recommender systems trainieren
     - good deal detector
     - generelle Datenanalyse
 
 - Sonstiges:
-    - Test schreiben, die automatisch beim Deployment ausgeführt werden
-    - Fehler bei Bathrooms mit String "1.5" 
+    - Test schreiben, die automatisch beim Deployment ausgeführt werden 
     - ImmoWelt hinzufügen
         - crawl() in base crawler aufnehmen
     - Factory-Pattern vereinfachen
