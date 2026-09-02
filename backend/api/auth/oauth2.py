@@ -11,18 +11,23 @@ load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
-REFRESH_SECRET_KEY = str(os.getenv("REFRESH_SECRET_KEY"))  # Keep this different from access secret
+REFRESH_SECRET_KEY = os.getenv("REFRESH_SECRET_KEY")  # Keep this different from access secret
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
 REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 ACCESS_TOKEN_COOKIE_NAME = "access_token"
 REFRESH_TOKEN_COOKIE_NAME = "refresh_token"
 
+if not SECRET_KEY or not REFRESH_SECRET_KEY:
+    raise RuntimeError("SECRET_KEY and REFRESH_SECRET_KEY must be set")
+if SECRET_KEY == REFRESH_SECRET_KEY:
+    raise RuntimeError("SECRET_KEY and REFRESH_SECRET_KEY must differ")
+
 def create_access_token(data: dict):
     to_encode = data.copy()
     
     expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    
+    to_encode.update({"exp": expire, "type": "access"})
+
     encode_jwt = jwt.encode(to_encode, str(SECRET_KEY), algorithm=str(ALGORITHM))
     
     return encode_jwt
@@ -30,9 +35,12 @@ def create_access_token(data: dict):
 def verify_access_token(token: str, credentials_exception):
     try:
         payload = jwt.decode(token, str(SECRET_KEY), algorithms=[str(ALGORITHM)])
-        
+
+        if payload.get("type") != "access":
+            raise credentials_exception
+
         id = payload.get("user_id")
-        
+
         if id is None:
             raise credentials_exception
         token_data = TokenData(id=id)
@@ -59,5 +67,5 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
 def create_refresh_token(data: dict, expires_delta: timedelta|None = None):
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + (expires_delta or timedelta(days=7))
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, REFRESH_SECRET_KEY, algorithm=str(ALGORITHM))
+    to_encode.update({"exp": expire, "type": "refresh"})
+    return jwt.encode(to_encode, str(REFRESH_SECRET_KEY), algorithm=str(ALGORITHM))

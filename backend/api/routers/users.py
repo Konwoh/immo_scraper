@@ -3,6 +3,7 @@ from backend.database.models import get_db, User
 from sqlalchemy.orm import Session
 from backend.schemas.user import UserRequest, UserResponse
 from backend.api.auth.utils import get_password_hash
+from backend.api.auth.oauth2 import get_current_user
 
 router = APIRouter(
     prefix="/user",
@@ -25,7 +26,10 @@ def create_user(create_user_request: UserRequest, db: Session = Depends(get_db))
     
     return new_user
 @router.get("/{user_id}", response_model=UserResponse)
-def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
+def get_user_by_id(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if user_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to retrieve this user")
+
     user = db.query(User).filter(User.id == user_id).first()
     if user is not None:
         return user
