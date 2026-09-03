@@ -42,7 +42,9 @@ class KleinanzeigenParser(Parser):
             data["url"]                 = f'https://www.kleinanzeigen.de/s-anzeige/{data["title"]}/{data["id"]}'
             data["listing_type"]        = payload.get("category", {}).get("id-name", {}).get("value")
             if payload.get("category", {}).get("localized-name", {}).get("value") != "Mietwohnungen":
-                data["price"]               = payload.get("price", {}).get("amount", {}).get("value")
+                amount = payload.get("price", {}).get("amount", {}).get("value")
+                if amount is not None:
+                    data["price"]           = float(str(amount).replace(",", "."))
             data["ad_type"]             = payload.get("ad-type", {}).get("value")
             data["general_description"] = payload.get("description", {}).get("value")
             data["zip_code"]            = payload.get("ad-address", {}).get("zip-code", {}).get("value")
@@ -53,14 +55,18 @@ class KleinanzeigenParser(Parser):
             
             for section in payload.get("attributes", {}).get("attribute", []):
                 if section["localized-label"] == "Wohnfläche":
-                    data["living_space"] = section.get("value", [])[0].get("value")
+                    living_space = section.get("value", [])[0].get("value")
+                    if living_space is not None:
+                        data["living_space"] = float(str(living_space).replace(",", "."))
                     data["living_space_unit"] = section.get("unit")
-                
+
                 elif section["localized-label"] == "Warmmiete":
                     data["rent_complete"] = section.get("value", [])[0].get("value")
-                
+
                 elif section["localized-label"] == "Nebenkosten":
-                    data["rent_extra_costs"] = section.get("value", [])[0].get("value")
+                    rent_extra_costs = section.get("value", [])[0].get("value")
+                    if rent_extra_costs is not None:
+                        data["rent_extra_costs"] = float(str(rent_extra_costs).replace(",", "."))
                 
                 elif section["localized-label"] == "Zimmer":
                     data["rooms"] = float(section.get("value", [])[0].get("value"))
@@ -100,7 +106,9 @@ class KleinanzeigenParser(Parser):
                     data["available_from"] = section.get("value", [])[0].get("value")
                     
                 elif section["localized-label"] == "Grundstücksfläche":
-                    data["space"] = section.get("value", [])[0].get("value")
+                    space = section.get("value", [])[0].get("value")
+                    if space is not None:
+                        data["space"] = float(str(space).replace(",", "."))
                 
                 elif section["localized-label"] == "Angebotsart":
                     data["offer_type"] = section.get("value", [])[0].get("value")

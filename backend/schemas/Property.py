@@ -13,9 +13,9 @@ class PropertyResponse(BaseModel):
     city: str | None = None
     zip_code: str | None = None
     address: str | None = None
-    price: str | None = None
+    price: float | None = None
     price_m2: str | None = None
-    space: str | None = None
+    space: float | None = None
     development: str | None = None
     building_permit: str | None = None
     available_from: str | None = None

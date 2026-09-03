@@ -4,6 +4,12 @@ import type { Property } from "./property.types";
 const renderValue = (value: unknown) =>
   value === null || value === undefined || value === "" ? "-" : String(value);
 
+const renderPrice = (value: unknown) =>
+  typeof value === "number" ? `${value.toLocaleString("de-DE")} €` : renderValue(value);
+
+const renderArea = (value: unknown) =>
+  typeof value === "number" ? `${value.toLocaleString("de-DE")} m²` : renderValue(value);
+
 const renderBoolean = (value: unknown) => {
   if (value === true) {
     return "Ja";
@@ -29,7 +35,7 @@ export const propertyConfig = {
     {
       key: "price",
       label: "Preis",
-      render: renderValue,
+      render: renderPrice,
     },
     {
       key: "price_m2",
@@ -39,7 +45,7 @@ export const propertyConfig = {
     {
       key: "space",
       label: "Flaeche",
-      render: renderValue,
+      render: renderArea,
     },
     {
       key: "city",

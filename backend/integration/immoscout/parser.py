@@ -63,7 +63,11 @@ class ImmoScoutParser(Parser):
                             else:
                                 data["rooms"] = float(attribute.get("text"))
                         elif attribute.get("label") == "Wohnfläche":
-                            data["living_space"] = attribute.get("text")
+                            text = attribute.get("text")
+                            if text is not None:
+                                data["living_space"] = float(
+                                    text.replace(".", "").replace(",", ".").replace("m²", "").replace("\xa0", "").strip()
+                                )
                         elif attribute.get("label") == "Grundstück":
                             data["property_space"] = attribute.get("text")
                 elif section.get("type") == "TITLE":
@@ -96,7 +100,11 @@ class ImmoScoutParser(Parser):
                         elif attribute.get("label") == "Bezugsfrei ab:":
                             data["available_from"] = attribute.get("text")
                         elif attribute.get("label") == "Grundstücksfläche ca.:":
-                            data["space"] = attribute.get("text")
+                            text = attribute.get("text")
+                            if text is not None:
+                                data["space"] = float(
+                                    text.replace(".", "").replace(",", ".").replace("m²", "").replace("\xa0", "").strip()
+                                )
                         elif attribute.get("label") == "Baugenehmigung:":
                             data["building_permit"] = attribute.get("text")
                         elif attribute.get("label") == "Erschließung:":
@@ -110,9 +118,7 @@ class ImmoScoutParser(Parser):
                                                   
                 elif section.get("type") == "ATTRIBUTE_LIST" and section.get("title") == "Kosten":
                     for attribute in section.get("attributes", []):
-                        if attribute.get("label") == "Kaufpreis:":
-                            data["price"] = attribute.get("text")
-                        elif attribute.get("label") == "Preis/m²:":
+                        if attribute.get("label") == "Preis/m²:":
                             data["price_m2"] = attribute.get("text")
                         elif attribute.get("label") == "Mieteinnahmen pro Monat:":
                             data["rent_income"] = attribute.get("text")
@@ -123,13 +129,20 @@ class ImmoScoutParser(Parser):
                         elif attribute.get("label") == "Hausgeld:":
                             data["house_money"] = attribute.get("text")
                         elif attribute.get("label") == "Nebenkosten:":
-                            data["rent_extra_costs"] = attribute.get("text")
+                            text = attribute.get("text")
+                            if text is not None:
+                                data["rent_extra_costs"] = float(
+                                    text.replace(".", "").replace(",", ".").replace("€", "").replace("\xa0", "").strip()
+                                )
                         elif attribute.get("label") == "Heizkosten:":
                             data["rent_heating_costs"] = attribute.get("text")
                         elif attribute.get("label") == "Kaution oder Genossenschaftsanteile:":
                             data["rent_deposit"] = attribute.get("text")
 
                 elif section.get("type") == "FINANCE_COSTS":
+                    price_value = section.get("purchasePrice", {}).get("value")
+                    if price_value is not None:
+                        data["price"] = float(price_value)
                     data["incidental_purchase_costs"] = section.get("additionalCosts", {}).get("value")
                     data["total_costs"] = section.get("totalCosts", {}).get("value")
                     data["broker_commision"] = section.get("brokerCommission", {}).get("percentage")

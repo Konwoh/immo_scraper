@@ -143,5 +143,8 @@ configured at `ERROR` level.
 - ImmoWelt has a crawler class but no parser and is not dispatched by
   `CrawlerService` — treat it as unfinished.
 - `retry()` / availability code and the ORM natural keys assume listing fields are
-  stored as **strings** (prices, spaces, etc. are `Mapped[str]`); numeric parsing
-  happens later in the ML cleaners and the predict route.
+  stored as **strings** (`Mapped[str]`); numeric parsing happens later in the ML
+  cleaners and the predict route. **Exceptions:** `price`, `living_space`,
+  `rent_extra_costs` (houses/apartments) and `price`, `space` (property) are
+  `double precision` (`Mapped[float | None]`) — the site parsers cast them to
+  `float` inline, and migration `f3a1c9d24b7e` converted the existing text data.

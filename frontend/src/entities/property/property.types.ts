@@ -9,9 +9,9 @@ export type Property = {
   zip_code?: string | null;
   address?: string | null;
 
-  price?: string | null;
+  price?: string | number | null;
   price_m2?: string | null;
-  space?: string | null;
+  space?: string | number | null;
 
   development?: string | null;
   building_permit?: boolean | null;

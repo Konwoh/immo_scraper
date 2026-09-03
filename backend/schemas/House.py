@@ -11,12 +11,12 @@ class HouseResponse(BaseModel):
     url: str
     estate_type: str | None = None
     listing_type: str | None = None
-    price: str | None = None
+    price: float | None = None
     price_m2: str | None = None
     rent_cold: str | None = None
     rent_complete: str | None = None
     house_money: str | None = None
-    rent_extra_costs: str | None = None
+    rent_extra_costs: float | None = None
     rent_heating_costs: str | None = None
     rent_deposit: str | None = None
     city: str | None = None
@@ -26,7 +26,7 @@ class HouseResponse(BaseModel):
     sleeping_rooms: int | None = None
     bathrooms: int | None = None
     floor: str | None = None
-    living_space: str | None = None
+    living_space: float | None = None
     garage_parking_slots: int | None = None
     lift: bool | None = None
     barrier_free: bool | None = None
