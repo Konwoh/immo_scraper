@@ -105,7 +105,10 @@ class Worker:
                     
                 persisted.is_online = True
                 estate_id = persisted.id
-                        
+
+                if estate_obj is not None and getattr(estate_obj, "images", None):
+                    persisted.images = estate_obj.images
+
                 if isinstance(persisted, House):
                     link_values = {
                         "search_params_id": self.search_params_id,

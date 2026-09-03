@@ -1,5 +1,5 @@
 from typing import List
-from sqlalchemy import ForeignKey, create_engine, UniqueConstraint, DateTime, Enum, insert, CheckConstraint
+from sqlalchemy import ForeignKey, create_engine, UniqueConstraint, DateTime, Enum, insert, CheckConstraint, ARRAY, Text
 from sqlalchemy.orm import DeclarativeBase, declarative_mixin, Mapped, mapped_column, relationship, Session, sessionmaker
 from sqlalchemy.sql import func
 import os
@@ -183,6 +183,7 @@ class RealEstate:
     other_description: Mapped[str] = mapped_column(nullable=True)
     total_costs: Mapped[float] = mapped_column(nullable=True)
     is_online: Mapped[bool] = mapped_column(nullable=False, default=True)
+    images: Mapped[list[str]] = mapped_column(ARRAY(Text), nullable=False, server_default="{}", default=list)
     agency_id: Mapped[int] = mapped_column(ForeignKey("agency.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
@@ -279,6 +280,7 @@ class Property(Base):
     agency_id: Mapped[int] = mapped_column(ForeignKey("agency.id"), nullable=True)
     agency: Mapped[Agency | None] = relationship(back_populates="properties")
     is_online: Mapped[bool] = mapped_column(nullable=False, default=True)
+    images: Mapped[list[str]] = mapped_column(ARRAY(Text), nullable=False, server_default="{}", default=list)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
         

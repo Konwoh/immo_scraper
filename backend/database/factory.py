@@ -40,6 +40,7 @@ class PropertyEstateFactory(PropertyFactory):
             place_description=params.get("place_description"),
             other_description=params.get("other_description"),
             total_costs=to_float(params.get("total_costs")),
+            images = params.get("images"),
             agency=agency,
         )
 
@@ -110,6 +111,7 @@ class EstateFactory(ABC):
             "place_description": params.get("place_description"),
             "other_description": params.get("other_description"),
             "total_costs": to_float(params.get("total_costs")),
+            "images": params.get("images"),
             "agency": agency,
         }
     

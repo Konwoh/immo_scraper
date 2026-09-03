@@ -52,6 +52,8 @@ class ImmoScoutParser(Parser):
         else:
             raise ParsingError("No header found")
         try:
+            data["images"] = []
+            
             for section in payload.get("sections", []):
                 if section.get("type") == "TOP_ATTRIBUTES":
                     for attribute in section.get("attributes", []):
@@ -179,6 +181,11 @@ class ImmoScoutParser(Parser):
                         "rating": section.get("rating", {}).get("value"),
                         "address": section.get("address"),
                         "homepage": homepage,}
+                
+                elif section.get("type") == "MEDIA":
+                    for media in section.get("media", []):
+                        if media.get("type") == "PICTURE":
+                            data["images"].append(media.get("fullImageUrl"))
 
             immotype = payload.get("adTargetingParameters", {}).get("obj_immotype")
             if immotype:

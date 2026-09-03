@@ -1,5 +1,5 @@
 from datetime import datetime
-
+from typing import List
 from pydantic import BaseModel, ConfigDict
 
 
@@ -57,6 +57,7 @@ class ApartmentResponse(BaseModel):
     other_description: str | None = None
     total_costs: float | None = None
     is_online: bool
+    images: List[str] = []
     agency_id: int | None = None
     created_at: datetime
     updated_at: datetime

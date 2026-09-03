@@ -105,6 +105,12 @@ class KleinanzeigenParser(Parser):
                 elif section["localized-label"] == "Angebotsart":
                     data["offer_type"] = section.get("value", [])[0].get("value")
             
+            data["images"] = []
+            for image in payload.get("pictures", {}).get("picture", []) or []:
+                for link in image.get("link", []):
+                    if link.get("rel") == "extraLarge":
+                        data["images"].append(link.get("href"))
+            
             if not data.get("estate_type"):
                 category = payload.get("category", {}).get("id-name", {}).get("value")
                 

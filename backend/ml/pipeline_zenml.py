@@ -80,7 +80,7 @@ def clean_rent_data(data):
         numeric_cols=["living_space", "rent_income", "brokerage_commission", "notary_fees", "land_registry_entry", "energy_demand", "internet_speed_telekom", "house_money", "rent_complete", "rent_cold"],
         american_cols=["energy_demand"],
         bool_cols=["lift", "barrier_free", "garden", "fitted_kitchen", "basement", "rented"],
-        drop_cols=["total_costs", "price_m2", "url", "general_description", "object_description", "place_description", "other_description", "created_at", "updated_at", "city", "address", "incidental_purchase_costs", "property_acquisition_tax", "brokerage_commission", "notary_fees", "land_registry_entry", "price", "price_m2", "agency_id", "id", "title", "available_from", "rent_deposit", "ad_type", "listing_type", "rent_extra_costs"],
+        drop_cols=["total_costs", "price_m2", "url", "general_description", "object_description", "place_description", "other_description", "created_at", "updated_at", "city", "address", "incidental_purchase_costs", "property_acquisition_tax", "brokerage_commission", "notary_fees", "land_registry_entry", "price", "price_m2", "agency_id", "id", "title", "available_from", "rent_deposit", "ad_type", "listing_type", "rent_extra_costs", "images"],
         drop_missing=["rent_complete", "estate_type"],
         fill_none_cols=["lift", "barrier_free", "garden", "fitted_kitchen", "basement", "rented", "available_from", "garage_parking_slots", "estate_condition", "interior_quality", "heating_type", "energy_performance_certificate_type", "energy_efficiency_class", "energy_demand", "total_costs", "building_year", "living_space", "rent_cold", "sleeping_rooms", "house_money", "bathrooms", "floor", "energy_source", "internet_speed_telekom"],
     )
@@ -104,7 +104,7 @@ def clean_buy_data(data):
         numeric_cols=["property_space", "price", "living_space", "rent_income", "brokerage_commission", "notary_fees", "land_registry_entry", "energy_demand", "internet_speed_telekom", "house_money", "rent_complete", "rent_cold"],
         american_cols=["energy_demand"],
         bool_cols=["lift", "barrier_free", "garden", "fitted_kitchen", "basement", "rented"],
-        drop_cols=["total_costs", "price_m2", "url", "general_description", "object_description", "place_description", "other_description", "created_at", "updated_at", "city", "address", "incidental_purchase_costs", "property_acquisition_tax", "brokerage_commission", "notary_fees", "land_registry_entry", "agency_id", "id", "title", "available_from", "rent_deposit", "ad_type", "listing_type", "rent_extra_costs"],
+        drop_cols=["total_costs", "price_m2", "url", "general_description", "object_description", "place_description", "other_description", "created_at", "updated_at", "city", "address", "incidental_purchase_costs", "property_acquisition_tax", "brokerage_commission", "notary_fees", "land_registry_entry", "agency_id", "id", "title", "available_from", "rent_deposit", "ad_type", "listing_type", "rent_extra_costs", "images"],
         drop_missing=["estate_type", "price"],
         fill_none_cols=["lift", "barrier_free", "garden", "fitted_kitchen", "basement", "rented", "available_from", "garage_parking_slots", "estate_condition", "interior_quality", "heating_type", "energy_performance_certificate_type", "energy_efficiency_class", "energy_demand", "total_costs", "building_year", "living_space", "rent_cold", "sleeping_rooms", "house_money", "bathrooms", "floor", "energy_source", "internet_speed_telekom"],
     )
