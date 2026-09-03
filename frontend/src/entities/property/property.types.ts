@@ -34,6 +34,8 @@ export type Property = {
   place_description?: string | null;
   other_description?: string | null;
 
+  images?: string[] | null;
+
   agency_id?: number | null;
   is_online: boolean;
 

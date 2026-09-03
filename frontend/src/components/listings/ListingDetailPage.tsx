@@ -22,6 +22,7 @@ type ListingDetailItem = ListingTileItem & {
   source?: string | null;
   sourceUrl?: string | null;
   url?: string | null;
+  images?: string[] | null;
   is_online?: boolean | null;
 };
 
@@ -152,6 +153,8 @@ export function ListingDetailPage<T extends ListingDetailItem>({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [prediction, setPrediction] = useState<PredictionState | null>(null);
+  const [activeImage, setActiveImage] = useState(0);
+  const images = item?.images ?? [];
   const description =
     item?.description ??
     item?.object_description ??
@@ -219,6 +222,7 @@ export function ListingDetailPage<T extends ListingDetailItem>({
 
         if (isMounted) {
           setItem(response);
+          setActiveImage(0);
         }
       } catch (loadError) {
         if (isMounted) {
@@ -277,6 +281,41 @@ export function ListingDetailPage<T extends ListingDetailItem>({
               </p>
             </div>
           </header>
+
+          {images.length > 0 && (
+            <figure className="listing-detail-gallery">
+              <img
+                className="listing-detail-gallery-main"
+                src={images[activeImage] ?? images[0]}
+                alt={formatTitle(item.title)}
+                loading="lazy"
+                decoding="async"
+                referrerPolicy="no-referrer"
+              />
+
+              {images.length > 1 && (
+                <div className="listing-detail-gallery-thumbs">
+                  {images.map((src, index) => (
+                    <button
+                      type="button"
+                      key={`${src}-${index}`}
+                      className={index === activeImage ? "is-active" : undefined}
+                      onClick={() => setActiveImage(index)}
+                      aria-label={`Bild ${index + 1} von ${images.length}`}
+                    >
+                      <img
+                        src={src}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        referrerPolicy="no-referrer"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </figure>
+          )}
 
           <dl className="listing-detail-meta">
             <div>

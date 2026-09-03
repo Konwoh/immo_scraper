@@ -18,6 +18,7 @@ export type ListingTileItem = {
   address?: string | null;
   sourceUrl?: string | null;
   url?: string | null;
+  images?: string[] | null;
 };
 
 type ListingTilesApi<T extends ListingTileItem> = {
@@ -56,6 +57,8 @@ const formatRooms = (rooms?: string | number | null) => rooms ?? "-";
 
 const formatTitle = (title?: string | null) =>
   title?.replace(/\s+/g, " ").trim() || "Ohne Titel";
+
+const firstImage = (images?: string[] | null) => images?.[0] ?? null;
 
 export function ListingTilesPage<T extends ListingTileItem>({
   title,
@@ -144,6 +147,7 @@ export function ListingTilesPage<T extends ListingTileItem>({
         {loading
           ? Array.from({ length: 8 }).map((_, index) => (
               <div className="listing-card listing-card-loading" key={index}>
+                <div className="crud-skeleton listing-card-media-skeleton" />
                 <div className="crud-skeleton listing-card-title-skeleton" />
                 <div className="listing-card-meta">
                   <div className="crud-skeleton" />
@@ -153,9 +157,36 @@ export function ListingTilesPage<T extends ListingTileItem>({
               </div>
             ))
           : data.map((item) => {
+              const imageUrl = firstImage(item.images);
+
               return (
                 <article className="listing-card" key={item.id}>
                   <Link className="listing-card-link" to={getDetailPath(item)}>
+                    <div
+                      className={
+                        imageUrl
+                          ? "listing-card-media"
+                          : "listing-card-media is-empty"
+                      }
+                    >
+                      {imageUrl && (
+                        <img
+                          className="listing-card-image"
+                          src={imageUrl}
+                          alt={formatTitle(item.title)}
+                          loading="lazy"
+                          decoding="async"
+                          referrerPolicy="no-referrer"
+                          onError={(event) => {
+                            event.currentTarget.parentElement?.classList.add(
+                              "is-empty",
+                            );
+                            event.currentTarget.remove();
+                          }}
+                        />
+                      )}
+                    </div>
+
                     <div className="listing-card-header">
                       <h2>{formatTitle(item.title)}</h2>
                       {item.city && <span>{item.city}</span>}

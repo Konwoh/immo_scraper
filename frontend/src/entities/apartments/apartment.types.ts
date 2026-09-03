@@ -33,6 +33,8 @@ export type Apartment = {
   sourceUrl?: string | null;
   url?: string | null;
 
+  images?: string[] | null;
+
   isFavorite?: boolean;
   is_online?: boolean;
 
