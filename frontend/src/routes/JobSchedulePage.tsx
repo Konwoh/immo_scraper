@@ -4,6 +4,7 @@ import { CrudPage, type CrudConfig } from "@/components/crud/CrudPage";
 import { jobScheduleApi } from "@/entities/job_schedule/job_schedule.api";
 import { jobScheduleConfig } from "@/entities/job_schedule/job_schedule.config";
 import type { JobSchedule } from "@/entities/job_schedule/job_schedule.types";
+import { MAX_PAGE_SIZE } from "@/api/pagination";
 import { searchParamsApi } from "@/entities/search_params/search_params.api";
 import type { SearchParams } from "@/entities/search_params/search_params.types";
 
@@ -42,10 +43,15 @@ export function JobSchedulePage({
 
     const loadSearchParams = async () => {
       try {
-        const items = await searchParamsApi.list();
+        // Fetches this dropdown's source list in one page. Same ceiling as
+        // every other paginated list in the app (MAX_PAGE_SIZE); a user with
+        // more search params than that would need proper pager UI here too.
+        const response = await searchParamsApi.list({
+          page_size: MAX_PAGE_SIZE,
+        });
 
         if (isMounted) {
-          setSearchParams(items);
+          setSearchParams(response.items);
         }
       } catch (loadError) {
         if (isMounted) {

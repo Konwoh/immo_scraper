@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Literal
 from datetime import datetime
 
@@ -16,3 +16,15 @@ class JobScheduleUpdateRequest(BaseModel):
     interval: Literal["hourly", "daily", "weekly", "3-hourly", "6-hourly"] | None = None
     enabled: bool | None = None
     next_run: datetime | None = None
+
+
+class JobScheduleResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    search_params_id: int
+    job_type: str
+    interval: str
+    enabled: bool
+    last_run: datetime | None = None
+    next_run: datetime

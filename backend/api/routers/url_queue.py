@@ -1,7 +1,8 @@
 from fastapi import status, HTTPException, Depends, Path, APIRouter
 from backend.database.models import UrlQueue, get_db, SearchParams
 from sqlalchemy.orm import Session
-from backend.schemas.url_queue import UrlQueueRequest
+from backend.schemas.url_queue import UrlQueueRequest, UrlQueueResponse
+from backend.schemas.pagination import Page, PaginationDep, paginate
 from backend.api.auth.oauth2 import get_current_user
 
 router = APIRouter(
@@ -9,12 +10,15 @@ router = APIRouter(
     tags=["URL_Queue"]
 )
 
-@router.get("/", status_code=status.HTTP_200_OK)
-def get_url_queue(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
-    url_queue = (db.query(UrlQueue).join(SearchParams, UrlQueue.search_params_id == SearchParams.id).filter(SearchParams.user_id == current_user.id).all())
-    if url_queue is not None:
-        return url_queue
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No url queue found")
+@router.get("/", status_code=status.HTTP_200_OK, response_model=Page[UrlQueueResponse])
+def get_url_queue(pagination: PaginationDep, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    query = (
+        db.query(UrlQueue)
+        .join(SearchParams, UrlQueue.search_params_id == SearchParams.id)
+        .filter(SearchParams.user_id == current_user.id)
+    )
+
+    return paginate(query, pagination)
 
 @router.get("/{url_queue_id}", status_code=status.HTTP_200_OK)
 def get_url_queue_by_id(db: Session = Depends(get_db), url_queue_id: int = Path(gt=0), current_user = Depends(get_current_user)):

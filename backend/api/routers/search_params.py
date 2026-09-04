@@ -1,7 +1,8 @@
 from fastapi import status, HTTPException, Depends, Path, APIRouter, Response
 from backend.database.models import SearchParams, get_db
 from sqlalchemy.orm import Session
-from backend.schemas.search_params import SearchParamRequest
+from backend.schemas.search_params import SearchParamRequest, SearchParamsResponse
+from backend.schemas.pagination import Page, PaginationDep, paginate
 from backend.api.auth.oauth2 import get_current_user
 
 router = APIRouter(
@@ -9,12 +10,11 @@ router = APIRouter(
     tags=["Search Params"]
 )
 
-@router.get("/", status_code=status.HTTP_200_OK)
-def get_search_params(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
-    search_params = db.query(SearchParams).filter(SearchParams.user_id == current_user.id).all()
-    if search_params is not None:
-        return search_params
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No search params found")
+@router.get("/", status_code=status.HTTP_200_OK, response_model=Page[SearchParamsResponse])
+def get_search_params(pagination: PaginationDep, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    query = db.query(SearchParams).filter(SearchParams.user_id == current_user.id)
+
+    return paginate(query, pagination)
 
 @router.get("/{search_params_id}", status_code=status.HTTP_200_OK)
 def get_search_params_by_id(db: Session = Depends(get_db), search_params_id: int = Path(gt=0), current_user = Depends(get_current_user)):

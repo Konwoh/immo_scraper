@@ -1,3 +1,6 @@
+// Matches backend.schemas.pagination.MAX_RESULTS_PER_PAGE.
+export const MAX_PAGE_SIZE = 50;
+
 export type PaginationParams = {
   page?: number;
   page_size?: number;

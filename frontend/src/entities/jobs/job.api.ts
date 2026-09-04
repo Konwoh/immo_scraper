@@ -1,11 +1,18 @@
 import { apiFetch, API_BASE } from "@/api/client";
+import {
+  buildPaginationQuery,
+  type PaginatedResponse,
+  type PaginationParams,
+} from "@/api/pagination";
 import type { Job } from "./job.types";
 
 const API_URL = `${API_BASE}/jobs`;
 
 export const jobApi = {
-  async list(): Promise<Job[]> {
-    const response = await apiFetch(`${API_URL}/`);
+  async list(params?: PaginationParams): Promise<PaginatedResponse<Job>> {
+    const response = await apiFetch(
+      `${API_URL}/${buildPaginationQuery(params)}`,
+    );
 
     if (!response.ok) {
       throw new Error("Fehler beim Laden");

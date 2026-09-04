@@ -1,7 +1,8 @@
 from fastapi import status, HTTPException, Depends, Path, APIRouter
 from backend.database.models import Job, get_db, SearchParams, UrlQueue, Status
 from sqlalchemy.orm import Session
-from backend.schemas.job import JobRequest
+from backend.schemas.job import JobRequest, JobResponse
+from backend.schemas.pagination import Page, PaginationDep, paginate
 from backend.api.auth.oauth2 import get_current_user
 
 router = APIRouter(
@@ -9,13 +10,15 @@ router = APIRouter(
     tags=["Jobs"]
 )
 
-@router.get("/", status_code=status.HTTP_200_OK)
-def get_jobs(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
-    jobs = (db.query(Job).join(SearchParams, Job.search_params_id == SearchParams.id).filter(SearchParams.user_id == current_user.id).all())
+@router.get("/", status_code=status.HTTP_200_OK, response_model=Page[JobResponse])
+def get_jobs(pagination: PaginationDep, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    query = (
+        db.query(Job)
+        .join(SearchParams, Job.search_params_id == SearchParams.id)
+        .filter(SearchParams.user_id == current_user.id)
+    )
 
-    if jobs is not None:
-        return jobs
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No jobs found")
+    return paginate(query, pagination)
 
 @router.get("/{job_id}", status_code=status.HTTP_200_OK)
 def get_jobs_by_id(db: Session = Depends(get_db), job_id: int = Path(gt=0), current_user = Depends(get_current_user)):

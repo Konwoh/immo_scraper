@@ -1,11 +1,18 @@
 import { apiFetch, API_BASE } from "@/api/client";
+import {
+  buildPaginationQuery,
+  type PaginatedResponse,
+  type PaginationParams,
+} from "@/api/pagination";
 import type { SearchParams } from "./search_params.types";
 
 const API_URL = `${API_BASE}/search_params`;
 
 export const searchParamsApi = {
-  async list(): Promise<SearchParams[]> {
-    const response = await apiFetch(`${API_URL}/`);
+  async list(params?: PaginationParams): Promise<PaginatedResponse<SearchParams>> {
+    const response = await apiFetch(
+      `${API_URL}/${buildPaginationQuery(params)}`,
+    );
 
     if (!response.ok) {
       throw new Error("Fehler beim Laden");

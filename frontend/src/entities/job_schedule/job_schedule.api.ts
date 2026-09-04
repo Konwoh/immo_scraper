@@ -1,4 +1,9 @@
 import { apiFetch, API_BASE } from "@/api/client";
+import {
+  buildPaginationQuery,
+  type PaginatedResponse,
+  type PaginationParams,
+} from "@/api/pagination";
 import type { JobSchedule } from "./job_schedule.types";
 
 const API_URL = `${API_BASE}/jobs_schedules`;
@@ -14,8 +19,10 @@ const toIsoDateTime = (value: string | undefined) => {
 };
 
 export const jobScheduleApi = {
-  async list(): Promise<JobSchedule[]> {
-    const response = await apiFetch(`${API_URL}/`);
+  async list(params?: PaginationParams): Promise<PaginatedResponse<JobSchedule>> {
+    const response = await apiFetch(
+      `${API_URL}/${buildPaginationQuery(params)}`,
+    );
     if (!response.ok) {
       throw new Error("Fehler beim Laden");
     }

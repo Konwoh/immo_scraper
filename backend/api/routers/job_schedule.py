@@ -1,7 +1,8 @@
 from fastapi import status, HTTPException, Depends, Path, APIRouter
 from backend.database.models import JobSchedule, get_db, SearchParams
 from sqlalchemy.orm import Session
-from backend.schemas.job_schedule import JobScheduleRequest, JobScheduleUpdateRequest
+from backend.schemas.job_schedule import JobScheduleRequest, JobScheduleUpdateRequest, JobScheduleResponse
+from backend.schemas.pagination import Page, PaginationDep, paginate
 from backend.api.auth.oauth2 import get_current_user
 
 router = APIRouter(
@@ -9,13 +10,15 @@ router = APIRouter(
     tags=["Jobs Schedule"]
 )
 
-@router.get("/", status_code=status.HTTP_200_OK)
-def get_jobs(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
-    jobs_schedule = (db.query(JobSchedule).join(SearchParams, JobSchedule.search_params_id == SearchParams.id).filter(SearchParams.user_id == current_user.id).all())
+@router.get("/", status_code=status.HTTP_200_OK, response_model=Page[JobScheduleResponse])
+def get_jobs(pagination: PaginationDep, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    query = (
+        db.query(JobSchedule)
+        .join(SearchParams, JobSchedule.search_params_id == SearchParams.id)
+        .filter(SearchParams.user_id == current_user.id)
+    )
 
-    if jobs_schedule is not None:
-        return jobs_schedule
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No jobs schedules found")
+    return paginate(query, pagination)
 
 @router.get("/{job_schedule_id}", status_code=status.HTTP_200_OK)
 def get_jobs_by_id(db: Session = Depends(get_db), job_schedule_id: int = Path(gt=0), current_user = Depends(get_current_user)):
