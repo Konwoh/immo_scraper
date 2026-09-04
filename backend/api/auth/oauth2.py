@@ -19,6 +19,8 @@ REFRESH_TOKEN_COOKIE_NAME = "refresh_token"
 
 if not SECRET_KEY or not REFRESH_SECRET_KEY:
     raise RuntimeError("SECRET_KEY and REFRESH_SECRET_KEY must be set")
+if not ALGORITHM:
+    raise RuntimeError("ALGORITHM must be set")
 if SECRET_KEY == REFRESH_SECRET_KEY:
     raise RuntimeError("SECRET_KEY and REFRESH_SECRET_KEY must differ")
 

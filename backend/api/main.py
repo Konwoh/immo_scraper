@@ -1,6 +1,9 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exception_handlers import http_exception_handler
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from backend.api.rate_limit import limiter
 from backend.api.routers import users, houses, apartments, search_params, jobs, url_queue, auth, job_schedule, property, predict
 from backend.shared.loki_handler import get_loki_logger
 import os
@@ -10,6 +13,11 @@ load_dotenv()
 BASE_URL = os.getenv("BASE_URL")
 api_logger = get_loki_logger("api_logger", {"app": "api", "env": os.getenv("ENV", "dev")})
 app = FastAPI()
+app.state.limiter = limiter
+# Enforces the per-route @limiter.limit(...) decorators (auth.py, predict.py)
+# and formats their 429s. No global default_limits are set, so the
+# SlowAPIMiddleware (which only matters for those) is intentionally omitted.
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
 @app.exception_handler(HTTPException)

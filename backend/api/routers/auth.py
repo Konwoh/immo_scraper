@@ -14,8 +14,10 @@ from backend.api.auth.oauth2 import (
     create_refresh_token,
     get_current_user,
 )
+from backend.api.rate_limit import limiter
 from backend.schemas.token import SessionStatus
 from datetime import datetime, timedelta, timezone
+import hashlib
 import os
 import jwt
 from jwt.exceptions import PyJWTError
@@ -63,6 +65,12 @@ def clear_auth_cookies(response: Response):
         path=COOKIE_PATH,
     )
 
+def _hash_refresh_token(token: str) -> str:
+    # Refresh tokens are stored hashed, never in plaintext: a DB read (e.g. via
+    # the read-only reporting role) must not hand out a usable session token.
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
 def purge_expired_refresh_tokens(db: Session, user_id: int) -> None:
     # expires_at is stored as a naive UTC timestamp, so compare against naive UTC now.
     cutoff = datetime.now(timezone.utc).replace(tzinfo=None)
@@ -78,7 +86,8 @@ def _refresh_token_expiry() -> datetime:
 
 
 @router.post("/login", response_model=SessionStatus)
-def login(response: Response, user_credentials: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def login(request: Request, response: Response, user_credentials: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == user_credentials.username).first()
 
     if not user or not verify_password(user_credentials.password, user.password):
@@ -87,12 +96,13 @@ def login(response: Response, user_credentials: OAuth2PasswordRequestForm = Depe
     access_token = create_access_token({"user_id": user.id})
     refresh_token = create_refresh_token({"user_id": user.id})
     purge_expired_refresh_tokens(db, user.id)
-    db.add(RefreshToken(token=refresh_token, user_id=user.id, expires_at=_refresh_token_expiry()))
+    db.add(RefreshToken(token=_hash_refresh_token(refresh_token), user_id=user.id, expires_at=_refresh_token_expiry()))
     db.commit()
     set_auth_cookies(response, access_token, refresh_token)
     return {"authenticated": True}
 
 @router.post("/token/refresh", response_model=SessionStatus)
+@limiter.limit("30/minute")
 def refresh_token(request: Request, response: Response, db: Session = Depends(get_db)):
     refresh_token_value = request.cookies.get(REFRESH_TOKEN_COOKIE_NAME)
     if not refresh_token_value:
@@ -110,7 +120,7 @@ def refresh_token(request: Request, response: Response, db: Session = Depends(ge
         clear_auth_cookies(response)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
 
-    token_in_db = db.query(RefreshToken).filter(RefreshToken.token == refresh_token_value).first()
+    token_in_db = db.query(RefreshToken).filter(RefreshToken.token == _hash_refresh_token(refresh_token_value)).first()
 
     if not token_in_db:
         clear_auth_cookies(response)
@@ -135,7 +145,7 @@ def refresh_token(request: Request, response: Response, db: Session = Depends(ge
     new_refresh_token = create_refresh_token({"user_id": user.id})
     db.delete(token_in_db)
     purge_expired_refresh_tokens(db, user.id)
-    db.add(RefreshToken(token=new_refresh_token, user_id=user.id, expires_at=_refresh_token_expiry()))
+    db.add(RefreshToken(token=_hash_refresh_token(new_refresh_token), user_id=user.id, expires_at=_refresh_token_expiry()))
     db.commit()
     set_auth_cookies(response, new_access_token, new_refresh_token)
 
@@ -145,7 +155,7 @@ def refresh_token(request: Request, response: Response, db: Session = Depends(ge
 def logout(request: Request, response: Response, db: Session = Depends(get_db)):
     refresh_token_value = request.cookies.get(REFRESH_TOKEN_COOKIE_NAME)
     if refresh_token_value:
-        token_in_db = db.query(RefreshToken).filter(RefreshToken.token == refresh_token_value).first()
+        token_in_db = db.query(RefreshToken).filter(RefreshToken.token == _hash_refresh_token(refresh_token_value)).first()
         if token_in_db:
             db.delete(token_in_db)
             db.commit()

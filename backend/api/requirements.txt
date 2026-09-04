@@ -6,6 +6,7 @@ pydantic[email]
 pwdlib[argon2]
 pyjwt
 python-multipart
+slowapi
 python-dotenv==1.1.0
 requests
 mlflow==3.14
