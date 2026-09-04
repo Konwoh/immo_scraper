@@ -15,7 +15,7 @@ class KleinanzeigenParser(Parser):
         last_string_segment = normal_url.split("/")[-1]
         expose_id = last_string_segment.split("-")[0]
         base_url = f'https://api.kleinanzeigen.de/api/ads/{expose_id}.json'
-        response = requests.get(base_url, headers=headers)
+        response = requests.get(base_url, headers=headers, timeout=10)
         try:
             response.raise_for_status()
         except requests.exceptions.HTTPError as e:

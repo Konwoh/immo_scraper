@@ -14,7 +14,7 @@ class ImmoScoutParser(Parser):
         headers = headers.build_header()
         expose_id = normal_url.split("/")[-1]
         base_url = f'https://api.mobile.immobilienscout24.de/expose/{expose_id}'
-        response = requests.get(base_url, headers=headers)
+        response = requests.get(base_url, headers=headers, timeout=10)
         try:
             response.raise_for_status()
         except requests.exceptions.HTTPError as e:
