@@ -370,7 +370,7 @@ export function ListingDetailPage<T extends ListingDetailItem>({
             </div>
             <div>
               <dt>Fläche</dt>
-              <dd>{formatArea(item.living_space ?? item.size)}</dd>
+              <dd>{formatArea(item.living_space ?? item.size ?? item.space)}</dd>
             </div>
             <div>
               <dt>Zimmer</dt>

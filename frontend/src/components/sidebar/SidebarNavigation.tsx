@@ -24,6 +24,7 @@ const tableNavigationItems: NavigationItem[] = [
 const tileNavigationItems: NavigationItem[] = [
   { label: "Häuser", path: "/tiles/houses" },
   { label: "Wohnungen", path: "/tiles/apartments" },
+  { label: "Favoriten", path: "/tiles/favorites" },
 ];
 
 type SidebarNavigationProps = {

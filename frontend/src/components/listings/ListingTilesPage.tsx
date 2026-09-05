@@ -13,6 +13,7 @@ export type ListingTileItem = {
   price?: string | number | null;
   size?: string | number | null;
   living_space?: string | number | null;
+  space?: string | number | null;
   rooms?: string | number | null;
   city?: string | null;
   address?: string | null;
@@ -199,7 +200,11 @@ export function ListingTilesPage<T extends ListingTileItem>({
                       </div>
                       <div>
                         <dt>Fläche</dt>
-                        <dd>{formatArea(item.living_space ?? item.size)}</dd>
+                        <dd>
+                          {formatArea(
+                            item.living_space ?? item.size ?? item.space,
+                          )}
+                        </dd>
                       </div>
                       <div>
                         <dt>Zimmer</dt>

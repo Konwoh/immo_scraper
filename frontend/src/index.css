@@ -741,6 +741,7 @@ button:disabled {
 }
 
 .listing-card {
+  position: relative;
   display: grid;
   min-height: 210px;
   gap: 18px;
@@ -1032,6 +1033,17 @@ button:disabled {
 .favorite-button.is-favorite {
   color: var(--accent);
   border-color: var(--accent);
+}
+
+.favorite-button-overlay {
+  position: absolute;
+  z-index: 1;
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.16);
 }
 
 .listing-detail-meta {

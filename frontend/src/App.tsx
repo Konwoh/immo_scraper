@@ -10,6 +10,11 @@ import {
   ApartmentTileDetailPage,
   ApartmentTilesPage,
 } from "@/routes/ApartmentTilesPage";
+import {
+  PropertyTileDetailPage,
+  PropertyTilesPage,
+} from "@/routes/PropertyTilesPage";
+import { FavoritesTilesPage } from "@/routes/FavoritesTilesPage";
 import { PropertyPage } from "@/routes/PropertyPage";
 import { JobPage } from "@/routes/JobPage";
 import { JobSchedulePage } from "@/routes/JobSchedulePage";
@@ -94,6 +99,9 @@ function App() {
           <Route path="/tiles/houses/:id" element={<HouseTileDetailPage />} />
           <Route path="/tiles/apartments" element={<ApartmentTilesPage />} />
           <Route path="/tiles/apartments/:id" element={<ApartmentTileDetailPage />}/>
+          <Route path="/tiles/properties" element={<PropertyTilesPage />} />
+          <Route path="/tiles/properties/:id" element={<PropertyTileDetailPage />}/>
+          <Route path="/tiles/favorites" element={<FavoritesTilesPage />} />
           <Route path="/jobs-schedule" element={<JobSchedulePageSingle />} />
           <Route path="/predict" element={<PredictPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

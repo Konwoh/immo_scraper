@@ -6,12 +6,16 @@ type FavoriteButtonProps = {
   estateType: EstateType;
   estateId: number;
   initialIsFavorite: boolean;
+  className?: string;
+  onChange?: (isFavorite: boolean) => void;
 };
 
 export function FavoriteButton({
   estateType,
   estateId,
   initialIsFavorite,
+  className,
+  onChange,
 }: FavoriteButtonProps) {
   const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
   const [pending, setPending] = useState(false);
@@ -31,6 +35,7 @@ export function FavoriteButton({
       } else {
         await favoritesApi.remove(estateType, estateId);
       }
+      onChange?.(nextIsFavorite);
     } catch {
       setIsFavorite(!nextIsFavorite);
     } finally {
@@ -41,7 +46,7 @@ export function FavoriteButton({
   return (
     <button
       type="button"
-      className={`favorite-button${isFavorite ? " is-favorite" : ""}`}
+      className={`favorite-button${isFavorite ? " is-favorite" : ""}${className ? ` ${className}` : ""}`}
       onClick={() => void handleClick()}
       disabled={pending}
       aria-pressed={isFavorite}
