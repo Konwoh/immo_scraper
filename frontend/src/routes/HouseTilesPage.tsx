@@ -19,6 +19,7 @@ export function HouseTileDetailPage() {
       api={houseApi}
       backPath="/tiles/houses"
       backLabel="Häuser"
+      estateType="house"
     />
   );
 }

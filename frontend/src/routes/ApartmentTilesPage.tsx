@@ -19,6 +19,7 @@ export function ApartmentTileDetailPage() {
       api={apartmentApi}
       backPath="/tiles/apartments"
       backLabel="Wohnungen"
+      estateType="apartment"
     />
   );
 }

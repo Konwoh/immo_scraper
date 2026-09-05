@@ -4,6 +4,9 @@ import {
   getPredictionPayloadFromUrl,
   predictPrice,
 } from "@/entities/predict/predict.api";
+import { FavoriteButton } from "@/components/favorites/FavoriteButton";
+import { favoritesApi } from "@/entities/favorites/favorites.api";
+import { ESTATE_FK_FIELD, type EstateType } from "@/entities/favorites/favorites.types";
 import type { ListingTileItem } from "./ListingTilesPage";
 
 type ListingDetailItem = ListingTileItem & {
@@ -34,6 +37,7 @@ type ListingDetailPageProps<T extends ListingDetailItem> = {
   api: ListingDetailApi<T>;
   backPath: string;
   backLabel: string;
+  estateType: EstateType;
 };
 
 type PredictionState = {
@@ -147,6 +151,7 @@ export function ListingDetailPage<T extends ListingDetailItem>({
   api,
   backPath,
   backLabel,
+  estateType,
 }: ListingDetailPageProps<T>) {
   const { id } = useParams();
   const [item, setItem] = useState<T | null>(null);
@@ -154,6 +159,7 @@ export function ListingDetailPage<T extends ListingDetailItem>({
   const [error, setError] = useState<string | null>(null);
   const [prediction, setPrediction] = useState<PredictionState | null>(null);
   const [activeImage, setActiveImage] = useState(0);
+  const [isFavorite, setIsFavorite] = useState<boolean | null>(null);
   const images = item?.images ?? [];
   const description =
     item?.description ??
@@ -246,6 +252,38 @@ export function ListingDetailPage<T extends ListingDetailItem>({
     };
   }, [api, id]);
 
+  useEffect(() => {
+    let isMounted = true;
+    const numericId = Number(id);
+
+    if (!Number.isInteger(numericId) || numericId <= 0) {
+      return;
+    }
+
+    const loadFavoriteStatus = async () => {
+      try {
+        const favorites = await favoritesApi.list();
+        const fkField = ESTATE_FK_FIELD[estateType];
+
+        if (isMounted) {
+          setIsFavorite(
+            favorites.some((favorite) => favorite[fkField] === numericId),
+          );
+        }
+      } catch {
+        if (isMounted) {
+          setIsFavorite(false);
+        }
+      }
+    };
+
+    void loadFavoriteStatus();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [estateType, id]);
+
   return (
     <main className="listing-detail-page">
       <Link className="listing-back-link" to={backPath}>
@@ -280,6 +318,14 @@ export function ListingDetailPage<T extends ListingDetailItem>({
                   .join(", ")}
               </p>
             </div>
+
+            {isFavorite !== null && (
+              <FavoriteButton
+                estateType={estateType}
+                estateId={Number(id)}
+                initialIsFavorite={isFavorite}
+              />
+            )}
           </header>
 
           {images.length > 0 && (

@@ -1003,6 +1003,37 @@ button:disabled {
   gap: 18px;
 }
 
+.favorite-button {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-h);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.favorite-button:hover {
+  border-color: var(--accent);
+}
+
+.favorite-button:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.favorite-button.is-favorite {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 .listing-detail-meta {
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 }

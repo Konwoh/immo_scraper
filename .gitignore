@@ -5,5 +5,5 @@ __pycache__
 /analyze
 *.csv
 /.zen
-/plan
+*/plan
 *.ipynb

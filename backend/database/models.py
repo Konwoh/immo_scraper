@@ -283,7 +283,29 @@ class Property(Base):
     images: Mapped[list[str]] = mapped_column(ARRAY(Text), nullable=False, server_default="{}", default=list)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
-        
+
+class Favorite(Base):
+    __tablename__ = "favorites"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    house_id: Mapped[int] = mapped_column(ForeignKey("houses.id", ondelete="CASCADE"), nullable=True)
+    apartment_id: Mapped[int] = mapped_column(ForeignKey("apartments.id", ondelete="CASCADE"), nullable=True)
+    property_id: Mapped[int] = mapped_column(ForeignKey("property.id", ondelete="CASCADE"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "house_id", name="uq_favorite_house"),
+        UniqueConstraint("user_id", "apartment_id", name="uq_favorite_apartment"),
+        UniqueConstraint("user_id", "property_id", name="uq_favorite_property"),
+        CheckConstraint(
+            "(house_id IS NOT NULL AND apartment_id IS NULL AND property_id is NULL) OR "
+            "(house_id IS NULL AND apartment_id IS NOT NULL AND property_id is NULL) OR "
+            "(house_id IS NULL AND apartment_id IS NULL AND property_id IS NOT NULL)",
+            name="ck_favorite_exactly_one_estate"
+        ),
+    )
+
 if __name__ == '__main__':
     Base.metadata.create_all(engine)
     with Session(engine) as session:
