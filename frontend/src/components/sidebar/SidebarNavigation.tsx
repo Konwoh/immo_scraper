@@ -24,6 +24,7 @@ const tableNavigationItems: NavigationItem[] = [
 const tileNavigationItems: NavigationItem[] = [
   { label: "Häuser", path: "/tiles/houses" },
   { label: "Wohnungen", path: "/tiles/apartments" },
+  { label: "Grunstücke", path: "/tiles/properties" },
   { label: "Favoriten", path: "/tiles/favorites" },
 ];
 
