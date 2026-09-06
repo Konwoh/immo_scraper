@@ -246,7 +246,7 @@ class DataCleaner:
     # ----------------
     # Main Pipeline
     # ----------------
-    def preprocessing(self, df: pd.DataFrame) -> pd.DataFrame|None:
+    def preprocessing(self, df: pd.DataFrame, remove_outliers: bool) -> pd.DataFrame|None:
         try:
             df = df.copy()
             df = df[df["ad_type"] == "OFFERED"]
@@ -287,7 +287,8 @@ class DataCleaner:
 
             df = self._drop_columns(df)
             df = self._drop_missing_values(df, self.drop_missing)
-            df = self._remove_outliers(df, exclude_items=["internet_speed_telekom"])
+            if remove_outliers:
+                df = self._remove_outliers(df, exclude_items=["internet_speed_telekom"])
             
             return df
         

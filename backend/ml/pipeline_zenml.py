@@ -88,8 +88,8 @@ def clean_rent_data(data):
     df_houses_rent = data_cleaner_rent.filter_listing_types(df_houses, data_cleaner_rent.RENT_LISTING_TYPES)
     df_apartments_rent = data_cleaner_rent.filter_listing_types(df_apartments, data_cleaner_rent.RENT_LISTING_TYPES)
 
-    df_apartments_rent = data_cleaner_rent.preprocessing(df_apartments_rent)
-    df_houses_rent = data_cleaner_rent.preprocessing(df_houses_rent)
+    df_apartments_rent = data_cleaner_rent.preprocessing(df_apartments_rent, True)
+    df_houses_rent = data_cleaner_rent.preprocessing(df_houses_rent, True)
 
     return data_cleaner_rent.postprocessing(df_apartments_rent, df_houses_rent)
 
@@ -112,8 +112,8 @@ def clean_buy_data(data):
     df_houses_buy = data_cleaner_buy.filter_listing_types(df_houses, data_cleaner_buy.BUY_LISTING_TYPES)
     df_apartments_buy = data_cleaner_buy.filter_listing_types(df_apartments, data_cleaner_buy.BUY_LISTING_TYPES)
 
-    df_apartments_buy = data_cleaner_buy.preprocessing(df_apartments_buy)
-    df_houses_buy = data_cleaner_buy.preprocessing(df_houses_buy)
+    df_apartments_buy = data_cleaner_buy.preprocessing(df_apartments_buy, True)
+    df_houses_buy = data_cleaner_buy.preprocessing(df_houses_buy, True)
 
     df_buy = data_cleaner_buy.postprocessing(df_apartments_buy, df_houses_buy)
     data_cleaner_buy.store_in_db(df_buy)
