@@ -15,8 +15,8 @@ def _fill_with_numeric_mean(df: pd.DataFrame, col: str) -> pd.Series:
 
 
 class DataCleaner:
-    BUY_LISTING_TYPES = ["Eigentumswohnungen", "wohnung_kauf", "haus_kauf"]
-    RENT_LISTING_TYPES = ["Mietwohnungen", "wohnung_miete", "haus_miete"]
+    BUY_LISTING_TYPES = ["Eigentumswohnungen", "wohnung_kauf", "haus_kauf", "Wohnung_kaufen", "Haus_kaufen"]
+    RENT_LISTING_TYPES = ["Mietwohnungen", "wohnung_miete", "haus_miete", "Wohnung_mieten", "Haus_mieten"]
     
     DEFAULT_FILL_STRATEGIES = {
         "available_from": lambda df, col: df[col].fillna(datetime.now()),
