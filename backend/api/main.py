@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from backend.api.rate_limit import limiter
-from backend.api.routers import users, houses, apartments, search_params, jobs, url_queue, auth, job_schedule, property, predict, favorites
+from backend.api.routers import users, houses, apartments, search_params, jobs, url_queue, auth, job_schedule, property, predict, favorites, recommendation
 from backend.shared.loki_handler import get_loki_logger
 import os
 from dotenv import load_dotenv
@@ -39,6 +39,7 @@ app.include_router(job_schedule.router)
 app.include_router(property.router)
 app.include_router(predict.router)
 app.include_router(favorites.router)
+app.include_router(recommendation.router)
 
 
 origins = [

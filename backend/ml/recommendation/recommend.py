@@ -9,7 +9,7 @@ import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import StandardScaler
 from sqlalchemy.engine import Engine
-from shared.exceptions import NoFavoritesError
+from backend.shared.exceptions import NoFavoritesError
 
 from backend.ml.preprocessing.data_cleaner import DataCleaner
 from backend.ml.preprocessing.data_loader import DataLoader
