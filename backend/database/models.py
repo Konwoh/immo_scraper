@@ -6,6 +6,7 @@ import os
 from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 import enum
+from dataclasses import dataclass
 
 load_dotenv()
 
@@ -28,6 +29,16 @@ class Status(enum.Enum):
     processing = "processing"
     done = "done"
     failed = "failed"
+
+@dataclass(frozen=True)
+class Recommendation:
+    """Ein einzelnes Empfehlungsergebnis."""
+
+    id: int
+    title: str
+    url: str
+    price: float | None
+    similarity: float
 
 class RefreshToken(Base):
     __tablename__ = "refresh_tokens"

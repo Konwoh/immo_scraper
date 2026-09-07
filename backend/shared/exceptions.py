@@ -20,3 +20,6 @@ class RequestError(Exception):
         self.message = message
         self.status_code = status_code
         super().__init__(self.message)
+
+class NoFavoritesError(Exception):
+    """Der Nutzer hat keine nutzbaren Kauf-Favoriten des angefragten Estate-Typs."""
