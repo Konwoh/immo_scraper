@@ -18,6 +18,26 @@ class DataLoader:
         stmt = text(f"SELECT {fk} FROM favorites WHERE user_id = :uid AND {fk} IS NOT NULL")
         rows = pd.read_sql(sql=stmt, con=self.engine, params={"uid": user_id})
         return set(rows[fk].astype(int))
+
+    def load_visible_from_db(self, estate: str, user_id: int) -> pd.DataFrame:
+        """Alle fuer den Nutzer sichtbaren Objekte (aus seinen Suchen) plus dessen
+        Favoriten -- damit die Favoriten garantiert in der Feature-Matrix landen.
+        `estate` / `fk` stammen aus kontrollierten Dicts, kein User-Input."""
+        fk = _FAVORITE_FK[estate]
+        stmt = text(
+            f"""
+            SELECT e.* FROM {estate} e
+            WHERE e.id IN (
+                SELECT sr.{fk} FROM search_results sr
+                JOIN search_params sp ON sp.id = sr.search_params_id
+                WHERE sp.user_id = :uid AND sr.{fk} IS NOT NULL
+                UNION
+                SELECT f.{fk} FROM favorites f
+                WHERE f.user_id = :uid AND f.{fk} IS NOT NULL
+            )
+            """
+        )
+        return pd.read_sql(sql=stmt, con=self.engine, params={"uid": user_id})
     
     def load_house_favorites_from_db(self) -> pd.DataFrame:
         sql_stmt = f"SELECT h.* FROM favorites f LEFT JOIN houses h ON h.id = f.house_id where f.house_id IS NOT Null"

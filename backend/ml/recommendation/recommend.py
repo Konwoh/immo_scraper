@@ -1,7 +1,6 @@
 import logging
 import threading
 import time
-from dataclasses import dataclass
 from typing import Iterable
 
 import numpy as np
@@ -29,6 +28,7 @@ class PropertyRecommender:
         self,
         engine: Engine,
         estate: str,
+        user_id: int,
         *,
         alpha: float = 0.5,
         max_features: int = 2000,
@@ -41,6 +41,7 @@ class PropertyRecommender:
 
         self.engine = engine
         self.estate = estate
+        self.user_id = user_id
         self.alpha = alpha
         self.max_features = max_features
         self.min_frequency = min_frequency
@@ -97,7 +98,10 @@ class PropertyRecommender:
     def _build(self) -> None:
         cleaner = self._build_cleaner()
 
-        df = self._loader.load_from_db(self.estate)
+        # Nur die fuer diesen Nutzer sichtbaren Objekte (+ seine Favoriten) laden.
+        # -> jede Empfehlung liegt im SearchResults-Set des Nutzers, GET /houses/{id}
+        #    liefert 200 statt 403.
+        df = self._loader.load_visible_from_db(self.estate, self.user_id)
         df = cleaner.filter_listing_types(df, cleaner.BUY_LISTING_TYPES)
 
         # id / is_online liegen in drop_cols -> vor preprocessing nach Index sichern.
@@ -209,8 +213,8 @@ class PropertyRecommender:
             )
         return results
 
-    def recommend_for_user(self, user_id: int, top_n: int = 20) -> list[Recommendation]:
-        favorite_ids = self._loader.load_favorite_ids(self.estate, user_id)
+    def recommend_for_user(self, top_n: int = 20) -> list[Recommendation]:
+        favorite_ids = self._loader.load_favorite_ids(self.estate, self.user_id)
         return self.recommend(favorite_ids, top_n)
 
 
@@ -218,27 +222,36 @@ class PropertyRecommender:
 # Prozess-lokale Factory mit TTL-Cache
 # ----------------------------------------------------------------------
 _TTL_SECONDS = 3600
-_cache: dict[str, PropertyRecommender] = {}
+_cache: dict[tuple[str, int], PropertyRecommender] = {}
 _lock = threading.Lock()
 
 
 def get_recommender(
     estate: str,
+    user_id: int,
     *,
     engine: Engine | None = None,
     **kwargs,
 ) -> PropertyRecommender:
+    """Gecachter Recommender pro (estate, user_id).
+
+    Der Aufbau ist teuer (sichtbaren Katalog laden + fitten), deshalb wird pro
+    Nutzer und Estate-Typ eine Instanz fuer ``_TTL_SECONDS`` gehalten. Follow-up:
+    bei vielen Nutzern waechst der Cache linear -- dann ein Max-Entries-Limit
+    ergaenzen.
+    """
+    key = (estate, user_id)
     with _lock:
-        inst = _cache.get(estate)
+        inst = _cache.get(key)
         if inst is not None and time.monotonic() - inst.built_at < _TTL_SECONDS:
             return inst
 
-        _cache.pop(estate, None)  # alte Matrix vor dem Neubau freigeben
+        _cache.pop(key, None)  # alte Matrix vor dem Neubau freigeben
         if engine is None:
             from backend.database.models import engine as shared_engine
 
             engine = shared_engine
 
-        inst = PropertyRecommender(engine, estate, **kwargs)
-        _cache[estate] = inst
+        inst = PropertyRecommender(engine, estate, user_id, **kwargs)
+        _cache[key] = inst
         return inst

@@ -46,7 +46,7 @@ def get_recommendations(
     Ohne nutzbare Favoriten wird ``{"count": 0, "items": []}`` zurueckgegeben.
     """
     try:
-        recommender = get_recommender(_ESTATE_TABLE[estate_type])
+        recommender = get_recommender(_ESTATE_TABLE[estate_type], current_user.id)
     except HTTPException:
         raise
     except Exception as exc:  # ValueError (NaN-Matrix), DB-Fehler, ...
@@ -61,7 +61,9 @@ def get_recommendations(
     try:
         # Hinweis: recommend_for_user liest die Favoriten-IDs ueber die geteilte
         # engine, nicht ueber diese Request-Session -- fuer einen GET irrelevant.
-        results = recommender.recommend_for_user(current_user.id, top_n=top_n)
+        # Invariante: recommend() schliesst Favoriten aus -> jede zurueckgegebene
+        # id stammt aus dem SearchResults-Set des Nutzers -> GET /houses/{id} 200.
+        results = recommender.recommend_for_user(top_n=top_n)
     except NoFavoritesError:
         return RecommendationResponse(count=0, items=[])
 
