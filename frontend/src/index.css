@@ -1046,6 +1046,21 @@ button:disabled {
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.16);
 }
 
+.listing-card-similarity {
+  position: absolute;
+  z-index: 1;
+  top: 14px;
+  left: 14px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+}
+
 .listing-detail-meta {
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 }

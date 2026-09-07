@@ -28,6 +28,11 @@ const tileNavigationItems: NavigationItem[] = [
   { label: "Favoriten", path: "/tiles/favorites" },
 ];
 
+const recommendationNavigationItems: NavigationItem[] = [
+  { label: "Häuser", path: "/recommendations/houses" },
+  { label: "Wohnungen", path: "/recommendations/apartments" },
+];
+
 type SidebarNavigationProps = {
   onLogout: () => void;
 };
@@ -36,10 +41,16 @@ export function SidebarNavigation({ onLogout }: SidebarNavigationProps) {
   const location = useLocation();
   const isTablesRoute = location.pathname.startsWith("/tables");
   const isTilesRoute = location.pathname.startsWith("/tiles");
+  const isRecommendationsRoute = location.pathname.startsWith("/recommendations");
   const [isTablesMenuOpen, setIsTablesMenuOpen] = useState(isTablesRoute);
   const [isTilesMenuOpen, setIsTilesMenuOpen] = useState(isTilesRoute);
+  const [isRecommendationsMenuOpen, setIsRecommendationsMenuOpen] = useState(
+    isRecommendationsRoute,
+  );
   const showTablesMenu = isTablesMenuOpen || isTablesRoute;
   const showTilesMenu = isTilesMenuOpen || isTilesRoute;
+  const showRecommendationsMenu =
+    isRecommendationsMenuOpen || isRecommendationsRoute;
 
   return (
     <aside className="sidebar-navigation" aria-label="Hauptnavigation">
@@ -122,6 +133,42 @@ export function SidebarNavigation({ onLogout }: SidebarNavigationProps) {
           {showTilesMenu && (
             <div className="sidebar-submenu">
               {tileNavigationItems.map((item) => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  className={({ isActive }) =>
+                    isActive
+                      ? "sidebar-submenu-item sidebar-submenu-item-active"
+                      : "sidebar-submenu-item"
+                  }
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="sidebar-menu-group">
+          <button
+            type="button"
+            className={
+              isRecommendationsRoute
+                ? "sidebar-menu-item sidebar-menu-item-active"
+                : "sidebar-menu-item"
+            }
+            aria-expanded={showRecommendationsMenu}
+            onClick={() => setIsRecommendationsMenuOpen((isOpen) => !isOpen)}
+          >
+            <span>Empfehlungen</span>
+            <span className="sidebar-menu-chevron" aria-hidden="true">
+              {showRecommendationsMenu ? "⌃" : "⌄"}
+            </span>
+          </button>
+
+          {showRecommendationsMenu && (
+            <div className="sidebar-submenu">
+              {recommendationNavigationItems.map((item) => (
                 <NavLink
                   key={item.path}
                   to={item.path}
