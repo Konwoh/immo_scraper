@@ -1,19 +1,19 @@
 import { apiFetch, API_BASE } from "@/api/client";
+import { type PaginatedResponse, type PaginationParams } from "@/api/pagination";
 import {
-  buildPaginationQuery,
-  type PaginatedResponse,
-  type PaginationParams,
-} from "@/api/pagination";
+  buildEstateListQuery,
+  type EstateFilterValues,
+} from "@/entities/estates/estateFilters";
 import type { Apartment } from "./apartment.types";
 
 const API_URL = `${API_BASE}/apartments`;
 
 export const apartmentApi = {
   async list(
-    params?: PaginationParams,
+    params?: PaginationParams & EstateFilterValues,
   ): Promise<PaginatedResponse<Apartment>> {
     const response = await apiFetch(
-      `${API_URL}/${buildPaginationQuery(params)}`,
+      `${API_URL}/${buildEstateListQuery(params)}`,
     );
 
     if (!response.ok) {

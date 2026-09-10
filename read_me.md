@@ -13,7 +13,6 @@ TO-DO:
 - Machine Learning:
     - Warning in ml_pipeline lösen
     - alle ml modelle sollten auf dem gleichen test_datensatz trainiert werden -> test datensatz in db laden und daraus ziehen
-    - recommender systems trainieren
     - good deal detector
     - generelle Datenanalyse
 

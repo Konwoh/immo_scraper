@@ -2,6 +2,7 @@ from fastapi import status, HTTPException, Depends, Path, APIRouter, Response
 from backend.database.models import Apartment, get_db, SearchParams, SearchResults
 from sqlalchemy.orm import Session
 from backend.api.auth.oauth2 import get_current_user
+from backend.api.filter.apartment_filter import ApartmentFilter, apply_apartment_filter
 from backend.schemas.Apartment import ApartmentResponse
 from backend.schemas.pagination import Page, PaginationDep, paginate
 
@@ -11,7 +12,12 @@ router = APIRouter(
 )
 
 @router.get("/", status_code=status.HTTP_200_OK, response_model=Page[ApartmentResponse])
-def get_apartments(pagination: PaginationDep, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+def get_apartments(
+    pagination: PaginationDep,
+    filters: ApartmentFilter = Depends(),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
     apartment_ids = (
         db.query(SearchResults.apartment_id)
         .join(SearchParams, SearchResults.search_params_id == SearchParams.id)
@@ -19,12 +25,9 @@ def get_apartments(pagination: PaginationDep, db: Session = Depends(get_db), cur
     )
 
     query = db.query(Apartment).filter(Apartment.id.in_(apartment_ids))
-    
-    apartments = paginate(query, pagination)
-    
-    if apartments is not None:
-        return apartments
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No apartments found") 
+    query = apply_apartment_filter(query, filters)
+
+    return paginate(query, pagination)
 
 @router.get("/{apartment_id}", status_code=status.HTTP_200_OK, response_model=ApartmentResponse)
 def get_apartment_by_id(db: Session = Depends(get_db), apartment_id: int = Path(gt=0), current_user = Depends(get_current_user)):

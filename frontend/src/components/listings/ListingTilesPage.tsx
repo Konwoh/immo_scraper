@@ -6,6 +6,11 @@ import {
   type PaginatedResponse,
   type PaginationParams,
 } from "@/api/pagination";
+import type {
+  EstateFilterValues,
+  EstateTypeOption,
+} from "@/entities/estates/estateFilters";
+import { ListingFilterBar } from "./ListingFilterBar";
 
 export type ListingTileItem = {
   id: number;
@@ -23,13 +28,21 @@ export type ListingTileItem = {
 };
 
 type ListingTilesApi<T extends ListingTileItem> = {
-  list: (params?: PaginationParams) => Promise<ListResponse<T>>;
+  list: (
+    params?: PaginationParams & EstateFilterValues,
+  ) => Promise<ListResponse<T>>;
+};
+
+type ListingFilterOptions = {
+  estateTypeLabel: string;
+  estateTypeOptions: EstateTypeOption[];
 };
 
 type ListingTilesPageProps<T extends ListingTileItem> = {
   title: string;
   api: ListingTilesApi<T>;
   getDetailPath: (item: T) => string;
+  filterOptions?: ListingFilterOptions;
 };
 
 const formatPrice = (price?: string | number | null) => {
@@ -65,9 +78,11 @@ export function ListingTilesPage<T extends ListingTileItem>({
   title,
   api,
   getDetailPath,
+  filterOptions,
 }: ListingTilesPageProps<T>) {
   const [data, setData] = useState<T[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [filters, setFilters] = useState<EstateFilterValues>({});
   const [pagination, setPagination] = useState<PaginatedResponse<T> | null>(
     null,
   );
@@ -82,7 +97,7 @@ export function ListingTilesPage<T extends ListingTileItem>({
       setError(null);
 
       try {
-        const response = await api.list({ page: currentPage });
+        const response = await api.list({ page: currentPage, ...filters });
 
         if (!isMounted) {
           return;
@@ -91,7 +106,6 @@ export function ListingTilesPage<T extends ListingTileItem>({
         if (isPaginatedResponse(response)) {
           setData(response.items);
           setPagination(response);
-          setCurrentPage(response.current_page);
           return;
         }
 
@@ -117,14 +131,25 @@ export function ListingTilesPage<T extends ListingTileItem>({
     return () => {
       isMounted = false;
     };
-  }, [api, currentPage]);
+  }, [api, currentPage, filters]);
 
   const totalPages = pagination?.total_pages ?? 1;
   const totalItems = pagination?.total_items ?? data.length;
   const loadedItems = pagination?.current_page_size ?? data.length;
+  const displayPage = pagination?.current_page ?? currentPage;
 
   const handlePageChange = (page: number) => {
     setCurrentPage(Math.min(Math.max(page, 1), totalPages));
+  };
+
+  const handleApplyFilters = (next: EstateFilterValues) => {
+    setFilters(next);
+    setCurrentPage(1);
+  };
+
+  const handleResetFilters = () => {
+    setFilters({});
+    setCurrentPage(1);
   };
 
   return (
@@ -137,6 +162,16 @@ export function ListingTilesPage<T extends ListingTileItem>({
           </p>
         </div>
       </header>
+
+      {filterOptions && (
+        <ListingFilterBar
+          estateTypeLabel={filterOptions.estateTypeLabel}
+          estateTypeOptions={filterOptions.estateTypeOptions}
+          value={filters}
+          onApply={handleApplyFilters}
+          onReset={handleResetFilters}
+        />
+      )}
 
       {error && (
         <p className="crud-error" role="alert">
@@ -227,14 +262,14 @@ export function ListingTilesPage<T extends ListingTileItem>({
 
       <footer className="listing-pagination">
         <p>
-          Seite {currentPage} von {totalPages}
+          Seite {displayPage} von {totalPages}
         </p>
 
         <div className="crud-pagination">
           <button
             type="button"
-            disabled={currentPage <= 1}
-            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={displayPage <= 1}
+            onClick={() => handlePageChange(displayPage - 1)}
             className="crud-icon-button"
             aria-label="Vorherige Seite"
           >
@@ -243,8 +278,8 @@ export function ListingTilesPage<T extends ListingTileItem>({
 
           <button
             type="button"
-            disabled={currentPage >= totalPages}
-            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={displayPage >= totalPages}
+            onClick={() => handlePageChange(displayPage + 1)}
             className="crud-icon-button"
             aria-label="Nächste Seite"
           >

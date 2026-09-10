@@ -39,12 +39,6 @@ def get_recommendations(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> RecommendationResponse:
-    """Content-based Empfehlungen fuer den eingeloggten Nutzer.
-
-    Basis sind die Kauf-Favoriten des Nutzers des gewaehlten Typs; empfohlen wird
-    aus dem gesamten Katalog (ohne bereits favorisierte oder offline Objekte).
-    Ohne nutzbare Favoriten wird ``{"count": 0, "items": []}`` zurueckgegeben.
-    """
     try:
         recommender = get_recommender(_ESTATE_TABLE[estate_type], current_user.id)
     except HTTPException:
@@ -59,10 +53,6 @@ def get_recommendations(
         ) from exc
 
     try:
-        # Hinweis: recommend_for_user liest die Favoriten-IDs ueber die geteilte
-        # engine, nicht ueber diese Request-Session -- fuer einen GET irrelevant.
-        # Invariante: recommend() schliesst Favoriten aus -> jede zurueckgegebene
-        # id stammt aus dem SearchResults-Set des Nutzers -> GET /houses/{id} 200.
         results = recommender.recommend_for_user(top_n=top_n)
     except NoFavoritesError:
         return RecommendationResponse(count=0, items=[])
